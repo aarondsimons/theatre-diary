@@ -777,6 +777,23 @@ function letterGrade(r) {
   for (const [v, g] of grades) { const d = Math.abs(r - v); if (d < bestDiff) { bestDiff = d; best = [v, g]; } }
   return best[1];
 }
+function avgLetterGrade(avg) {
+  if (avg == null) return '';
+  const score = avg * 10 + 50;
+  if (score >= 97) return 'A+';
+  if (score >= 93) return 'A';
+  if (score >= 90) return 'A-';
+  if (score >= 87) return 'B+';
+  if (score >= 83) return 'B';
+  if (score >= 80) return 'B-';
+  if (score >= 77) return 'C+';
+  if (score >= 73) return 'C';
+  if (score >= 70) return 'C-';
+  if (score >= 67) return 'D+';
+  if (score >= 65) return 'D';
+  if (score >= 60) return 'F';
+  return 'F';
+}
 function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function render() {
@@ -813,7 +830,7 @@ function renderStats() {
     <div class="sec-hd"><h2>At a glance</h2><div class="rule"></div></div>
     <section class="stats">
       <div class="stat"><div class="stat-label">Total</div><div class="stat-v">${total}</div><div class="stat-sub">performances</div></div>
-      <div class="stat"><div class="stat-label">Average rating</div><div class="stat-v">${avg != null ? avg.toFixed(2) : "—"}<span class="u">/5</span></div><div class="stat-sub" style="color:var(--accent)">${avg != null ? stars(avg) : ""}</div></div>
+      <div class="stat"><div class="stat-label">Average rating</div><div class="stat-v">${avg != null ? avg.toFixed(2) : "—"}<span class="u">/5</span></div><div class="stat-sub">${avg != null ? `<span class="grade-pill" data-grade="${avgLetterGrade(avg)}" style="font-size:14px;padding:2px 8px">${avgLetterGrade(avg)}</span>` : ""}</div></div>
       <div class="stat"><div class="stat-label">This year (${thisYear})</div><div class="stat-v">${tyCount}</div><div class="stat-sub">so far</div></div>
       <div class="stat"><div class="stat-label">Top venue</div><div class="stat-v" style="${topVenue && /[֐-׿]/.test(topVenue[0]) ? 'font-size:28px;line-height:1.1;font-family:var(--ff-heb-serif);font-weight:700;' : 'font-size:22px;line-height:1.15;'}">${topVenue ? esc(topVenue[0]) : "—"}</div><div class="stat-sub">${topVenue ? `<strong>${topVenue[1]}</strong> visits` : "—"}</div></div>
       <div class="stat"><div class="stat-label">Busiest month</div><div class="stat-v" style="font-size:22px;line-height:1.15;">${bigMonth}</div><div class="stat-sub"><strong>${bigCount}</strong> performances</div></div>
