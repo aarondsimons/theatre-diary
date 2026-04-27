@@ -8,12 +8,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=Assistant:wght@400;500;600;700&family=Google+Sans:wght@400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <script>
-const TWEAKS = /*EDITMODE-BEGIN*/{
-  "density": "spacious",
-  "showStats": true,
-  "showSeatMap": true,
-  "accent": "indigo"
-}/*EDITMODE-END*/;
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1FXASLMEeovADIFo8akP8G1aNCOl_r12RfCgla-jIWBRWW2Ie7rYpTBr1a2bvEd0FlQXnBj/pub?output=csv";
 </script>
 <style>
@@ -40,7 +34,6 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     --row-pad: 18px;
     --radius: 10px;
   }
-  [data-density="compact"] { --pad: 32px; --row-pad: 10px; --gap: 16px; }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -236,8 +229,6 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     display: grid; place-items: center;
     color: var(--ink-4); font-size: 18px;
   }
-  [data-density="compact"] .rep-thumb { width: 40px; }
-  [data-density="compact"] .rep-thumb.empty { height: 60px; }
   .rep-date {
     font-size: 12px; color: var(--ink-3);
     font-variant-numeric: tabular-nums;
@@ -248,7 +239,6 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     line-height: 1.25;
     transition: color 0.15s;
   }
-  [data-density="compact"] .rep-title { font-size: 15px; }
   .rep-title .by {
     display: block; font-family: var(--ff-serif);
     font-size: 13px; font-style: italic; font-weight: 400;
@@ -270,7 +260,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     font-size: 10px; font-weight: 700;
     background: var(--accent); color: #fff;
     padding: 1px 5px; border-radius: 3px;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.02em; direction: ltr;
   }
   .grade-pill[data-grade="A+"] { background:#1b5e20; color:#e8f5e9; }
   .grade-pill[data-grade="A"]  { background:#2e7d32; color:#f1f8e9; }
@@ -507,41 +497,19 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     border-radius: 8px; padding: 10px 14px;
     box-shadow: var(--shadow-md);
     font-size: 13px; pointer-events: none;
-    max-width: 280px;
+    width: 260px;
     display: none;
   }
   .sm-tooltip.open { display: block; }
-  .sm-tt-title { font-weight: 600; font-family: var(--ff-serif); font-size: 15px; line-height: 1.2; }
-  .sm-tt-sub { color: var(--ink-3); font-size: 12px; margin-top: 2px; }
-  .sm-tt-meta { display: flex; gap: 10px; margin-top: 8px; font-size: 11px; color: var(--ink-2); }
-  .sm-tt-rating { color: var(--accent); font-weight: 600; }
-  .sm-tt-more { color: var(--ink-3); font-size: 11px; margin-top: 6px; font-style: italic; }
+  .sm-tt-card { display: flex; gap: 10px; align-items: flex-start; }
+  .sm-tt-thumb { width: 44px; height: auto; border-radius: 3px; flex-shrink: 0; display: block; }
+  .sm-tt-thumb-empty { width: 44px; height: 60px; background: var(--panel-2); border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--ink-4); }
+  .sm-tt-card-info { flex: 1; min-width: 0; }
+  .sm-tt-title { font-weight: 600; font-family: var(--ff-serif); font-size: 14px; line-height: 1.3; }
+  .sm-tt-sub { color: var(--ink-3); font-size: 11px; margin-top: 3px; }
+  .sm-tt-rating { color: var(--accent); font-size: 11px; margin-top: 3px; }
+  .sm-tt-sep { border-top: 1px solid var(--rule); margin: 8px 0; }
 
-  /* Tweaks */
-  .tweaks {
-    position: fixed; bottom: 20px; right: 20px; width: 260px;
-    background: var(--panel); border: 1px solid var(--rule);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-md);
-    padding: 16px 18px;
-    z-index: 200;
-    display: none;
-  }
-  .tweaks.open { display: block; }
-  .tweaks h4 { margin: 0 0 14px; font-size: 14px; font-weight: 600; font-family: var(--ff-serif); }
-  .tw-group { margin-bottom: 14px; }
-  .tw-group:last-child { margin-bottom: 0; }
-  .tw-label { font-size: 11px; color: var(--ink-3); margin-bottom: 6px; font-weight: 500; }
-  .tw-opts { display: flex; gap: 5px; flex-wrap: wrap; }
-  .tw-opt {
-    background: var(--panel-2); border: 1px solid var(--rule);
-    color: var(--ink-2); font: inherit; font-size: 11px;
-    padding: 5px 9px; border-radius: 6px; cursor: pointer;
-  }
-  .tw-opt:hover { border-color: var(--ink-4); }
-  .tw-opt.active { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .tw-swatch { width: 22px; height: 22px; border-radius: 50%; padding: 0; border-width: 2px; }
-  .tw-swatch.active { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--ink); }
 
   @media (max-width: 900px) {
     :root { --pad: 20px; }
@@ -556,8 +524,6 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     .hd-title h1 { font-size: 32px; }
     .playbill { padding: 28px 22px; }
     .pb-title { font-size: 26px; }
-    .cal-row { flex-direction: column; align-items: stretch; gap: 8px; }
-    .cal-year { width: auto; }
   }
 </style>
 </head>
@@ -587,30 +553,6 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     </article>
   </div>
 
-  <div class="tweaks" id="tweaks">
-    <h4>Tweaks</h4>
-    <div class="tw-group">
-      <div class="tw-label">Density</div>
-      <div class="tw-opts" id="tw-density">
-        <button class="tw-opt" data-val="spacious">Spacious</button>
-        <button class="tw-opt" data-val="compact">Compact</button>
-      </div>
-    </div>
-    <div class="tw-group">
-      <div class="tw-label">Stats section</div>
-      <div class="tw-opts" id="tw-stats">
-        <button class="tw-opt" data-val="true">Show</button>
-        <button class="tw-opt" data-val="false">Hide</button>
-      </div>
-    </div>
-    <div class="tw-group">
-      <div class="tw-label">Seat map</div>
-      <div class="tw-opts" id="tw-seatmap">
-        <button class="tw-opt" data-val="true">Show</button>
-        <button class="tw-opt" data-val="false">Hide</button>
-      </div>
-    </div>
-  </div>
 
   <div class="sm-tooltip" id="sm-tt"></div>
 
@@ -782,7 +724,7 @@ function buildEntries(rows) {
 
 // ───────────── State + render ─────────────
 let ENTRIES = [];
-let VIEW = { sort: "date-desc", search: "", limit: 30, activeTagByGroup: {}, mode: "list", hideFuture: true };
+let VIEW = { sort: "date-desc", search: "", limit: 10, activeTagByGroup: {}, mode: "list", hideFuture: true };
 
 async function load() {
   try {
@@ -833,13 +775,13 @@ function render() {
   document.getElementById("hd-last").textContent = dated[0] ? `Last: ${fmtDate(dated[0].date)}` : "no dates";
   if (!total) { main.innerHTML = `<div class="errstate">Diary is empty.</div>`; return; }
   const parts = [];
-  if (TWEAKS.showStats) parts.push(renderStats());
+  parts.push(renderStats());
   parts.push(renderRepertoire());
   parts.push(renderBoards());
-  if (TWEAKS.showSeatMap) parts.push(renderSeatMap());
+  parts.push(renderSeatMap());
   main.innerHTML = parts.join("");
   attachListeners();
-  if (TWEAKS.showSeatMap) initSeatMap();
+  initSeatMap();
 }
 
 function renderStats() {
@@ -979,7 +921,7 @@ function renderRepRows() {
   if (!filtered.length) { rep.innerHTML = `<div class="rep-empty">No entries match that search.</div>`; return; }
   if (VIEW.mode === 'grid') {
     rep.className = 'rep-grid';
-    rep.innerHTML = shown.map(e => {
+    rep.innerHTML = filtered.map(e => {
       const grade = letterGrade(e.rating);
       return `<div class="rep-grid-card${e.isHebrew?' hebrew':''}" data-idx="${ENTRIES.indexOf(e)}">
         <div class="rep-grid-cover${e.coverSrc?'':' empty'}">
@@ -993,10 +935,23 @@ function renderRepRows() {
         </div>
       </div>`;
     }).join('');
-    if (filtered.length > VIEW.limit) {
-      rep.insertAdjacentHTML("afterend", `<button class="show-more">Show ${Math.min(60, filtered.length - VIEW.limit)} more — of ${filtered.length}</button>`);
-      document.querySelector(".show-more").addEventListener("click", () => { VIEW.limit += 60; renderRepRows(); });
-    }
+    requestAnimationFrame(() => {
+      const cards = Array.from(rep.querySelectorAll('.rep-grid-card'));
+      if (!cards.length) return;
+      const firstTop = cards[0].offsetTop;
+      const cols = cards.filter(c => c.offsetTop === firstTop).length || 1;
+      let visible = Math.min(cols * 2, cards.length);
+      const updateGrid = () => {
+        document.querySelector('.show-more')?.remove();
+        cards.forEach((c, i) => { c.style.display = i < visible ? '' : 'none'; });
+        if (visible < cards.length) {
+          const next = Math.min(cols, cards.length - visible);
+          rep.insertAdjacentHTML('afterend', `<button class="show-more">Show ${next} more — of ${filtered.length}</button>`);
+          document.querySelector('.show-more').addEventListener('click', () => { visible += cols; updateGrid(); });
+        }
+      };
+      updateGrid();
+    });
     return;
   }
   rep.className = 'rep';
@@ -1017,8 +972,8 @@ function renderRepRows() {
     </div>`;
   }).join("");
   if (filtered.length > VIEW.limit) {
-    rep.insertAdjacentHTML("afterend", `<button class="show-more">Show ${Math.min(30, filtered.length - VIEW.limit)} more — of ${filtered.length}</button>`);
-    document.querySelector(".show-more").addEventListener("click", () => { VIEW.limit += 30; renderRepRows(); });
+    rep.insertAdjacentHTML("afterend", `<button class="show-more">Show ${Math.min(10, filtered.length - VIEW.limit)} more — of ${filtered.length}</button>`);
+    document.querySelector(".show-more").addEventListener("click", () => { VIEW.limit += 10; renderRepRows(); });
   }
 }
 
@@ -1026,14 +981,14 @@ function renderTagFilters() {
   const wrap = document.getElementById('tag-filter-wrap');
   if (wrap) wrap.innerHTML = buildTagFilters();
   document.querySelector('.tf-clear')?.addEventListener('click', () => {
-    VIEW.activeTagByGroup = {}; VIEW.limit = 30;
+    VIEW.activeTagByGroup = {}; VIEW.limit = 10;
     renderTagFilters(); renderRepRows();
   });
   document.querySelectorAll('.tf-btn:not(.tf-clear)').forEach(b => b.addEventListener('click', () => {
     const { label, cat } = b.dataset;
     // Radio within group: clicking active deselects, clicking other deselects rest
     VIEW.activeTagByGroup[cat] = VIEW.activeTagByGroup[cat] === label ? null : label;
-    VIEW.limit = 30;
+    VIEW.limit = 10;
     renderTagFilters();
     renderRepRows();
   }));
@@ -1042,28 +997,28 @@ function renderTagFilters() {
 function attachListeners() {
   renderTagFilters();
   renderRepRows();
-  document.getElementById("search")?.addEventListener("input", e => { VIEW.search = e.target.value; VIEW.limit = 30; renderRepRows(); });
+  document.getElementById("search")?.addEventListener("input", e => { VIEW.search = e.target.value; VIEW.limit = 10; renderRepRows(); });
   document.querySelectorAll(".sort button").forEach(b => b.addEventListener("click", () => {
     VIEW.sort = b.dataset.sort; document.querySelectorAll(".sort button").forEach(x => x.classList.toggle("active", x === b));
-    VIEW.limit = 30; renderRepRows();
+    VIEW.limit = 10; renderRepRows();
   }));
   document.getElementById("rep").addEventListener("click", e => {
     const r = e.target.closest(".rep-row, .rep-grid-card"); if (r) openDetail(+r.dataset.idx);
   });
   document.getElementById("vt-list")?.addEventListener("click", () => {
-    VIEW.mode = "list"; VIEW.limit = 30;
+    VIEW.mode = "list"; VIEW.limit = 10;
     document.getElementById("vt-list").classList.add("active");
     document.getElementById("vt-grid").classList.remove("active");
     renderRepRows();
   });
   document.getElementById("vt-grid")?.addEventListener("click", () => {
-    VIEW.mode = "grid"; VIEW.limit = 60;
+    VIEW.mode = "grid"; VIEW.limit = 10;
     document.getElementById("vt-grid").classList.add("active");
     document.getElementById("vt-list").classList.remove("active");
     renderRepRows();
   });
   document.getElementById("hide-future")?.addEventListener("change", e => {
-    VIEW.hideFuture = e.target.checked; VIEW.limit = 30; renderRepRows();
+    VIEW.hideFuture = e.target.checked; VIEW.limit = 10; renderRepRows();
   });
 }
 
@@ -1205,7 +1160,7 @@ function initSeatMap() {
     const key = section && row && e.seatNum != null ? `${section}|${row}|${e.seatNum}` : null;
     const ghost = key ? lookup[key] : null;
     return { e, key, ghost };
-  }).filter(x => x.ghost && x.e.rating != null);
+  }).filter(x => x.ghost && x.e.rating != null && (x.e.tags||[]).some(t => t.cat === 'location' && t.label === 'Broadway'));
 
   const cellMap = {};
   matched.forEach(m => { (cellMap[m.key] = cellMap[m.key] || []).push(m.e); });
@@ -1218,16 +1173,20 @@ function initSeatMap() {
   const vbW = Math.max(...xs) - vbX + pad;
   const vbH = Math.max(...ys) - vbY + pad;
 
-  // Row labels (one per row, left-aisle gap)
+  // Row labels (both aisles)
   const rowLabels = [];
   const byRow = {};
   [...orch, ...mezz].forEach(s => { const k = `${s.y < mezzTop ? 'O' : 'M'}-${s.row}`; (byRow[k] = byRow[k] || []).push(s); });
   Object.values(byRow).forEach(seats => {
-    const leftSide = seats.filter(s => s.num < 100 && s.num % 2 === 1).sort((a,b)=>a.x-b.x);
-    const center = seats.filter(s => s.num >= 101).sort((a,b)=>a.x-b.x);
-    if (leftSide.length && center.length) {
-      rowLabels.push({ letter: seats[0].row, x: (leftSide[leftSide.length-1].x + center[0].x)/2, y: center[0].y });
-    }
+    const leftSide  = seats.filter(s => s.num < 100 && s.num % 2 === 1).sort((a,b) => a.x - b.x);
+    const rightSide = seats.filter(s => s.num < 100 && s.num % 2 === 0).sort((a,b) => a.x - b.x);
+    const center    = seats.filter(s => s.num >= 101).sort((a,b) => a.x - b.x);
+    const letter = seats[0].row;
+    const y = center.length ? center[0].y : seats[0].y;
+    if (leftSide.length && center.length)
+      rowLabels.push({ letter, x: (leftSide[leftSide.length-1].x + center[0].x) / 2, y });
+    if (rightSide.length && center.length)
+      rowLabels.push({ letter, x: (center[center.length-1].x + rightSide[0].x) / 2, y });
   });
 
   const drawState = { orch, mezz, mezzTop, cellMap, vbX, vbY, vbW, vbH, rowLabels, orchMaxY: orchMax };
@@ -1263,7 +1222,7 @@ function redrawSeatMap(s) {
       <text x="${SM.CX}" y="${vbY+23}" text-anchor="middle" fill="#fff" font-size="11" font-weight="600" letter-spacing="3" font-family="var(--ff-sans)">STAGE</text>
       ${orch.map(s => `<circle cx="${s.x}" cy="${s.y}" r="${SM.R}" fill="#e8e3d5"/>`).join("")}
       ${mezz.map(s => `<circle cx="${s.x}" cy="${s.y}" r="${SM.R}" fill="#e8e3d5"/>`).join("")}
-      ${rowLabels.map(l => `<text class="sm-row-label" x="${l.x}" y="${l.y}" text-anchor="middle" dominant-baseline="central">${l.letter}</text>`).join("")}
+      ${rowLabels.map(l => `<text class="sm-row-label" x="${l.x}" y="${l.y - 1}" text-anchor="middle" dominant-baseline="central">${l.letter}</text>`).join("")}
       <text class="sm-sec-label" x="${SM.CX}" y="${orchMaxY+30}" text-anchor="middle">ORCHESTRA</text>
       <text class="sm-sec-label" x="${SM.CX}" y="${mezzMinY-14}" text-anchor="middle">MEZZANINE</text>
       ${dots}
@@ -1275,62 +1234,32 @@ function redrawSeatMap(s) {
     ['#5ba8ff','1 visit'],['#0060cc','2 visits'],['#004499','3 visits'],['#002266','4+ visits']
   ].map(([c,l])=>`<span><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
 
-  // Tooltip + click
+  // Tooltip
   const tt = document.getElementById("sm-tt");
+  const perfCard = p => `
+    <div class="sm-tt-card">
+      ${p.coverSrc ? `<img class="sm-tt-thumb" src="${esc(p.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : `<div class="sm-tt-thumb-empty">♪</div>`}
+      <div class="sm-tt-card-info">
+        <div class="sm-tt-title">${esc(p.title||'')}</div>
+        <div class="sm-tt-sub">${p.date ? fmtDateShort(p.date) : '—'} · ${esc(p.venue||'')}</div>
+        <div class="sm-tt-sub">${esc(p.seat || (p.seatRow && p.seatNum != null ? `${p.seatRow}-${p.seatNum}` : ''))}</div>
+        <div class="sm-tt-rating">${stars(p.rating)}</div>
+      </div>
+    </div>`;
   document.querySelectorAll(".sm-dot").forEach(dot => {
     const key = dot.dataset.key;
     const perfs = cellMap[key];
     dot.addEventListener("mousemove", ev => {
-      const p = perfs[0];
-      const others = perfs.length > 1 ? `<div class="sm-tt-more">+ ${perfs.length - 1} other${perfs.length-1===1?'':'s'} at this seat</div>` : "";
-      tt.innerHTML = `
-        <div class="sm-tt-title">${esc(p.title||"")}</div>
-        <div class="sm-tt-sub">${esc(p.venue||"")}</div>
-        <div class="sm-tt-meta">
-          <span>${p.date ? fmtDateShort(p.date) : "—"}</span>
-          <span>Seat ${esc(p.seat || `${p.seatRow}-${p.seatNum}`)}</span>
-          <span class="sm-tt-rating">${stars(p.rating)}</span>
-        </div>${others}`;
-      tt.style.left = Math.min(window.innerWidth - 300, ev.clientX + 12) + "px";
+      tt.innerHTML = perfs.map(perfCard).join('<div class="sm-tt-sep"></div>');
+      tt.style.left = Math.min(window.innerWidth - 280, ev.clientX + 12) + "px";
       tt.style.top = (ev.clientY + 12) + "px";
       tt.classList.add("open");
     });
     dot.addEventListener("mouseleave", () => tt.classList.remove("open"));
-    dot.addEventListener("click", () => {
-      const p = perfs[0];
-      openDetail(ENTRIES.indexOf(p));
-    });
   });
 }
 
-// ───────────── Tweaks ─────────────
-function applyTweaks() {
-  document.documentElement.removeAttribute("data-accent");
-  document.documentElement.setAttribute("data-density", TWEAKS.density);
-  document.querySelectorAll("#tw-density .tw-opt").forEach(b => b.classList.toggle("active", b.dataset.val === TWEAKS.density));
-  document.querySelectorAll("#tw-stats .tw-opt").forEach(b => b.classList.toggle("active", b.dataset.val === String(TWEAKS.showStats)));
-  document.querySelectorAll("#tw-seatmap .tw-opt").forEach(b => b.classList.toggle("active", b.dataset.val === String(TWEAKS.showSeatMap)));
-}
-function setTweak(k, v) {
-  TWEAKS[k] = v;
-  applyTweaks();
-  if ((k === "showStats" || k === "showSeatMap") && ENTRIES.length) render();
-  window.parent?.postMessage({ type: "__edit_mode_set_keys", edits: { [k]: v } }, "*");
-}
-function wireTweaks() {
-  document.querySelectorAll("#tw-density .tw-opt").forEach(b => b.addEventListener("click", () => setTweak("density", b.dataset.val)));
-  document.querySelectorAll("#tw-stats .tw-opt").forEach(b => b.addEventListener("click", () => setTweak("showStats", b.dataset.val === "true")));
-  document.querySelectorAll("#tw-seatmap .tw-opt").forEach(b => b.addEventListener("click", () => setTweak("showSeatMap", b.dataset.val === "true")));
-}
-
-window.addEventListener("message", e => {
-  const d = e.data || {};
-  if (d.type === "__activate_edit_mode") document.getElementById("tweaks").classList.add("open");
-  if (d.type === "__deactivate_edit_mode") document.getElementById("tweaks").classList.remove("open");
-});
-window.parent?.postMessage({ type: "__edit_mode_available" }, "*");
-
-applyTweaks(); wireTweaks(); load();
+load();
 </script>
 </body>
 </html>
