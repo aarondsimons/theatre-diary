@@ -170,6 +170,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .tf-btn[data-cat="date"].active     { background: #4c4cae; border-color: #4c4cae; }
   .tf-btn[data-cat="time"].active     { background: #a42299; border-color: #a42299; }
   .tf-btn[data-cat="custom"].active   { background: var(--ink-2); border-color: var(--ink-2); }
+  .tf-btn.tf-milestone.active { background: linear-gradient(135deg, #fde68a, #fbbf24); border-color: #f4c64b; color: #6b4a00; }
   .tf-divider { width: 1px; background: var(--rule); align-self: stretch; margin: 0 3px; }
 
   /* Toolbar */
@@ -356,7 +357,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .show-more:hover { border-color: var(--accent); color: var(--accent); }
 
   /* Leaderboards */
-  .boards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--gap); }
+  .boards { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: var(--gap); }
   .board {
     background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius);
     padding: 18px 20px;
@@ -376,16 +377,26 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .board-name { font-size: 14px; font-weight: 500; line-height: 1.3; }
   .board-count { font-size: 12px; color: var(--accent); font-weight: 600; }
 
-  .hist { display: flex; align-items: flex-end; gap: 6px; height: 100px; margin: 4px 0 10px; }
+  .hist { display: flex; align-items: flex-end; gap: 3px; height: 100px; margin: 4px 0 10px; }
   .hist-bar {
     flex: 1; min-height: 2px;
     background: var(--accent);
     border-radius: 3px 3px 0 0;
     opacity: 0.85;
+    position: relative;
+    cursor: default;
   }
   .hist-bar[data-empty="true"] { background: var(--panel-2); opacity: 1; }
-  .hist-labels { display: flex; gap: 6px; font-size: 11px; color: var(--ink-3); }
-  .hist-labels span { flex: 1; text-align: center; }
+  #hist-tt {
+    position: fixed; z-index: 50; pointer-events: none; display: none;
+    background: var(--ink); color: #fff; font-size: 11px; font-weight: 500;
+    padding: 5px 9px; border-radius: 4px; white-space: nowrap;
+    font-family: var(--ff-sans);
+  }
+  .hist-labels { display: flex; gap: 3px; font-size: 10px; color: var(--ink-3); }
+  .hist-labels span { flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .hist-labels span .pills { display: flex; gap: 2px; justify-content: center; flex-wrap: nowrap; }
+  .hist-labels .grade-pill { font-size: 8px; padding: 1px 4px; }
 
   /* Modal */
   .scrim {
@@ -555,6 +566,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
 
 
   <div class="sm-tooltip" id="sm-tt"></div>
+  <div id="hist-tt"></div>
 
 <script>
 // ───────────── CSV + parse ─────────────
@@ -647,7 +659,7 @@ function buildEntries(rows) {
     rating: findCol(headers,["rating","stars","score","grade"]),
     type: findCol(headers,["type","category","kind","genre"]),
     playwright: findCol(headers,["playwright","writer","author","by","book"]),
-    director: findCol(headers,["director"]),
+    director: findCol(headers,["director","directed by"]),
     composer: findCol(headers,["composer","music"]),
     notes: findCol(headers,["notes","review","thoughts","comment","diary","description"]),
     cast: findCol(headers,["cast","starring","performers"]),
@@ -725,7 +737,7 @@ function buildEntries(rows) {
 
 // ───────────── State + render ─────────────
 let ENTRIES = [];
-let VIEW = { sort: "date-desc", search: "", limit: 10, activeTagByGroup: {}, mode: "list", hideFuture: true };
+let VIEW = { sort: "date-desc", search: "", limit: 10, activeTagByGroup: {}, mode: "list", hideFuture: true, milestoneOnly: false };
 
 async function load() {
   try {
@@ -822,14 +834,15 @@ function buildTagFilters() {
   bycat['genre']?.delete('Concert');
   const groups = catOrder.filter(c => bycat[c]);
   if (!groups.length) return '';
-  const hasActive = Object.values(VIEW.activeTagByGroup).some(Boolean);
+  const hasActive = Object.values(VIEW.activeTagByGroup).some(Boolean) || VIEW.milestoneOnly;
   const btns = groups.map((cat, gi) => {
     const tags = [...bycat[cat].values()];
     const divider = gi > 0 ? '<div class="tf-divider"></div>' : '';
     return divider + tags.map(t => `<button class="tf-btn${VIEW.activeTagByGroup[cat]===t.label?' active':''}" data-cat="${t.cat}" data-label="${esc(t.label)}">${esc(t.label)}</button>`).join('');
   }).join('');
+  const milestoneBtn = `<div class="tf-divider"></div><button class="tf-btn tf-milestone${VIEW.milestoneOnly?' active':''}">Milestone</button>`;
   const clearBtn = hasActive ? `<div class="tf-divider"></div><button class="tf-btn tf-clear">Clear</button>` : '';
-  return `<div class="tag-filter"><span class="tag-filter-label">Filter</span>${btns}${clearBtn}</div>`;
+  return `<div class="tag-filter"><span class="tag-filter-label">Filter</span>${btns}${milestoneBtn}${clearBtn}</div>`;
 }
 
 function renderRepertoire() {
@@ -847,7 +860,7 @@ function renderRepertoire() {
     </div>
     <div id="tag-filter-wrap"></div>
     <div class="toolbar">
-      <div class="search"><input id="search" placeholder="Search title, venue, author, notes…" value="${esc(VIEW.search)}"></div>
+      <div class="search"><input id="search" placeholder="Search title, venue, creator, director, review…" value="${esc(VIEW.search)}"></div>
       <div class="sort">
         <button data-sort="date-desc" class="${VIEW.sort==='date-desc'?'active':''}">Newest</button>
         <button data-sort="date-asc" class="${VIEW.sort==='date-asc'?'active':''}">Oldest</button>
@@ -865,6 +878,7 @@ function filterAndSort() {
     const now = new Date(); now.setHours(0,0,0,0);
     list = list.filter(e => !e.date || e.date <= now);
   }
+  if (VIEW.milestoneOnly) list = list.filter(e => e.milestone);
   if (Object.keys(VIEW.activeTagByGroup).some(k => VIEW.activeTagByGroup[k])) {
     list = list.filter(e => {
       return Object.entries(VIEW.activeTagByGroup).every(([cat, label]) => {
@@ -873,16 +887,19 @@ function filterAndSort() {
           // Musical = not tagged as Play or Concert
           return !(e.tags||[]).some(t => t.cat === 'genre' && (t.label === 'Play' || t.label === 'Concert'));
         }
+        if (label === 'Preview') return (e.tags||[]).some(t => t.label === 'Preview' || t.label === 'First Preview');
         return (e.tags||[]).some(t => t.label === label);
       });
     });
   }
+  const REVIEW_RE = /^(review|notes?|thoughts?|comments?|diary|description)$/i;
   if (s) list = list.filter(e =>
     (e.title||"").toLowerCase().includes(s) || (e.venue||"").toLowerCase().includes(s) ||
     (e.playwright||"").toLowerCase().includes(s) || (e.director||"").toLowerCase().includes(s) ||
     (e.composer||"").toLowerCase().includes(s) || (e.notes||"").toLowerCase().includes(s) ||
     (e.cast||"").toLowerCase().includes(s) || (e.milestone||"").toLowerCase().includes(s) ||
-    (e.seat||"").toLowerCase().includes(s) || (e.tags||[]).some(t => t.label.toLowerCase().includes(s))
+    (e.seat||"").toLowerCase().includes(s) || (e.tags||[]).some(t => t.label.toLowerCase().includes(s)) ||
+    Object.entries(e.extra||{}).some(([k,v]) => REVIEW_RE.test(k.trim()) && String(v).toLowerCase().includes(s))
   );
   switch (VIEW.sort) {
     case "date-desc": list.sort((a,b) => (b.date?.getTime()||0) - (a.date?.getTime()||0)); break;
@@ -982,12 +999,15 @@ function renderTagFilters() {
   const wrap = document.getElementById('tag-filter-wrap');
   if (wrap) wrap.innerHTML = buildTagFilters();
   document.querySelector('.tf-clear')?.addEventListener('click', () => {
-    VIEW.activeTagByGroup = {}; VIEW.limit = 10;
+    VIEW.activeTagByGroup = {}; VIEW.milestoneOnly = false; VIEW.limit = 10;
     renderTagFilters(); renderRepRows();
   });
-  document.querySelectorAll('.tf-btn:not(.tf-clear)').forEach(b => b.addEventListener('click', () => {
+  document.querySelector('.tf-milestone')?.addEventListener('click', () => {
+    VIEW.milestoneOnly = !VIEW.milestoneOnly; VIEW.limit = 10;
+    renderTagFilters(); renderRepRows();
+  });
+  document.querySelectorAll('.tf-btn:not(.tf-clear):not(.tf-milestone)').forEach(b => b.addEventListener('click', () => {
     const { label, cat } = b.dataset;
-    // Radio within group: clicking active deselects, clicking other deselects rest
     VIEW.activeTagByGroup[cat] = VIEW.activeTagByGroup[cat] === label ? null : label;
     VIEW.limit = 10;
     renderTagFilters();
@@ -1021,6 +1041,16 @@ function attachListeners() {
   document.getElementById("hide-future")?.addEventListener("change", e => {
     VIEW.hideFuture = e.target.checked; VIEW.limit = 10; renderRepRows();
   });
+  const histTt = document.getElementById("hist-tt");
+  document.querySelectorAll(".hist-bar[data-tip]").forEach(bar => {
+    bar.addEventListener("mousemove", ev => {
+      histTt.textContent = bar.dataset.tip;
+      histTt.style.left = (ev.clientX + 12) + "px";
+      histTt.style.top = (ev.clientY - 32) + "px";
+      histTt.style.display = "block";
+    });
+    bar.addEventListener("mouseleave", () => { histTt.style.display = "none"; });
+  });
 }
 
 function renderBoards() {
@@ -1028,8 +1058,8 @@ function renderBoards() {
   const venues = Object.entries(venueCounts).sort((a,b)=>b[1]-a[1]).slice(0,7);
   const showCounts = {}; ENTRIES.forEach(e => { const t = (e.title||"").trim().toLowerCase(); if (t) showCounts[t]=(showCounts[t]||[]).concat(e); });
   const shows = Object.entries(showCounts).filter(([,es])=>es.length>1).sort((a,b)=>b[1].length-a[1].length).slice(0,7).map(([,es])=>[es[0].title,es.length]);
-  const buckets = [0,0,0,0,0];
-  ENTRIES.forEach(e => { if (e.rating == null) return; const i = Math.min(4, Math.max(0, Math.ceil(e.rating) - 1)); buckets[i]++; });
+  const buckets = [0,0,0,0,0,0,0,0,0];
+  ENTRIES.forEach(e => { if (e.rating == null) return; const i = Math.min(8, Math.max(0, Math.round(e.rating * 2) - 2)); buckets[i]++; });
   const maxB = Math.max(1, ...buckets);
   return `
     <div class="sec-hd"><h2>Favourites &amp; figures</h2><div class="rule"></div></div>
@@ -1037,8 +1067,8 @@ function renderBoards() {
       <div class="board"><h3>Most-visited venues</h3>${venues.length ? venues.map(([v,c],i)=>`<div class="board-item"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name"${/[֐-׿]/.test(v)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}</div><div class="board-count">${c}</div></div>`).join("") : `<div style="color:var(--ink-3)">—</div>`}</div>
       <div class="board"><h3>Most-seen shows</h3>${shows.length ? shows.map(([t,c],i)=>`<div class="board-item"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name"${/[֐-׿]/.test(t)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(t)}</div><div class="board-count">${c}</div></div>`).join("") : `<div style="color:var(--ink-3)">—</div>`}</div>
       <div class="board"><h3>Rating distribution</h3>
-        <div class="hist">${buckets.map(b => `<div class="hist-bar"${b===0?' data-empty="true"':''} style="height:${(b/maxB)*100}%" title="${b} at this rating"></div>`).join("")}</div>
-        <div class="hist-labels"><span>1★</span><span>2★</span><span>3★</span><span>4★</span><span>5★</span></div>
+        <div class="hist">${buckets.map((b,i) => { const lbl=['1★','1½','2★','2½','3★','3½','4★','4½','5★'][i]; return `<div class="hist-bar"${b===0?' data-empty="true"':''} style="height:${(b/maxB)*100}%"${b>0?` data-tip="${b} show${b===1?'':'s'}"`:''} ></div>`; }).join("")}</div>
+        <div class="hist-labels">${[['1★',['F']],['1½',['D']],['2★',['D+','C-']],['2½',['C']],['3★',['C+','B-']],['3½',['B']],['4★',['B+','A-']],['4½',['A']],['5★',['A+']]].map(([lbl,grades])=>`<span>${lbl}<div class="pills">${grades.map(g=>`<span class="grade-pill" data-grade="${g}">${g}</span>`).join('')}</div></span>`).join('')}</div>
         <div style="margin-top:12px;font-size:12px;color:var(--ink-3);">${buckets.reduce((a,b)=>a+b,0)} rated · ${ENTRIES.length - buckets.reduce((a,b)=>a+b,0)} unrated</div>
       </div>
     </div>`;
@@ -1070,7 +1100,7 @@ function openDetail(idx) {
     ${e.coverSrc ? `<div class="pb-cover"><img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.style.display='none'"></div>` : ""}
     ${e.milestone ? `<div class="pb-milestone-wrap"><span class="pb-milestone"${/[֐-׿]/.test(e.milestone)?` style="font-family:var(--ff-heb)"`:""}>${esc(e.milestone)}</span></div>` : ""}
     <h2 class="pb-title">${esc(e.title || "(untitled)")}</h2>
-    ${e.playwright ? `<div class="pb-by">${bylineLabel} ${esc(e.playwright)}</div>` : ""}
+
     <div class="pb-rating">${stars(e.rating)}${e.rating != null ? `<span class="grade-sep">•</span><span class="grade-pill" data-grade="${letterGrade(e.rating)}">${letterGrade(e.rating)}</span>` : ""}</div>
     ${(() => { const c = buildChips(e); const s = e.seat?`<span class="chip chip-seat"${/[֐-׿]/.test(e.seat)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(e.seat)}</span>`:""; return (c||s)?`<div class="pb-tags">${c}${s}</div>`:""; })()}
     <div class="pb-rule"></div>
