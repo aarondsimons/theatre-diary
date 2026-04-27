@@ -507,7 +507,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .sm-tt-card-info { flex: 1; min-width: 0; }
   .sm-tt-title { font-weight: 600; font-family: var(--ff-serif); font-size: 14px; line-height: 1.3; }
   .sm-tt-sub { color: var(--ink-3); font-size: 11px; margin-top: 3px; }
-  .sm-tt-rating { color: var(--accent); font-size: 11px; margin-top: 3px; }
+  .sm-tt-rating { color: var(--accent); font-size: 11px; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
   .sm-tt-sep { border-top: 1px solid var(--rule); margin: 8px 0; }
 
 
@@ -708,6 +708,7 @@ function buildEntries(rows) {
       else if (!m && !seen.has(t)) { seen.add(t); e.tags.push({ label: t, cat: "custom" }); }
     }
     e.isHebrew = /[\u0590-\u05FF]/.test(e.title || "");
+    e.isPlay = e.tags.some(t => /^play$/i.test(t.label.trim())) || /^play$/i.test((e.type||'').trim());
     headers.forEach((h, i) => {
       const used = Object.values(cols).includes(i);
       const hLow = (h || "").toLowerCase().trim();
@@ -963,7 +964,7 @@ function renderRepRows() {
       <div class="rep-date">${e.date ? fmtDateShort(e.date) : "—"}</div>
       <div class="rep-title">
         ${e.milestone ? `<div class="rep-milestone">${esc(e.milestone)}</div>` : ""}
-        <div class="rep-title-text">${esc(e.title || "(untitled)")}${e.playwright || e.composer ? `<span class="by">by ${esc(e.playwright || e.composer)}</span>` : ""}</div>
+        <div class="rep-title-text">${esc(e.title || "(untitled)")}</div>
       </div>
       <div class="rep-venue">${esc(e.venue || "")}</div>
       <div class="rep-rating">${stars(e.rating)}${grade ? `<span class="grade-sep">•</span><span class="grade-pill" data-grade="${grade}">${grade}</span>` : ""}</div>
@@ -1049,25 +1050,27 @@ function openDetail(idx) {
   const REVIEW_KEYS = /^(review|notes?|thoughts?|comments?|diary|description)$/i;
   const SKIP_KEYS   = /^(location|showtime|grade|seat)$/i;
   const extraReviews = Object.entries(e.extra).filter(([k]) => REVIEW_KEYS.test(k.trim()));
-  const extraMeta    = Object.entries(e.extra).filter(([k]) => !REVIEW_KEYS.test(k.trim()) && !SKIP_KEYS.test(k.trim()));
+  const extraMeta    = Object.entries(e.extra).filter(([k]) => !REVIEW_KEYS.test(k.trim()) && !SKIP_KEYS.test(k.trim()))
+    .map(([k, v]) => [/^book by$/i.test(k.trim()) && e.isPlay ? 'Written by' : k, v]);
   const locationVal  = (Object.entries(e.extra).find(([k]) => /^location$/i.test(k.trim())) || [])[1] || '';
   const showtimeVal  = (Object.entries(e.extra).find(([k]) => /^showtime$/i.test(k.trim())) || [])[1] || '';
   const meta = [
     e.date && ["Seen", fmtDate(e.date)],
     e.venue && ["Venue", e.venue, locationVal],
     e.director && ["Director", e.director],
-    e.composer && e.playwright && ["Music", e.composer],
+    e.composer && e.playwright && ["Music by", e.composer],
     e.company && ["Company", e.company],
     e.type && ["Category", e.type],
     ...extraMeta.map(([k,v])=>[k,v])
   ].filter(Boolean);
+  const bylineLabel = e.isPlay ? 'Written by' : 'Book by';
   const pb = document.getElementById("playbill");
   pb.classList.toggle("hebrew", !!e.isHebrew);
   document.getElementById("pb-body").innerHTML = `
     ${e.coverSrc ? `<div class="pb-cover"><img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.style.display='none'"></div>` : ""}
     ${e.milestone ? `<div class="pb-milestone-wrap"><span class="pb-milestone"${/[֐-׿]/.test(e.milestone)?` style="font-family:var(--ff-heb)"`:""}>${esc(e.milestone)}</span></div>` : ""}
     <h2 class="pb-title">${esc(e.title || "(untitled)")}</h2>
-    ${e.playwright ? `<div class="pb-by">by ${esc(e.playwright)}</div>` : ""}
+    ${e.playwright ? `<div class="pb-by">${bylineLabel} ${esc(e.playwright)}</div>` : ""}
     <div class="pb-rating">${stars(e.rating)}${e.rating != null ? `<span class="grade-sep">•</span><span class="grade-pill" data-grade="${letterGrade(e.rating)}">${letterGrade(e.rating)}</span>` : ""}</div>
     ${(() => { const c = buildChips(e); const s = e.seat?`<span class="chip chip-seat"${/[֐-׿]/.test(e.seat)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(e.seat)}</span>`:""; return (c||s)?`<div class="pb-tags">${c}${s}</div>`:""; })()}
     <div class="pb-rule"></div>
@@ -1243,7 +1246,7 @@ function redrawSeatMap(s) {
         <div class="sm-tt-title">${esc(p.title||'')}</div>
         <div class="sm-tt-sub">${p.date ? fmtDateShort(p.date) : '—'} · ${esc(p.venue||'')}</div>
         <div class="sm-tt-sub">${esc(p.seat || (p.seatRow && p.seatNum != null ? `${p.seatRow}-${p.seatNum}` : ''))}</div>
-        <div class="sm-tt-rating">${stars(p.rating)}</div>
+        <div class="sm-tt-rating">${stars(p.rating)}${letterGrade(p.rating)?`<span class="grade-sep">•</span><span class="grade-pill" data-grade="${letterGrade(p.rating)}">${letterGrade(p.rating)}</span>`:''}</div>
       </div>
     </div>`;
   document.querySelectorAll(".sm-dot").forEach(dot => {
