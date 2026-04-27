@@ -1,0 +1,1381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Theatre Diary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=Assistant:wght@400;500;600;700&family=Google+Sans:wght@400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script>
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "density": "spacious",
+  "showStats": true,
+  "showSeatMap": true,
+  "accent": "indigo"
+}/*EDITMODE-END*/;
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1FXASLMEeovADIFo8akP8G1aNCOl_r12RfCgla-jIWBRWW2Ie7rYpTBr1a2bvEd0FlQXnBj/pub?output=csv";
+</script>
+<style>
+  :root {
+    --bg: #faf8f4;
+    --panel: #ffffff;
+    --panel-2: #f3efe7;
+    --ink: #1a1a1a;
+    --ink-2: #4a4a4a;
+    --ink-3: #8a8578;
+    --ink-4: #bab4a4;
+    --rule: #e6e0d2;
+    --rule-2: #efeadb;
+    --accent: #007FFF;
+    --accent-soft: #e0f0ff;
+    --shadow-sm: 0 1px 2px rgba(60,40,20,0.04), 0 2px 8px rgba(60,40,20,0.04);
+    --shadow-md: 0 4px 16px rgba(60,40,20,0.06), 0 12px 32px rgba(60,40,20,0.08);
+    --ff-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --ff-serif: "Source Serif 4", Georgia, serif;
+    --ff-heb: "Google Sans", "Assistant", sans-serif;
+    --ff-heb-serif: "Tinos", serif;
+    --pad: 56px;
+    --gap: 24px;
+    --row-pad: 18px;
+    --radius: 10px;
+  }
+  [data-density="compact"] { --pad: 32px; --row-pad: 10px; --gap: 16px; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--ff-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px var(--pad) 120px;
+  }
+
+  /* Header */
+  header.hd {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .hd-title h1 {
+    font-family: var(--ff-serif);
+    font-weight: 700;
+    font-size: 44px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .hd-title h1 em {
+    color: var(--accent);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .hd-title .sub {
+    color: var(--ink-3);
+    font-size: 15px;
+    margin-top: 6px;
+  }
+  .hd-meta {
+    display: flex; gap: 28px;
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+  .hd-meta .n { display: block; font-size: 22px; font-weight: 600; color: var(--ink); font-family: var(--ff-serif); margin-bottom: 2px; }
+  .live {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--ink-3);
+  }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+
+  /* Section headers */
+  .sec-hd {
+    display: flex; align-items: baseline; gap: 14px;
+    margin: 60px 0 20px;
+  }
+  .sec-hd h2 {
+    font-family: var(--ff-serif);
+    font-weight: 600;
+    font-size: 24px;
+    letter-spacing: -0.01em;
+    margin: 0;
+    white-space: nowrap;
+  }
+  .sec-hd .sub {
+    color: var(--ink-3);
+    font-size: 13px;
+  }
+  .sec-hd .rule { flex: 1; height: 1px; background: var(--rule); margin-bottom: 4px; }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+  .stat-v {
+    font-family: var(--ff-serif);
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .stat-v .u {
+    font-size: 15px; color: var(--ink-3); font-weight: 400; margin-left: 4px;
+  }
+  .stat-sub {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+  .stat-sub strong { color: var(--ink); font-weight: 600; }
+
+  /* Calendar */
+  .calendar { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); padding: 18px 20px; }
+  .cal-row { display: flex; align-items: center; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--rule-2); }
+  .cal-row:last-child { border-bottom: none; }
+  .cal-year { font-family: var(--ff-serif); font-size: 22px; font-weight: 600; width: 80px; flex-shrink: 0; }
+  .cal-year .count { display: block; font-family: var(--ff-sans); font-size: 11px; font-weight: 400; color: var(--ink-3); margin-top: 2px; }
+  .cal-grid { flex: 1; display: grid; gap: 2px; }
+  .cal-cell { aspect-ratio: 1; background: var(--panel-2); border-radius: 2px; position: relative; }
+  .cal-cell[data-count] { background: color-mix(in oklab, var(--accent) 25%, var(--panel-2)); }
+  .cal-cell[data-count="2"] { background: color-mix(in oklab, var(--accent) 55%, var(--panel-2)); }
+  .cal-cell[data-count="3"] { background: color-mix(in oklab, var(--accent) 80%, var(--panel-2)); }
+  .cal-cell[data-count="many"] { background: var(--accent); }
+  .cal-cell:hover { outline: 1px solid var(--ink); z-index: 2; }
+  .cal-cell[data-label]:hover::after {
+    content: attr(data-label);
+    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; font-size: 11px; padding: 5px 9px;
+    border-radius: 4px; white-space: nowrap; z-index: 10;
+    font-weight: 500;
+  }
+
+  /* Tag filter bar */
+  .tag-filter {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
+    padding: 10px 14px;
+    background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius);
+  }
+  .tag-filter-label { font-size: 11px; font-weight: 600; color: var(--ink-3); align-self: center; margin-right: 4px; }
+  .tf-btn {
+    background: var(--panel-2); border: 1px solid var(--rule);
+    color: var(--ink-2); font: inherit; font-size: 11px; font-weight: 500;
+    padding: 3px 10px; border-radius: 5px; cursor: pointer;
+    transition: all 0.1s;
+  }
+  .tf-btn:hover { border-color: var(--ink-3); color: var(--ink); }
+  .tf-btn.tf-clear { background: transparent; border-style: dashed; color: var(--ink-4); }
+  .tf-btn.tf-clear:hover { background: var(--panel-2); border-color: var(--ink-3); color: var(--ink-2); }
+  .tf-btn.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .tf-btn[data-cat="location"].active { background: #6b3fa0; border-color: #6b3fa0; }
+  .tf-btn[data-cat="genre"].active    { background: #1565c0; border-color: #1565c0; }
+  .tf-btn[data-cat="access"].active   { background: #2f5d8a; border-color: #2f5d8a; }
+  .tf-btn[data-cat="date"].active     { background: #4c4cae; border-color: #4c4cae; }
+  .tf-btn[data-cat="time"].active     { background: #a42299; border-color: #a42299; }
+  .tf-btn[data-cat="custom"].active   { background: var(--ink-2); border-color: var(--ink-2); }
+  .tf-divider { width: 1px; background: var(--rule); align-self: stretch; margin: 0 3px; }
+
+  /* Toolbar */
+  .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+  .search { flex: 1; position: relative; }
+  .search input {
+    width: 100%; background: var(--panel); border: 1px solid var(--rule);
+    border-radius: var(--radius); color: var(--ink);
+    font-family: inherit; font-size: 14px;
+    padding: 10px 14px 10px 38px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .search::before {
+    content: "⌕"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--ink-3); font-size: 16px;
+  }
+  .sort { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); padding: 3px; }
+  .sort button {
+    background: none; border: none; color: var(--ink-2);
+    font: inherit; font-size: 13px; padding: 6px 12px;
+    cursor: pointer; border-radius: 7px;
+  }
+  .sort button.active { background: var(--ink); color: #fff; }
+  .sort button:not(.active):hover { color: var(--ink); }
+
+  /* Repertoire */
+  .rep { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; }
+  .rep-row {
+    display: grid;
+    grid-template-columns: 48px 96px 1fr 180px 120px 160px 20px;
+    align-items: center;
+    gap: 16px;
+    padding: var(--row-pad) 20px;
+    border-bottom: 1px solid var(--rule-2);
+    cursor: pointer;
+    transition: background 0.1s;
+    position: relative;
+  }
+  .rep-row:last-child { border-bottom: none; }
+  .rep-row:hover { background: var(--panel-2); }
+  .rep-row:hover .rep-title { color: var(--accent); }
+  .rep-thumb {
+    width: 52px;
+    background: var(--panel-2);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+  }
+  .rep-thumb img { width: 100%; height: auto; display: block; }
+  .rep-thumb.empty { height: 78px; }
+  .rep-thumb.empty::after {
+    content: "♪"; position: absolute; inset: 0;
+    display: grid; place-items: center;
+    color: var(--ink-4); font-size: 18px;
+  }
+  [data-density="compact"] .rep-thumb { width: 40px; }
+  [data-density="compact"] .rep-thumb.empty { height: 60px; }
+  .rep-date {
+    font-size: 12px; color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+  }
+  .rep-title {
+    font-size: 16px; font-weight: 600; color: var(--ink);
+    line-height: 1.25;
+    transition: color 0.15s;
+  }
+  [data-density="compact"] .rep-title { font-size: 15px; }
+  .rep-title .by {
+    display: block; font-family: var(--ff-serif);
+    font-size: 13px; font-style: italic; font-weight: 400;
+    color: var(--ink-3); margin-top: 2px;
+  }
+  .rep-venue { font-size: 13px; color: var(--ink-2); }
+  .rep-rating {
+    font-size: 13px; letter-spacing: 0;
+    color: var(--accent); white-space: nowrap;
+    display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+  }
+  .star-row { display: flex; gap: 1px; }
+  .star-row .s-full { color: var(--accent); }
+  .star-row .s-half { position: relative; display: inline-block; }
+  .star-row .s-half::before { content: "★"; color: var(--ink-4); }
+  .star-row .s-half::after { content: "★"; color: var(--accent); position: absolute; left: 0; top: 0; width: 50%; overflow: hidden; }
+  .star-row .s-empty { color: var(--ink-4); }
+  .grade-pill {
+    font-size: 10px; font-weight: 700;
+    background: var(--accent); color: #fff;
+    padding: 1px 5px; border-radius: 3px;
+    letter-spacing: 0.02em;
+  }
+  .grade-pill[data-grade="A+"] { background:#1b5e20; color:#e8f5e9; }
+  .grade-pill[data-grade="A"]  { background:#2e7d32; color:#f1f8e9; }
+  .grade-pill[data-grade="A-"] { background:#388e3c; color:#f1f8e9; }
+  .grade-pill[data-grade="B+"] { background:#558b2f; color:#f9fbe7; }
+  .grade-pill[data-grade="B"]  { background:#689f38; color:#f9fbe7; }
+  .grade-pill[data-grade="B-"] { background:#7cb342; color:#f9fbe7; }
+  .grade-pill[data-grade="C+"] { background:#f9a825; color:#2d1a00; }
+  .grade-pill[data-grade="C"]  { background:#f57f17; color:#fff3e0; }
+  .grade-pill[data-grade="C-"] { background:#ef6c00; color:#fff3e0; }
+  .grade-pill[data-grade="D+"] { background:#e64a19; color:#fff8f6; }
+  .grade-pill[data-grade="D"]  { background:#d84315; color:#fff8f6; }
+  .grade-pill[data-grade="D-"] { background:#bf360c; color:#fff3ee; }
+  .grade-pill[data-grade="F"]  { background:#b71c1c; color:#fff0f0; }
+  .rep-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+  .rep-arrow { color: var(--ink-4); font-size: 14px; text-align: right; transition: transform 0.15s, color 0.15s; }
+  .rep-row:hover .rep-arrow { color: var(--accent); transform: translateX(2px); }
+
+  .chip {
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 500;
+    padding: 2px 8px; border-radius: 4px;
+    color: var(--ink-2); background: var(--panel-2);
+    border: 1px solid var(--rule);
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+  .chip[data-cat="location"] { color: #6b3fa0; background: #f2ebf9; border-color: #e0cff0; }
+  .chip[data-cat="genre"]    { color: #1565c0; background: #e5f0fa; border-color: #cbe0f4; }
+  .chip[data-cat="access"]   { color: #2f5d8a; background: #e4edf6; border-color: #cddeed; }
+  .chip[data-cat="date"]     { color: #4c4cae; background: #eaeaf6; border-color: #d7d7ea; }
+  .chip[data-cat="time"]     { color: #a42299; background: #f8e4f6; border-color: #edcbea; }
+  .chip[data-cat="custom"]   { color: var(--ink-2); background: var(--panel-2); border-style: dashed; }
+  .chip-seat { color: #8e4ba3; background: #f5e9f8; border-color: #e7d3ee; }
+
+  .rep-milestone {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0;
+    color: #6b4a00;
+    background: linear-gradient(135deg, #fde68a, #fbbf24);
+    padding: 2px 8px; border-radius: 4px;
+    border: 1px solid #f4c64b;
+    display: inline-block;
+    width: fit-content;
+    margin-bottom: 5px;
+  }
+  .rep-title-text { display: block; }
+
+  /* View toggles */
+  .view-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .view-toggle { display: flex; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 3px; gap: 2px; }
+  .vt-btn { background: none; border: none; color: var(--ink-2); font: inherit; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+  .vt-btn.active { background: var(--ink); color: #fff; }
+  .vt-btn:not(.active):hover { color: var(--ink); background: var(--panel-2); }
+  .future-toggle { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-3); margin-left: auto; cursor: pointer; user-select: none; }
+  .future-toggle input { accent-color: var(--accent); cursor: pointer; width: 15px; height: 15px; }
+
+  /* Grid view */
+  .rep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .rep-grid-card { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+  .rep-grid-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .rep-grid-cover { background: var(--panel-2); overflow: hidden; position: relative; }
+  .rep-grid-cover img { width: 100%; height: auto; display: block; }
+  .rep-grid-cover.empty { aspect-ratio: 0.72; display: grid; place-items: center; color: var(--ink-4); font-size: 28px; }
+  .rep-grid-cover .grid-milestone { display: none; }
+  .rep-grid-milestone-strip {
+    background: linear-gradient(135deg, #fde68a, #fbbf24);
+    border-top: 1px solid #f4c64b;
+    border-bottom: 1px solid #f4c64b;
+    color: #6b4a00;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0;
+    padding: 5px 10px;
+    text-align: center;
+  }
+  .rep-grid-info { padding: 8px 10px 10px; }
+  .rep-grid-title { font-size: 12px; font-weight: 600; line-height: 1.3; color: var(--ink); }
+  .rep-grid-sub { font-size: 11px; color: var(--ink-3); margin-top: 3px; }
+  .rep-grid-rating { margin-top: 5px; font-size: 11px; color: var(--accent); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+
+  .rep-row.hebrew .rep-title,
+  .rep-row.hebrew .rep-venue { direction: rtl; unicode-bidi: embed; font-family: var(--ff-heb); }
+
+  .rep-empty { padding: 60px 20px; text-align: center; color: var(--ink-3); }
+  .show-more {
+    margin: 20px auto 0;
+    display: block;
+    background: var(--panel); border: 1px solid var(--rule);
+    color: var(--ink-2); font: inherit; font-size: 13px; font-weight: 500;
+    padding: 10px 22px; border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .show-more:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Leaderboards */
+  .boards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--gap); }
+  .board {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .board h3 {
+    font-family: var(--ff-sans); font-size: 13px; font-weight: 600;
+    color: var(--ink-3); margin: 0 0 14px;
+  }
+  .board-item {
+    display: grid; grid-template-columns: 24px 1fr auto;
+    gap: 10px; align-items: baseline;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--rule-2);
+  }
+  .board-item:last-child { border-bottom: none; }
+  .board-rank { font-size: 12px; color: var(--ink-4); font-variant-numeric: tabular-nums; }
+  .board-name { font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .board-count { font-size: 12px; color: var(--accent); font-weight: 600; }
+
+  .hist { display: flex; align-items: flex-end; gap: 6px; height: 100px; margin: 4px 0 10px; }
+  .hist-bar {
+    flex: 1; min-height: 2px;
+    background: var(--accent);
+    border-radius: 3px 3px 0 0;
+    opacity: 0.85;
+  }
+  .hist-bar[data-empty="true"] { background: var(--panel-2); opacity: 1; }
+  .hist-labels { display: flex; gap: 6px; font-size: 11px; color: var(--ink-3); }
+  .hist-labels span { flex: 1; text-align: center; }
+
+  /* Modal */
+  .scrim {
+    position: fixed; inset: 0; background: rgba(26,26,26,0.5); backdrop-filter: blur(4px);
+    z-index: 100; display: none;
+    align-items: center; justify-content: center;
+    padding: 32px;
+  }
+  .scrim.open { display: flex; animation: fade 0.2s; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .playbill {
+    background: var(--panel); border-radius: 14px;
+    max-width: 560px; width: 100%; max-height: 88vh;
+    overflow-y: auto; padding: 36px 44px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    animation: up 0.25s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes up { from { transform: translateY(20px); opacity: 0; } }
+  .pb-close {
+    position: absolute; top: 14px; right: 18px;
+    background: none; border: none;
+    color: var(--ink-3); font-size: 22px; cursor: pointer;
+    line-height: 1; padding: 4px 8px; border-radius: 6px;
+  }
+  .pb-close:hover { background: var(--panel-2); color: var(--ink); }
+  .pb-cover { text-align: center; margin: -8px 0 20px; }
+  .pb-cover img { max-width: 240px; height: auto; display: block; margin: 0 auto; border-radius: 4px; box-shadow: var(--shadow-md); }
+  .pb-milestone-wrap { text-align: center; margin-bottom: 14px; }
+  .pb-milestone {
+    display: inline-block;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0;
+    color: #6b4a00;
+    background: linear-gradient(135deg, #fde68a, #fbbf24);
+    padding: 4px 12px; border-radius: 4px;
+    border: 1px solid #f4c64b;
+  }
+  .pb-title {
+    font-family: var(--ff-serif);
+    font-size: 32px; font-weight: 700; line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px; text-align: center;
+  }
+  .pb-by { font-family: var(--ff-serif); font-style: italic; color: var(--accent); text-align: center; margin: 0 0 16px; font-size: 16px; }
+  .pb-rating { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 24px; color: var(--accent); letter-spacing: 0.08em; margin: 16px 0 12px; }
+  .pb-rating .grade-pill { font-size: 14px; padding: 3px 10px; }
+  .pb-rating .empty { color: var(--ink-4); }
+  .pb-tags { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-bottom: 20px; }
+  .pb-rule { height: 1px; background: var(--rule); margin: 20px 0; }
+  .pb-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 28px; margin: 20px 0; }
+  .pb-meta dt { font-size: 11px; color: var(--ink-3); margin-bottom: 3px; font-weight: 500; }
+  .pb-meta dd { margin: 0; font-size: 14px; font-weight: 500; color: var(--ink); }
+  .pb-venue-sub { display: block; font-size: 11px; color: var(--ink-3); font-weight: 400; margin-top: 2px; }
+  .pb-notes { font-family: var(--ff-serif); font-size: 16px; line-height: 1.6; color: var(--ink); white-space: pre-wrap; }
+  .pb-review { font-family: var(--ff-serif); font-size: 15px; font-style: italic; line-height: 1.5; color: var(--ink-2); white-space: pre-wrap; }
+  .grade-sep { color: var(--ink-4); font-size: 12px; margin: 0 1px; }
+  .playbill.hebrew .pb-title, .playbill.hebrew .pb-by { direction: rtl; unicode-bidi: embed; font-family: var(--ff-heb-serif); font-weight: 700; }
+  .playbill.hebrew .pb-notes { direction: rtl; text-align: right; font-family: var(--ff-heb-serif); }
+  .rep-grid-card.hebrew .rep-grid-info { direction: rtl; }
+  .rep-grid-card.hebrew .rep-grid-title { font-family: var(--ff-heb); direction: rtl; unicode-bidi: embed; }
+
+  /* Loading / error */
+  .loading, .errstate {
+    text-align: center; padding: 80px 20px;
+    color: var(--ink-3); font-size: 16px;
+  }
+  .errstate {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius);
+    padding: 40px; margin-top: 24px;
+  }
+  .errstate code {
+    display: block; margin-top: 14px;
+    font-family: ui-monospace, monospace; font-size: 12px;
+    background: var(--panel-2); padding: 10px 12px; border-radius: 6px;
+    text-align: left; word-break: break-all;
+    color: #b42318;
+  }
+
+  /* Seat map */
+  .seatmap-wrap {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 20px 20px 24px;
+  }
+  .sm-hd {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .sm-stats { font-size: 13px; color: var(--ink-3); }
+  .sm-stats strong { color: var(--ink); font-weight: 600; }
+  .sm-filter { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--ink-3); }
+  .sm-filter input[type=range] { width: 140px; accent-color: var(--accent); }
+  .sm-svg-wrap { overflow-x: auto; }
+  .sm-svg { display: block; margin: 0 auto; max-width: 1100px; width: 100%; }
+  .sm-dot { cursor: pointer; transition: transform 0.12s; transform-origin: center; transform-box: fill-box; }
+  .sm-dot:hover { transform: scale(1.5); }
+  .sm-row-label { pointer-events: none; fill: var(--ink-4); font-size: 8px; font-weight: 600; font-family: var(--ff-sans); }
+  .sm-sec-label { fill: var(--ink-3); font-size: 11px; font-weight: 600; letter-spacing: 0.15em; font-family: var(--ff-sans); }
+  .sm-legend {
+    display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+    font-size: 11px; color: var(--ink-3); margin-top: 14px;
+  }
+  .sm-legend .sw { width: 11px; height: 11px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+  .sm-tooltip {
+    position: fixed; z-index: 50;
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 8px; padding: 10px 14px;
+    box-shadow: var(--shadow-md);
+    font-size: 13px; pointer-events: none;
+    max-width: 280px;
+    display: none;
+  }
+  .sm-tooltip.open { display: block; }
+  .sm-tt-title { font-weight: 600; font-family: var(--ff-serif); font-size: 15px; line-height: 1.2; }
+  .sm-tt-sub { color: var(--ink-3); font-size: 12px; margin-top: 2px; }
+  .sm-tt-meta { display: flex; gap: 10px; margin-top: 8px; font-size: 11px; color: var(--ink-2); }
+  .sm-tt-rating { color: var(--accent); font-weight: 600; }
+  .sm-tt-more { color: var(--ink-3); font-size: 11px; margin-top: 6px; font-style: italic; }
+
+  /* Tweaks */
+  .tweaks {
+    position: fixed; bottom: 20px; right: 20px; width: 260px;
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 16px 18px;
+    z-index: 200;
+    display: none;
+  }
+  .tweaks.open { display: block; }
+  .tweaks h4 { margin: 0 0 14px; font-size: 14px; font-weight: 600; font-family: var(--ff-serif); }
+  .tw-group { margin-bottom: 14px; }
+  .tw-group:last-child { margin-bottom: 0; }
+  .tw-label { font-size: 11px; color: var(--ink-3); margin-bottom: 6px; font-weight: 500; }
+  .tw-opts { display: flex; gap: 5px; flex-wrap: wrap; }
+  .tw-opt {
+    background: var(--panel-2); border: 1px solid var(--rule);
+    color: var(--ink-2); font: inherit; font-size: 11px;
+    padding: 5px 9px; border-radius: 6px; cursor: pointer;
+  }
+  .tw-opt:hover { border-color: var(--ink-4); }
+  .tw-opt.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .tw-swatch { width: 22px; height: 22px; border-radius: 50%; padding: 0; border-width: 2px; }
+  .tw-swatch.active { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--ink); }
+
+  @media (max-width: 900px) {
+    :root { --pad: 20px; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .boards { grid-template-columns: 1fr; }
+    .rep-row {
+      grid-template-columns: 40px 80px 1fr 70px;
+      row-gap: 4px;
+    }
+    .rep-venue, .rep-tags, .rep-arrow { display: none; }
+    header.hd { flex-direction: column; align-items: flex-start; }
+    .hd-title h1 { font-size: 32px; }
+    .playbill { padding: 28px 22px; }
+    .pb-title { font-size: 26px; }
+    .cal-row { flex-direction: column; align-items: stretch; gap: 8px; }
+    .cal-year { width: auto; }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header class="hd">
+      <div class="hd-title">
+        <h1>Theatre <em>Diary</em></h1>
+        <div class="sub">A personal ledger of every show, every seat.</div>
+      </div>
+      <div class="hd-meta">
+        <div><span class="n" id="hd-n">—</span>performances</div>
+        <div><span class="n" id="hd-venues">—</span>venues</div>
+        <div style="align-self:center"><span class="live"><span class="live-dot"></span><span id="hd-last">syncing…</span></span></div>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="loading">Loading diary…</div>
+    </main>
+  </div>
+
+  <div class="scrim" id="scrim" onclick="if(event.target===this)closeDetail()">
+    <article class="playbill" id="playbill">
+      <button class="pb-close" onclick="closeDetail()">×</button>
+      <div id="pb-body"></div>
+    </article>
+  </div>
+
+  <div class="tweaks" id="tweaks">
+    <h4>Tweaks</h4>
+    <div class="tw-group">
+      <div class="tw-label">Density</div>
+      <div class="tw-opts" id="tw-density">
+        <button class="tw-opt" data-val="spacious">Spacious</button>
+        <button class="tw-opt" data-val="compact">Compact</button>
+      </div>
+    </div>
+    <div class="tw-group">
+      <div class="tw-label">Stats section</div>
+      <div class="tw-opts" id="tw-stats">
+        <button class="tw-opt" data-val="true">Show</button>
+        <button class="tw-opt" data-val="false">Hide</button>
+      </div>
+    </div>
+    <div class="tw-group">
+      <div class="tw-label">Seat map</div>
+      <div class="tw-opts" id="tw-seatmap">
+        <button class="tw-opt" data-val="true">Show</button>
+        <button class="tw-opt" data-val="false">Hide</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sm-tooltip" id="sm-tt"></div>
+
+<script>
+// ───────────── CSV + parse ─────────────
+function parseCSV(text) {
+  const rows = []; let row = [], cell = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], n = text[i+1];
+    if (inQ) {
+      if (c === '"' && n === '"') { cell += '"'; i++; }
+      else if (c === '"') inQ = false;
+      else cell += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { row.push(cell); cell = ""; }
+      else if (c === '\r') {}
+      else if (c === '\n') { row.push(cell); rows.push(row); row = []; cell = ""; }
+      else cell += c;
+    }
+  }
+  if (cell.length || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(x => x && x.trim().length));
+}
+
+function findCol(headers, aliases) {
+  const lc = headers.map(h => (h||"").toLowerCase().trim());
+  for (const a of aliases) { const i = lc.findIndex(h => h === a.toLowerCase()); if (i >= 0) return i; }
+  for (const a of aliases) { const i = lc.findIndex(h => h.includes(a.toLowerCase())); if (i >= 0) return i; }
+  return -1;
+}
+
+const MONTH_MAP = { january:0,jan:0,february:1,feb:1,march:2,mar:2,april:3,apr:3,may:4,june:5,jun:5,july:6,jul:6,august:7,aug:7,september:8,sep:8,sept:8,october:9,oct:9,november:10,nov:10,december:11,dec:11 };
+function parseDate(s) {
+  if (!s) return null;
+  s = String(s).trim();
+  let m = s.match(/^([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})\b/);
+  if (m) { const mo = MONTH_MAP[m[1].toLowerCase()]; if (mo !== undefined) { const d = new Date(+m[3], mo, +m[2]); if (!isNaN(d)) return d; } }
+  m = s.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\b/);
+  if (m) { const mo = MONTH_MAP[m[2].toLowerCase()]; if (mo !== undefined) { const d = new Date(+m[3], mo, +m[1]); if (!isNaN(d)) return d; } }
+  const norm = s.replace(/(\d)(AM|PM|am|pm)\b/, "$1 $2");
+  let d = new Date(norm); if (!isNaN(d)) return d;
+  d = new Date(s); if (!isNaN(d)) return d;
+  m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+  if (m) { let [_, a, b, y] = m; if (y.length === 2) y = "20" + y; d = new Date(+y, +a - 1, +b); if (!isNaN(d)) return d; }
+  return null;
+}
+
+function parseRating(s) {
+  if (!s) return null; s = s.trim();
+  const letter = { "A+":5,"A":4.7,"A-":4.3,"B+":4,"B":3.7,"B-":3.3,"C+":3,"C":2.7,"C-":2.3,"D+":2,"D":1.7,"D-":1.3,"F":1 };
+  if (letter[s.toUpperCase()] !== undefined) return letter[s.toUpperCase()];
+  const stars = (s.match(/[★⭐*]/g) || []).length; if (stars) return stars;
+  const frac = s.match(/^([\d.]+)\s*\/\s*(\d+)/); if (frac) return (parseFloat(frac[1]) / parseFloat(frac[2])) * 5;
+  const n = parseFloat(s); if (!isNaN(n)) { if (n <= 5) return n; if (n <= 10) return n / 2; if (n <= 100) return n / 20; }
+  return null;
+}
+
+function resolveCover(b64, url) {
+  if (b64) {
+    const s = b64.trim();
+    if (s.startsWith("data:")) return s;
+    if (/^[A-Za-z0-9+/=\s]+$/.test(s) && s.length > 200) return "data:image/jpeg;base64," + s.replace(/\s+/g, "");
+  }
+  if (url) {
+    const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`;
+    return url;
+  }
+  return "";
+}
+
+const TAG_DEFS = [
+  ["broadway","Broadway","location"],["offbway","Off-Broadway","location"],["off-broadway","Off-Broadway","location"],["off-bway","Off-Broadway","location"],
+  ["nationaltour","National Tour","location"],["national tour","National Tour","location"],
+  ["israel","Israel","location"],["westend","West End","location"],["west end","West End","location"],
+  ["play","Play","genre"],["musical","Musical","genre"],["concert","Concert","genre"],
+  ["audiencerewards","Audience Rewards","access"],["audience rewards","Audience Rewards","access"],
+  ["lottery","Lottery","access"],["rush","Rush","access"],
+  ["preview","Preview","date"],["firstpreview","First Preview","date"],["first preview","First Preview","date"],
+  ["final","Closing","date"],["closing","Closing","date"],
+  ["matinee","Matinee","time"],["evening","Evening","time"],
+];
+
+function buildEntries(rows) {
+  if (rows.length < 2) return [];
+  const headers = rows[0];
+  const cols = {
+    date: findCol(headers,["date","seen","performance date","when"]),
+    title: findCol(headers,["title","show","production","play","name"]),
+    venue: findCol(headers,["venue","theatre","theater","house","location"]),
+    rating: findCol(headers,["rating","stars","score","grade"]),
+    type: findCol(headers,["type","category","kind","genre"]),
+    playwright: findCol(headers,["playwright","writer","author","by","book"]),
+    director: findCol(headers,["director"]),
+    composer: findCol(headers,["composer","music"]),
+    notes: findCol(headers,["notes","review","thoughts","comment","diary","description"]),
+    cast: findCol(headers,["cast","starring","performers"]),
+    company: findCol(headers,["company","troupe","producer"]),
+    playbill: findCol(headers,["playbill cover","playbill","cover","poster","image"]),
+    playbill64: findCol(headers,["playbill64","playbill base64","cover64"]),
+    seat: findCol(headers,["seat"]),
+    seatRow: findCol(headers,["seat row"]),
+    seatNum: findCol(headers,["seat number","seat num"]),
+    seatLocation: findCol(headers,["seat location","section"]),
+    milestone: findCol(headers,["milestone"]),
+  };
+  const TAG_LOOKUP = {};
+  for (const [k, l, c] of TAG_DEFS) { TAG_LOOKUP[k.toLowerCase()] = { label: l, cat: c }; TAG_LOOKUP[l.toLowerCase()] = { label: l, cat: c }; }
+  const tagCols = TAG_DEFS.map(([key, label, cat]) => {
+    const i = headers.findIndex(h => (h||"").toLowerCase().trim() === key);
+    return i >= 0 ? { i, label, cat } : null;
+  }).filter(Boolean);
+  const tagsCol = headers.findIndex(h => (h||"").toLowerCase().trim() === "tags");
+  const customTagsCol = headers.findIndex(h => (h||"").toLowerCase().trim() === "custom tags");
+  const HIDDEN = new Set([
+    "theater+city","theatre+city","numerical grade","numeric grade",
+    "seat row","seat number","seat number for grid","seat location","seat name",
+    "row as number","helper column","helper",
+    "playbill cover","playbill64","tags","custom tags",
+    ...TAG_DEFS.map(t => t[0])
+  ].map(s => s.toLowerCase()));
+
+  const out = [];
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    const g = (k) => cols[k] >= 0 ? (row[cols[k]] || "").trim() : "";
+    const e = {
+      date: parseDate(g("date")), dateRaw: g("date"),
+      title: g("title"), venue: g("venue"),
+      rating: parseRating(g("rating")), ratingRaw: g("rating"),
+      type: g("type"), playwright: g("playwright"),
+      director: g("director"), composer: g("composer"),
+      notes: g("notes"), cast: g("cast"), company: g("company"),
+      seat: g("seat"), seatRow: g("seatRow"), seatLocation: g("seatLocation"),
+      seatNum: (() => { const n = parseInt(g("seatNum"), 10); return isNaN(n) ? null : n; })(),
+      milestone: g("milestone"),
+      tags: [], extra: {}
+    };
+    const seen = new Set();
+    for (const tc of tagCols) {
+      const v = (row[tc.i] || "").trim().toLowerCase();
+      const truthy = v && v !== "0" && v !== "false" && v !== "no" && v !== "-" && v !== "n";
+      if (truthy && !seen.has(tc.label)) { seen.add(tc.label); e.tags.push({ label: tc.label, cat: tc.cat }); }
+    }
+    const ts = [];
+    if (tagsCol >= 0) ts.push(row[tagsCol] || "");
+    if (customTagsCol >= 0) ts.push(row[customTagsCol] || "");
+    for (const s of ts) for (const raw of s.split(/[,;|]/)) {
+      const t = raw.trim(); if (!t) continue;
+      const m = TAG_LOOKUP[t.toLowerCase()];
+      if (m && !seen.has(m.label)) { seen.add(m.label); e.tags.push({ label: m.label, cat: m.cat }); }
+      else if (!m && !seen.has(t)) { seen.add(t); e.tags.push({ label: t, cat: "custom" }); }
+    }
+    e.isHebrew = /[\u0590-\u05FF]/.test(e.title || "");
+    headers.forEach((h, i) => {
+      const used = Object.values(cols).includes(i);
+      const hLow = (h || "").toLowerCase().trim();
+      if (!used && !HIDDEN.has(hLow) && row[i] && row[i].trim()) e.extra[h] = row[i].trim();
+    });
+    e.coverSrc = resolveCover(
+      cols.playbill64 >= 0 ? (row[cols.playbill64] || "").trim() : "",
+      cols.playbill >= 0 ? (row[cols.playbill] || "").trim() : ""
+    );
+    if (e.title || e.dateRaw) out.push(e);
+  }
+  return out;
+}
+
+// ───────────── State + render ─────────────
+let ENTRIES = [];
+let VIEW = { sort: "date-desc", search: "", limit: 30, activeTagByGroup: {}, mode: "list", hideFuture: true };
+
+async function load() {
+  try {
+    const res = await fetch(SHEET_CSV_URL);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    ENTRIES = buildEntries(parseCSV(text));
+    render();
+  } catch (err) {
+    document.getElementById("main").innerHTML = `
+      <div class="errstate">
+        Couldn't load the sheet.
+        <code>${err.message}</code>
+        <div style="margin-top:12px;font-size:13px;color:var(--ink-3);">Make sure it's still published as CSV.</div>
+      </div>`;
+  }
+}
+
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const fmtDate = d => d ? `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` : "—";
+const fmtDateShort = d => d ? `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` : "—";
+function stars(r) {
+  if (r == null) return '';
+  const rounded = Math.round(r * 2) / 2;
+  const full = Math.floor(rounded);
+  const half = rounded - full >= 0.5;
+  return `<span class="star-row">${'★'.repeat(full)}${half ? '½' : ''}</span>`;
+}
+
+// Reverse numeric rating → closest letter grade
+function letterGrade(r) {
+  if (r == null) return '';
+  const grades = [[5,'A+'],[4.7,'A'],[4.3,'A-'],[4,'B+'],[3.7,'B'],[3.3,'B-'],[3,'C+'],[2.7,'C'],[2.3,'C-'],[2,'D+'],[1.7,'D'],[1.3,'D-'],[1,'F']];
+  let best = grades[grades.length-1];
+  let bestDiff = Infinity;
+  for (const [v, g] of grades) { const d = Math.abs(r - v); if (d < bestDiff) { bestDiff = d; best = [v, g]; } }
+  return best[1];
+}
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function render() {
+  const main = document.getElementById("main");
+  const total = ENTRIES.length;
+  const dated = ENTRIES.filter(e => e.date).sort((a,b) => b.date - a.date);
+  document.getElementById("hd-n").textContent = total;
+  document.getElementById("hd-venues").textContent = new Set(ENTRIES.map(e => e.venue).filter(Boolean)).size;
+  document.getElementById("hd-last").textContent = dated[0] ? `Last: ${fmtDate(dated[0].date)}` : "no dates";
+  if (!total) { main.innerHTML = `<div class="errstate">Diary is empty.</div>`; return; }
+  const parts = [];
+  if (TWEAKS.showStats) parts.push(renderStats());
+  parts.push(renderCalendar());
+  parts.push(renderRepertoire());
+  parts.push(renderBoards());
+  if (TWEAKS.showSeatMap) parts.push(renderSeatMap());
+  main.innerHTML = parts.join("");
+  attachListeners();
+  if (TWEAKS.showSeatMap) initSeatMap();
+}
+
+function renderStats() {
+  const total = ENTRIES.length;
+  const rated = ENTRIES.filter(e => e.rating != null);
+  const avg = rated.length ? rated.reduce((s,e)=>s+e.rating,0)/rated.length : null;
+  const venueCounts = {}; ENTRIES.forEach(e => { if (e.venue) venueCounts[e.venue]=(venueCounts[e.venue]||0)+1; });
+  const topVenue = Object.entries(venueCounts).sort((a,b)=>b[1]-a[1])[0];
+  const monthCounts = {}; ENTRIES.forEach(e => { if (!e.date) return; const k=`${e.date.getFullYear()}-${e.date.getMonth()}`; monthCounts[k]=(monthCounts[k]||0)+1; });
+  const top = Object.entries(monthCounts).sort((a,b)=>b[1]-a[1])[0];
+  let bigMonth = "—", bigCount = 0;
+  if (top) { const [y,m] = top[0].split("-"); bigMonth = `${MONTHS_FULL[+m]} ${y}`; bigCount = top[1]; }
+  const thisYear = new Date().getFullYear();
+  const tyCount = ENTRIES.filter(e => e.date?.getFullYear() === thisYear).length;
+  return `
+    <div class="sec-hd"><h2>At a glance</h2><div class="rule"></div></div>
+    <section class="stats">
+      <div class="stat"><div class="stat-label">Total</div><div class="stat-v">${total}</div><div class="stat-sub">performances</div></div>
+      <div class="stat"><div class="stat-label">Average rating</div><div class="stat-v">${avg != null ? avg.toFixed(2) : "—"}<span class="u">/5</span></div><div class="stat-sub" style="color:var(--accent)">${avg != null ? stars(avg) : ""}</div></div>
+      <div class="stat"><div class="stat-label">This year (${thisYear})</div><div class="stat-v">${tyCount}</div><div class="stat-sub">so far</div></div>
+      <div class="stat"><div class="stat-label">Top venue</div><div class="stat-v" style="${topVenue && /[֐-׿]/.test(topVenue[0]) ? 'font-size:28px;line-height:1.1;font-family:var(--ff-heb-serif);font-weight:700;' : 'font-size:22px;line-height:1.15;'}">${topVenue ? esc(topVenue[0]) : "—"}</div><div class="stat-sub">${topVenue ? `<strong>${topVenue[1]}</strong> visits` : "—"}</div></div>
+      <div class="stat"><div class="stat-label">Busiest month</div><div class="stat-v" style="font-size:22px;line-height:1.15;">${bigMonth}</div><div class="stat-sub"><strong>${bigCount}</strong> performances</div></div>
+    </section>`;
+}
+
+function renderCalendar() {
+  const dated = ENTRIES.filter(e => e.date);
+  if (!dated.length) return "";
+  const years = [...new Set(dated.map(e => e.date.getFullYear()))].sort((a,b)=>b-a).slice(0, 4);
+  const byDay = {}; dated.forEach(e => { const k=`${e.date.getFullYear()}-${e.date.getMonth()}-${e.date.getDate()}`; (byDay[k]=byDay[k]||[]).push(e); });
+  const rows = years.map(year => {
+    const count = dated.filter(e => e.date.getFullYear() === year).length;
+    const days = (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) ? 366 : 365;
+    const cells = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(year, 0, 1 + i);
+      const k = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const list = byDay[k];
+      let attr = "";
+      if (list) {
+        const bucket = list.length >= 4 ? "many" : String(Math.min(list.length, 3));
+        attr = ` data-count="${bucket}" data-label="${esc(fmtDateShort(d))} — ${esc(list.map(e=>e.title||"(untitled)").join(" · "))}"`;
+      }
+      cells.push(`<div class="cal-cell"${attr}></div>`);
+    }
+    return `<div class="cal-row"><div class="cal-year">${year}<span class="count">${count} perf.</span></div><div class="cal-grid" style="grid-template-columns:repeat(${days},1fr);">${cells.join("")}</div></div>`;
+  }).join("");
+  return `<div class="sec-hd"><h2>Year in review</h2><div class="rule"></div></div><section class="calendar">${rows}</section>`;
+}
+
+function buildTagFilters() {
+  const catOrder = ['location','genre','time','access','date','custom'];
+  const bycat = {};
+  ENTRIES.forEach(e => (e.tags||[]).forEach(t => {
+    if (!bycat[t.cat]) bycat[t.cat] = new Map();
+    bycat[t.cat].set(t.label, t);
+  }));
+  // Ensure Musical appears in genre even if not tagged (virtual tag)
+  if (!bycat['genre']) bycat['genre'] = new Map();
+  if (!bycat['genre'].has('Musical')) bycat['genre'].set('Musical', { label: 'Musical', cat: 'genre' });
+  bycat['genre']?.delete('Concert');
+  const groups = catOrder.filter(c => bycat[c]);
+  if (!groups.length) return '';
+  const hasActive = Object.values(VIEW.activeTagByGroup).some(Boolean);
+  const btns = groups.map((cat, gi) => {
+    const tags = [...bycat[cat].values()];
+    const divider = gi > 0 ? '<div class="tf-divider"></div>' : '';
+    return divider + tags.map(t => `<button class="tf-btn${VIEW.activeTagByGroup[cat]===t.label?' active':''}" data-cat="${t.cat}" data-label="${esc(t.label)}">${esc(t.label)}</button>`).join('');
+  }).join('');
+  const clearBtn = hasActive ? `<div class="tf-divider"></div><button class="tf-btn tf-clear">Clear</button>` : '';
+  return `<div class="tag-filter"><span class="tag-filter-label">Filter</span>${btns}${clearBtn}</div>`;
+}
+
+function renderRepertoire() {
+  return `
+    <div class="sec-hd"><h2>Every performance</h2><div class="rule"></div></div>
+    <div class="view-bar">
+      <div class="view-toggle">
+        <button class="vt-btn${VIEW.mode==='list'?' active':''}" id="vt-list">☰ List</button>
+        <button class="vt-btn${VIEW.mode==='grid'?' active':''}" id="vt-grid">⊞ Grid</button>
+      </div>
+      <label class="future-toggle">
+        <input type="checkbox" id="hide-future" ${VIEW.hideFuture?'checked':''}>
+        Hide future shows
+      </label>
+    </div>
+    <div id="tag-filter-wrap"></div>
+    <div class="toolbar">
+      <div class="search"><input id="search" placeholder="Search title, venue, author, notes…" value="${esc(VIEW.search)}"></div>
+      <div class="sort">
+        <button data-sort="date-desc" class="${VIEW.sort==='date-desc'?'active':''}">Newest</button>
+        <button data-sort="date-asc" class="${VIEW.sort==='date-asc'?'active':''}">Oldest</button>
+        <button data-sort="rating-desc" class="${VIEW.sort==='rating-desc'?'active':''}">Best</button>
+        <button data-sort="title-asc" class="${VIEW.sort==='title-asc'?'active':''}">A–Z</button>
+      </div>
+    </div>
+    <div id="rep"></div>`;
+}
+
+function filterAndSort() {
+  const s = VIEW.search.trim().toLowerCase();
+  let list = ENTRIES.slice();
+  if (VIEW.hideFuture) {
+    const now = new Date(); now.setHours(0,0,0,0);
+    list = list.filter(e => !e.date || e.date <= now);
+  }
+  if (Object.keys(VIEW.activeTagByGroup).some(k => VIEW.activeTagByGroup[k])) {
+    list = list.filter(e => {
+      return Object.entries(VIEW.activeTagByGroup).every(([cat, label]) => {
+        if (!label) return true;
+        if (cat === 'genre' && label === 'Musical') {
+          // Musical = not tagged as Play or Concert
+          return !(e.tags||[]).some(t => t.cat === 'genre' && (t.label === 'Play' || t.label === 'Concert'));
+        }
+        return (e.tags||[]).some(t => t.label === label);
+      });
+    });
+  }
+  if (s) list = list.filter(e =>
+    (e.title||"").toLowerCase().includes(s) || (e.venue||"").toLowerCase().includes(s) ||
+    (e.playwright||"").toLowerCase().includes(s) || (e.director||"").toLowerCase().includes(s) ||
+    (e.composer||"").toLowerCase().includes(s) || (e.notes||"").toLowerCase().includes(s) ||
+    (e.cast||"").toLowerCase().includes(s) || (e.milestone||"").toLowerCase().includes(s) ||
+    (e.seat||"").toLowerCase().includes(s) || (e.tags||[]).some(t => t.label.toLowerCase().includes(s))
+  );
+  switch (VIEW.sort) {
+    case "date-desc": list.sort((a,b) => (b.date?.getTime()||0) - (a.date?.getTime()||0)); break;
+    case "date-asc": list.sort((a,b) => (a.date?.getTime()||Infinity) - (b.date?.getTime()||Infinity)); break;
+    case "rating-desc": list.sort((a,b) => (b.rating ?? -1) - (a.rating ?? -1)); break;
+    case "title-asc": list.sort((a,b) => (a.title||"").localeCompare(b.title||"")); break;
+  }
+  return list;
+}
+
+const TAG_CAT_ORDER = ['location','genre','access','date','time','custom'];
+
+function buildChips(e, limit) {
+  const isMusical = !(e.tags||[]).some(t => t.cat==='genre' && (t.label==='Play'||t.label==='Concert'));
+  const timeTags = (e.tags||[]).filter(t => t.cat==='time');
+  const showtimeExtra = !timeTags.length
+    ? ((Object.entries(e.extra||{}).find(([k])=>/^showtime$/i.test(k.trim()))||[])[1]||'')
+    : '';
+  const all = [
+    ...(isMusical ? [{label:'Musical',cat:'genre'}] : []),
+    ...(e.tags||[]),
+    ...(showtimeExtra ? [{label:showtimeExtra,cat:'time'}] : []),
+  ].sort((a,b) => {
+    const ai = TAG_CAT_ORDER.indexOf(a.cat); const bi = TAG_CAT_ORDER.indexOf(b.cat);
+    return (ai<0?99:ai)-(bi<0?99:bi);
+  });
+  return (limit ? all.slice(0, limit) : all)
+    .map(t=>`<span class="chip" data-cat="${t.cat}">${esc(t.label)}</span>`).join('');
+}
+
+function renderRepRows() {
+  const filtered = filterAndSort();
+  const shown = filtered.slice(0, VIEW.limit);
+  const rep = document.getElementById("rep");
+  if (!rep) return;
+  document.querySelector(".show-more")?.remove();
+  if (!filtered.length) { rep.innerHTML = `<div class="rep-empty">No entries match that search.</div>`; return; }
+  if (VIEW.mode === 'grid') {
+    rep.className = 'rep-grid';
+    rep.innerHTML = shown.map(e => {
+      const grade = letterGrade(e.rating);
+      return `<div class="rep-grid-card${e.isHebrew?' hebrew':''}" data-idx="${ENTRIES.indexOf(e)}">
+        <div class="rep-grid-cover${e.coverSrc?'':' empty'}">
+          ${e.coverSrc ? `<img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('empty');this.remove();">` : '♪'}
+        </div>
+        ${e.milestone ? `<div class="rep-grid-milestone-strip"${/[֐-׿]/.test(e.milestone)?` style="font-family:var(--ff-heb)"`:``}>${esc(e.milestone)}</div>` : ''}
+        <div class="rep-grid-info">
+          <div class="rep-grid-title">${esc(e.title||'(untitled)')}</div>
+          <div class="rep-grid-sub">${e.date ? fmtDateShort(e.date) : '—'}</div>
+          <div class="rep-grid-rating">${stars(e.rating)}${grade?`<span class="grade-sep">•</span><span class="grade-pill" data-grade="${grade}">${grade}</span>`:''}</div>
+        </div>
+      </div>`;
+    }).join('');
+    if (filtered.length > VIEW.limit) {
+      rep.insertAdjacentHTML("afterend", `<button class="show-more">Show ${Math.min(60, filtered.length - VIEW.limit)} more — of ${filtered.length}</button>`);
+      document.querySelector(".show-more").addEventListener("click", () => { VIEW.limit += 60; renderRepRows(); });
+    }
+    return;
+  }
+  rep.className = 'rep';
+  rep.innerHTML = shown.map(e => {
+    const grade = letterGrade(e.rating);
+    return `
+    <div class="rep-row${e.isHebrew ? ' hebrew' : ''}" data-idx="${ENTRIES.indexOf(e)}">
+      <div class="rep-thumb${e.coverSrc ? '' : ' empty'}">${e.coverSrc ? `<img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('empty');this.remove();">` : ""}</div>
+      <div class="rep-date">${e.date ? fmtDateShort(e.date) : "—"}</div>
+      <div class="rep-title">
+        ${e.milestone ? `<div class="rep-milestone">${esc(e.milestone)}</div>` : ""}
+        <div class="rep-title-text">${esc(e.title || "(untitled)")}${e.playwright || e.composer ? `<span class="by">by ${esc(e.playwright || e.composer)}</span>` : ""}</div>
+      </div>
+      <div class="rep-venue">${esc(e.venue || "")}</div>
+      <div class="rep-rating">${stars(e.rating)}${grade ? `<span class="grade-sep">•</span><span class="grade-pill" data-grade="${grade}">${grade}</span>` : ""}</div>
+      <div class="rep-tags">${buildChips(e)}</div>
+      <div class="rep-arrow">→</div>
+    </div>`;
+  }).join("");
+  if (filtered.length > VIEW.limit) {
+    rep.insertAdjacentHTML("afterend", `<button class="show-more">Show ${Math.min(30, filtered.length - VIEW.limit)} more — of ${filtered.length}</button>`);
+    document.querySelector(".show-more").addEventListener("click", () => { VIEW.limit += 30; renderRepRows(); });
+  }
+}
+
+function renderTagFilters() {
+  const wrap = document.getElementById('tag-filter-wrap');
+  if (wrap) wrap.innerHTML = buildTagFilters();
+  document.querySelector('.tf-clear')?.addEventListener('click', () => {
+    VIEW.activeTagByGroup = {}; VIEW.limit = 30;
+    renderTagFilters(); renderRepRows();
+  });
+  document.querySelectorAll('.tf-btn:not(.tf-clear)').forEach(b => b.addEventListener('click', () => {
+    const { label, cat } = b.dataset;
+    // Radio within group: clicking active deselects, clicking other deselects rest
+    VIEW.activeTagByGroup[cat] = VIEW.activeTagByGroup[cat] === label ? null : label;
+    VIEW.limit = 30;
+    renderTagFilters();
+    renderRepRows();
+  }));
+}
+
+function attachListeners() {
+  renderTagFilters();
+  renderRepRows();
+  document.getElementById("search")?.addEventListener("input", e => { VIEW.search = e.target.value; VIEW.limit = 30; renderRepRows(); });
+  document.querySelectorAll(".sort button").forEach(b => b.addEventListener("click", () => {
+    VIEW.sort = b.dataset.sort; document.querySelectorAll(".sort button").forEach(x => x.classList.toggle("active", x === b));
+    VIEW.limit = 30; renderRepRows();
+  }));
+  document.getElementById("rep").addEventListener("click", e => {
+    const r = e.target.closest(".rep-row, .rep-grid-card"); if (r) openDetail(+r.dataset.idx);
+  });
+  document.getElementById("vt-list")?.addEventListener("click", () => {
+    VIEW.mode = "list"; VIEW.limit = 30;
+    document.getElementById("vt-list").classList.add("active");
+    document.getElementById("vt-grid").classList.remove("active");
+    renderRepRows();
+  });
+  document.getElementById("vt-grid")?.addEventListener("click", () => {
+    VIEW.mode = "grid"; VIEW.limit = 60;
+    document.getElementById("vt-grid").classList.add("active");
+    document.getElementById("vt-list").classList.remove("active");
+    renderRepRows();
+  });
+  document.getElementById("hide-future")?.addEventListener("change", e => {
+    VIEW.hideFuture = e.target.checked; VIEW.limit = 30; renderRepRows();
+  });
+}
+
+function renderBoards() {
+  const venueCounts = {}; ENTRIES.forEach(e => { if (e.venue) venueCounts[e.venue]=(venueCounts[e.venue]||0)+1; });
+  const venues = Object.entries(venueCounts).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  const pwCounts = {}; ENTRIES.forEach(e => { const by = e.playwright || e.composer; if (by) pwCounts[by]=(pwCounts[by]||0)+1; });
+  const pws = Object.entries(pwCounts).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  const buckets = [0,0,0,0,0];
+  ENTRIES.forEach(e => { if (e.rating == null) return; const i = Math.min(4, Math.max(0, Math.ceil(e.rating) - 1)); buckets[i]++; });
+  const maxB = Math.max(1, ...buckets);
+  return `
+    <div class="sec-hd"><h2>Favourites &amp; figures</h2><div class="rule"></div></div>
+    <div class="boards">
+      <div class="board"><h3>Most-visited venues</h3>${venues.length ? venues.map(([v,c],i)=>`<div class="board-item"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name"${/[֐-׿]/.test(v)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}</div><div class="board-count">${c}</div></div>`).join("") : `<div style="color:var(--ink-3)">—</div>`}</div>
+      <div class="board"><h3>Most-seen authors</h3>${pws.length ? pws.map(([p,c],i)=>`<div class="board-item"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name">${esc(p)}</div><div class="board-count">${c}</div></div>`).join("") : `<div style="color:var(--ink-3)">—</div>`}</div>
+      <div class="board"><h3>Rating distribution</h3>
+        <div class="hist">${buckets.map(b => `<div class="hist-bar"${b===0?' data-empty="true"':''} style="height:${(b/maxB)*100}%" title="${b} at this rating"></div>`).join("")}</div>
+        <div class="hist-labels"><span>1★</span><span>2★</span><span>3★</span><span>4★</span><span>5★</span></div>
+        <div style="margin-top:12px;font-size:12px;color:var(--ink-3);">${buckets.reduce((a,b)=>a+b,0)} rated · ${ENTRIES.length - buckets.reduce((a,b)=>a+b,0)} unrated</div>
+      </div>
+    </div>`;
+}
+
+// ───────────── Detail modal ─────────────
+function openDetail(idx) {
+  const e = ENTRIES[idx]; if (!e) return;
+  const REVIEW_KEYS = /^(review|notes?|thoughts?|comments?|diary|description)$/i;
+  const SKIP_KEYS   = /^(location|showtime|grade|seat)$/i;
+  const extraReviews = Object.entries(e.extra).filter(([k]) => REVIEW_KEYS.test(k.trim()));
+  const extraMeta    = Object.entries(e.extra).filter(([k]) => !REVIEW_KEYS.test(k.trim()) && !SKIP_KEYS.test(k.trim()));
+  const locationVal  = (Object.entries(e.extra).find(([k]) => /^location$/i.test(k.trim())) || [])[1] || '';
+  const showtimeVal  = (Object.entries(e.extra).find(([k]) => /^showtime$/i.test(k.trim())) || [])[1] || '';
+  const meta = [
+    e.date && ["Seen", fmtDate(e.date)],
+    e.venue && ["Venue", e.venue, locationVal],
+    e.director && ["Director", e.director],
+    e.composer && e.playwright && ["Music", e.composer],
+    e.company && ["Company", e.company],
+    e.type && ["Category", e.type],
+    ...extraMeta.map(([k,v])=>[k,v])
+  ].filter(Boolean);
+  const pb = document.getElementById("playbill");
+  pb.classList.toggle("hebrew", !!e.isHebrew);
+  document.getElementById("pb-body").innerHTML = `
+    ${e.coverSrc ? `<div class="pb-cover"><img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.style.display='none'"></div>` : ""}
+    ${e.milestone ? `<div class="pb-milestone-wrap"><span class="pb-milestone"${/[֐-׿]/.test(e.milestone)?` style="font-family:var(--ff-heb)"`:""}>${esc(e.milestone)}</span></div>` : ""}
+    <h2 class="pb-title">${esc(e.title || "(untitled)")}</h2>
+    ${e.playwright ? `<div class="pb-by">by ${esc(e.playwright)}</div>` : ""}
+    <div class="pb-rating">${stars(e.rating)}${e.rating != null ? `<span class="grade-sep">•</span><span class="grade-pill" data-grade="${letterGrade(e.rating)}">${letterGrade(e.rating)}</span>` : ""}</div>
+    ${(() => { const c = buildChips(e); const s = e.seat?`<span class="chip chip-seat"${/[֐-׿]/.test(e.seat)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(e.seat)}</span>`:""; return (c||s)?`<div class="pb-tags">${c}${s}</div>`:""; })()}
+    <div class="pb-rule"></div>
+    ${meta.length ? `<dl class="pb-meta">${meta.map(([k,v,sub])=>`<div><dt>${esc(k)}</dt><dd${/[֐-׿]/.test(String(v))?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}${sub?`<span class="pb-venue-sub">${esc(sub)}</span>`:""}</dd></div>`).join("")}</dl>` : ""}
+    ${e.notes || e.cast || extraReviews.length ? `<div class="pb-rule"></div>${e.cast ? `<div class="pb-notes" style="font-size:14px;color:var(--ink-2);">${esc(e.cast)}</div>` : ""}${extraReviews.map(([,v])=>`<div class="pb-review"${/[֐-׿]/.test(String(v))?` style="font-family:var(--ff-heb-serif);direction:rtl"`:``}>${esc(v)}</div>`).join("")}${extraReviews.length && e.notes ? `<div class="pb-rule"></div>` : ""}${e.notes ? `<div class="pb-notes"${/[֐-׿]/.test(String(e.notes))?` style="font-family:var(--ff-heb-serif);direction:rtl"`:``}>${esc(e.notes)}</div>` : ""}` : ""}`;
+  document.getElementById("scrim").classList.add("open");
+}
+function closeDetail() { document.getElementById("scrim").classList.remove("open"); }
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDetail(); });
+
+// ───────────── Seat map ─────────────
+const ORCH_ROWS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const MEZZ_ROWS = "ABCDEFGH".split("");
+const ROW_ALIASES = { "EE":"E","AX":"A","AA":"A","BB":"B","FF":"F" };
+const SM = { CX: 600, FY: -500, BR: 560, ROW_SP: 19, SEAT_SP: 14.5, AISLE: 12, R: 5 };
+
+function buildRowSeats(ri) {
+  const side = Math.min(ri + 5, 12);
+  const leftMax = side * 2 - 1, rightMax = side * 2;
+  const left = [], center = [], right = [];
+  for (let n = leftMax; n >= 1; n -= 2) left.push(n);
+  for (let n = 101; n <= 116; n++) center.push(n);
+  for (let n = 2; n <= rightMax; n += 2) right.push(n);
+  return { left, center, right };
+}
+function computeRow(rows, yShift) {
+  const seats = [];
+  rows.forEach((letter, ri) => {
+    const radius = SM.BR + ri * SM.ROW_SP;
+    const { left, center, right } = buildRowSeats(ri);
+    const total = left.length + center.length + right.length;
+    const totalW = (total - 1) * SM.SEAT_SP + 2 * SM.AISLE;
+    const totalA = totalW / radius;
+    const seatA = SM.SEAT_SP / radius;
+    const aisleA = SM.AISLE / radius;
+    let angle = Math.PI / 2 + totalA / 2;
+    const place = n => {
+      const x = SM.CX + radius * Math.cos(angle);
+      const y = SM.FY + radius * Math.sin(angle) + yShift;
+      seats.push({ row: letter, num: n, x, y, ri });
+      angle -= seatA;
+    };
+    left.forEach(place); angle -= aisleA;
+    center.forEach(place); angle -= aisleA;
+    right.forEach(place);
+  });
+  return seats;
+}
+
+const RATING_COLORS = { 5:"#16894a", 4.5:"#52b74d", 4:"#a6d96a", 3.5:"#d4c54a", 3:"#e5a828", 2.5:"#e67c35", 2:"#d95f3d", 1.5:"#bc3a34", 1:"#8e2626" };
+function ratingColor(r) { if (r == null) return "#cfcabc"; return RATING_COLORS[Math.round(r*2)/2] || "#cfcabc"; }
+
+let SEAT_STATE = { minR: 1, maxR: 5 };
+
+function renderSeatMap() {
+  return `
+    <div class="sec-hd"><h2>Where I've sat</h2><div class="sub">Broadway-style orchestra + mezzanine</div><div class="rule"></div></div>
+    <section class="seatmap-wrap">
+      <div class="sm-hd">
+        <div class="sm-stats" id="sm-stats">—</div>
+      </div>
+      <div class="sm-svg-wrap"><div id="sm-svg"></div></div>
+      <div class="sm-legend" id="sm-legend"></div>
+    </section>`;
+}
+
+function initSeatMap() {
+  const orch = computeRow(ORCH_ROWS, 0);
+  const orchMax = Math.max(...orch.map(s => s.y));
+  const mezzRaw = computeRow(MEZZ_ROWS, 0);
+  const mezzMin = Math.min(...mezzRaw.map(s => s.y));
+  const shift = (orchMax + 70) - mezzMin;
+  const mezz = mezzRaw.map(s => ({ ...s, y: s.y + shift }));
+  const mezzTop = Math.min(...mezz.map(s => s.y));
+  const mezzMax = Math.max(...mezz.map(s => s.y));
+
+  const lookup = {};
+  orch.forEach(s => lookup[`Orchestra|${s.row}|${s.num}`] = s);
+  mezz.forEach(s => lookup[`Mezzanine|${s.row}|${s.num}`] = s);
+
+  // Build cell map — key by normalized section/row/num
+  const matched = ENTRIES.map(e => {
+    const row = ROW_ALIASES[e.seatRow] || e.seatRow;
+    let section = e.seatLocation;
+    if (section === "Balcony") section = "Mezzanine";
+    if (!section) {
+      // Try to infer section from broadway defaults if we have a row & num but no section
+      if (row && e.seatNum != null) section = "Orchestra";
+    }
+    const key = section && row && e.seatNum != null ? `${section}|${row}|${e.seatNum}` : null;
+    const ghost = key ? lookup[key] : null;
+    return { e, key, ghost };
+  }).filter(x => x.ghost && x.e.rating != null);
+
+  const cellMap = {};
+  matched.forEach(m => { (cellMap[m.key] = cellMap[m.key] || []).push(m.e); });
+
+  const xs = [...orch, ...mezz].map(s => s.x);
+  const ys = [...orch, ...mezz].map(s => s.y);
+  const pad = 40;
+  const vbX = Math.min(...xs) - pad;
+  const vbY = Math.min(...ys) - 50;
+  const vbW = Math.max(...xs) - vbX + pad;
+  const vbH = Math.max(...ys) - vbY + pad;
+
+  // Row labels (one per row, left-aisle gap)
+  const rowLabels = [];
+  const byRow = {};
+  [...orch, ...mezz].forEach(s => { const k = `${s.y < mezzTop ? 'O' : 'M'}-${s.row}`; (byRow[k] = byRow[k] || []).push(s); });
+  Object.values(byRow).forEach(seats => {
+    const leftSide = seats.filter(s => s.num < 100 && s.num % 2 === 1).sort((a,b)=>a.x-b.x);
+    const center = seats.filter(s => s.num >= 101).sort((a,b)=>a.x-b.x);
+    if (leftSide.length && center.length) {
+      rowLabels.push({ letter: seats[0].row, x: (leftSide[leftSide.length-1].x + center[0].x)/2, y: center[0].y });
+    }
+  });
+
+  const drawState = { orch, mezz, mezzTop, cellMap, vbX, vbY, vbW, vbH, rowLabels, orchMaxY: orchMax };
+  redrawSeatMap(drawState);
+}
+
+function redrawSeatMap(s) {
+  const { orch, mezz, mezzTop, cellMap, vbX, vbY, vbW, vbH, rowLabels, orchMaxY } = s;
+  const mezzMinY = Math.min(...mezz.map(m => m.y));
+
+  const freqColor = n => n >= 4 ? '#002266' : n === 3 ? '#004499' : n === 2 ? '#0060cc' : '#5ba8ff';
+
+  const dots = Object.entries(cellMap).map(([key, perfs]) => {
+    const n = perfs.length;
+    const rep = perfs[0];
+    const row = ROW_ALIASES[rep.seatRow] || rep.seatRow;
+    let section = rep.seatLocation === 'Balcony' ? 'Mezzanine' : (rep.seatLocation || 'Orchestra');
+    const seats = section === 'Mezzanine' ? mezz : orch;
+    const p = seats.find(x => x.row === row && x.num === rep.seatNum);
+    if (!p) return '';
+    const color = freqColor(n);
+    return `<circle class="sm-dot" data-key="${esc(key)}" cx="${p.x}" cy="${p.y}" r="${SM.R+1}" fill="${color}" stroke="#fff" stroke-width="1"></circle>${n>1?`<circle cx="${p.x+SM.R+1}" cy="${p.y-SM.R-1}" r="4.5" fill="#1a1a1a"/><text x="${p.x+SM.R+1}" y="${p.y-SM.R-0.8}" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="6" font-weight="700" pointer-events="none" font-family="var(--ff-sans)">${n}</text>`:''}`;
+  }).join('');
+
+
+  const totalSeated = Object.values(cellMap).reduce((n,p) => n+p.length, 0);
+  const mapped = Object.keys(cellMap).length;
+  document.getElementById('sm-stats').innerHTML = `<strong>${mapped}</strong> unique seats · <strong>${totalSeated}</strong> performances placed`;
+
+  const svg = `
+    <svg class="sm-svg" viewBox="${vbX} ${vbY} ${vbW} ${vbH}">
+      <rect x="${SM.CX-90}" y="${vbY+6}" width="180" height="26" rx="4" fill="#3a3a3a"/>
+      <text x="${SM.CX}" y="${vbY+23}" text-anchor="middle" fill="#fff" font-size="11" font-weight="600" letter-spacing="3" font-family="var(--ff-sans)">STAGE</text>
+      ${orch.map(s => `<circle cx="${s.x}" cy="${s.y}" r="${SM.R}" fill="#e8e3d5"/>`).join("")}
+      ${mezz.map(s => `<circle cx="${s.x}" cy="${s.y}" r="${SM.R}" fill="#e8e3d5"/>`).join("")}
+      ${rowLabels.map(l => `<text class="sm-row-label" x="${l.x}" y="${l.y}" text-anchor="middle" dominant-baseline="central">${l.letter}</text>`).join("")}
+      <text class="sm-sec-label" x="${SM.CX}" y="${orchMaxY+30}" text-anchor="middle">ORCHESTRA</text>
+      <text class="sm-sec-label" x="${SM.CX}" y="${mezzMinY-14}" text-anchor="middle">MEZZANINE</text>
+      ${dots}
+    </svg>`;
+  document.getElementById("sm-svg").innerHTML = svg;
+
+  // Legend
+  document.getElementById('sm-legend').innerHTML = [
+    ['#5ba8ff','1 visit'],['#0060cc','2 visits'],['#004499','3 visits'],['#002266','4+ visits']
+  ].map(([c,l])=>`<span><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
+
+  // Tooltip + click
+  const tt = document.getElementById("sm-tt");
+  document.querySelectorAll(".sm-dot").forEach(dot => {
+    const key = dot.dataset.key;
+    const perfs = cellMap[key];
+    dot.addEventListener("mousemove", ev => {
+      const p = perfs[0];
+      const others = perfs.length > 1 ? `<div class="sm-tt-more">+ ${perfs.length - 1} other${perfs.length-1===1?'':'s'} at this seat</div>` : "";
+      tt.innerHTML = `
+        <div class="sm-tt-title">${esc(p.title||"")}</div>
+        <div class="sm-tt-sub">${esc(p.venue||"")}</div>
+        <div class="sm-tt-meta">
+          <span>${p.date ? fmtDateShort(p.date) : "—"}</span>
+          <span>Seat ${esc(p.seat || `${p.seatRow}-${p.seatNum}`)}</span>
+          <span class="sm-tt-rating">${stars(p.rating)}</span>
+        </div>${others}`;
+      tt.style.left = Math.min(window.innerWidth - 300, ev.clientX + 12) + "px";
+      tt.style.top = (ev.clientY + 12) + "px";
+      tt.classList.add("open");
+    });
+    dot.addEventListener("mouseleave", () => tt.classList.remove("open"));
+    dot.addEventListener("click", () => {
+      const p = perfs[0];
+      openDetail(ENTRIES.indexOf(p));
+    });
+  });
+}
+
+// ───────────── Tweaks ─────────────
+function applyTweaks() {
+  document.documentElement.removeAttribute("data-accent");
+  document.documentElement.setAttribute("data-density", TWEAKS.density);
+  document.querySelectorAll("#tw-density .tw-opt").forEach(b => b.classList.toggle("active", b.dataset.val === TWEAKS.density));
+  document.querySelectorAll("#tw-stats .tw-opt").forEach(b => b.classList.toggle("active", b.dataset.val === String(TWEAKS.showStats)));
+  document.querySelectorAll("#tw-seatmap .tw-opt").forEach(b => b.classList.toggle("active", b.dataset.val === String(TWEAKS.showSeatMap)));
+}
+function setTweak(k, v) {
+  TWEAKS[k] = v;
+  applyTweaks();
+  if ((k === "showStats" || k === "showSeatMap") && ENTRIES.length) render();
+  window.parent?.postMessage({ type: "__edit_mode_set_keys", edits: { [k]: v } }, "*");
+}
+function wireTweaks() {
+  document.querySelectorAll("#tw-density .tw-opt").forEach(b => b.addEventListener("click", () => setTweak("density", b.dataset.val)));
+  document.querySelectorAll("#tw-stats .tw-opt").forEach(b => b.addEventListener("click", () => setTweak("showStats", b.dataset.val === "true")));
+  document.querySelectorAll("#tw-seatmap .tw-opt").forEach(b => b.addEventListener("click", () => setTweak("showSeatMap", b.dataset.val === "true")));
+}
+
+window.addEventListener("message", e => {
+  const d = e.data || {};
+  if (d.type === "__activate_edit_mode") document.getElementById("tweaks").classList.add("open");
+  if (d.type === "__deactivate_edit_mode") document.getElementById("tweaks").classList.remove("open");
+});
+window.parent?.postMessage({ type: "__edit_mode_available" }, "*");
+
+applyTweaks(); wireTweaks(); load();
+</script>
+</body>
+</html>
