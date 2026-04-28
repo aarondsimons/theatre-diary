@@ -1366,7 +1366,7 @@ function renderBoards() {
           <div class="pie-legend">
             ${timeSegs.map(d=>`<div class="pie-legend-row">
               <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.l)}</span></div>
-              <span style="display:flex;align-items:center;gap:6px;color:var(--ink-2)">${chip(avgOf(d.ratings))}</span>
+              <span style="display:flex;align-items:center;gap:6px;color:var(--ink-2)">${inlineChip(avgOf(d.ratings))}</span>
             </div>`).join('')}
           </div>
         </div>
