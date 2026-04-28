@@ -371,10 +371,51 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .show-more:hover { border-color: var(--accent); color: var(--accent); }
 
   /* Leaderboards */
-  .boards { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: var(--gap); }
+  .boards { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: var(--gap); margin-bottom: var(--gap); }
+  .boards-3 { display: grid; grid-template-columns: 0.6fr 1.2fr 1.2fr; gap: var(--gap); margin-bottom: var(--gap); }
+  .boards-seats { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: var(--gap); margin-bottom: var(--gap); }
+
+  /* Funnel chart */
+  .funnel-chart { display: flex; flex-direction: column; gap: 3px; flex: 1; justify-content: center; }
+  .funnel-row { display: flex; align-items: center; gap: 6px; }
+  .funnel-lbl { font-size: 11px; font-weight: 600; color: var(--ink-2); width: 16px; text-align: right; flex-shrink: 0; }
+  .funnel-track { flex: 1; display: flex; justify-content: flex-start; }
+  .funnel-bar { background: var(--accent); border-radius: 3px; height: 18px; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; gap: 4px; min-width: 24px; opacity: 0.85; }
+  .funnel-bar-n { font-size: 10px; color: #fff; font-weight: 600; }
+  .funnel-meta { width: 80px; display: flex; justify-content: flex-start; flex-shrink: 0; align-items: center; }
+
+  /* Sections chart */
+  .sec-chart { display: flex; flex-direction: column; gap: 10px; flex: 1; justify-content: center; }
+  .sec-row { display: flex; flex-direction: column; gap: 3px; }
+  .sec-row-hd { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--ink-2); }
+  .sec-track { background: var(--panel-2); border-radius: 3px; height: 14px; width: 100%; overflow: hidden; }
+  .sec-fill { background: var(--accent); height: 100%; border-radius: 3px; opacity: 0.85; }
+
+  /* Pie chart */
+  .pie-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+  .pie-legend { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+  .pie-legend-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+  .pie-legend-left { display: flex; align-items: center; gap: 6px; }
+  .pie-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* Generic vertical bar chart */
+  .vbar-wrap { flex: 1; display: flex; flex-direction: column; }
+  .vbar-chart { display: flex; align-items: flex-end; gap: 3px; flex: 1; }
+  .vbar-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .vbar-chip { display: flex; flex-direction: column; align-items: center; }
+  .vbar-stack { width: 100%; display: flex; flex-direction: column; border-radius: 3px 3px 0 0; overflow: hidden; }
+  .vbar-seg-eve { background: var(--accent); opacity: 0.9; }
+  .vbar-seg-mat { background: #93c5fd; }
+  .vbar-seg-plain { background: var(--accent); opacity: 0.85; border-radius: 3px 3px 0 0; width: 100%; }
+  .vbar-empty { background: var(--panel-2); border-radius: 3px 3px 0 0; width: 100%; }
+  .vbar-lbl { font-size: 11px; color: var(--ink-3); line-height: 1; }
+  .vbar-baseline { border-top: 1px solid var(--rule); margin-top: 2px; }
+  .vbar-legend { display: flex; gap: 10px; margin-top: 8px; font-size: 10px; color: var(--ink-3); }
+  .vbar-legend span { display: flex; align-items: center; gap: 3px; }
+  .vbar-legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
   .board {
     background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius);
-    padding: 18px 20px; display: flex; flex-direction: column;
+    padding: 18px 20px; display: flex; flex-direction: column; overflow: hidden;
   }
   .board h3 {
     font-family: var(--ff-sans); font-size: 13px; font-weight: 600;
@@ -539,7 +580,8 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   @media (max-width: 900px) {
     :root { --pad: 20px; }
     .stats { grid-template-columns: repeat(2, 1fr); }
-    .boards { grid-template-columns: 1fr; }
+    .boards, .boards-seats, .boards-3 { grid-template-columns: 1fr; }
+    .vbar-chip { display: none; }
     .rep-row {
       grid-template-columns: 40px 80px 1fr 70px;
       row-gap: 4px;
@@ -1079,7 +1121,7 @@ function attachListeners() {
     VIEW.hideFuture = e.target.checked; VIEW.limit = 10; renderRepRows();
   });
   const histTt = document.getElementById("hist-tt");
-  document.querySelectorAll(".hist-bar[data-tip]").forEach(bar => {
+  document.querySelectorAll("[data-tip]").forEach(bar => {
     bar.addEventListener("mousemove", ev => {
       histTt.textContent = bar.dataset.tip;
       histTt.style.left = (ev.clientX + 12) + "px";
@@ -1092,21 +1134,286 @@ function attachListeners() {
 
 function renderBoards() {
   const seen = seenEntries();
+
+  // ── Row 1: Venues / Shows / Rating distribution ──
   const venueCounts = {}; seen.forEach(e => { if (e.venue) venueCounts[e.venue]=(venueCounts[e.venue]||0)+1; });
   const venues = Object.entries(venueCounts).sort((a,b)=>b[1]-a[1]).slice(0,7);
-  const showCounts = {}; seen.forEach(e => { const t = (e.title||"").trim().toLowerCase(); if (t) showCounts[t]=(showCounts[t]||[]).concat(e); });
+  const showCounts = {}; seen.forEach(e => { const t=(e.title||"").trim().toLowerCase(); if(t) showCounts[t]=(showCounts[t]||[]).concat(e); });
   const shows = Object.entries(showCounts).filter(([,es])=>es.length>1).sort((a,b)=>b[1].length-a[1].length).slice(0,7).map(([,es])=>[es[0].title,es.length]);
-  const buckets = [0,0,0,0,0,0,0,0,0];
-  seen.forEach(e => { if (e.rating == null) return; const i = Math.min(8, Math.max(0, Math.round(e.rating * 2) - 2)); buckets[i]++; });
-  const maxB = Math.max(1, ...buckets);
+  const buckets=[0,0,0,0,0,0,0,0,0];
+  seen.forEach(e=>{ if(e.rating==null) return; const i=Math.min(8,Math.max(0,Math.round(e.rating*2)-2)); buckets[i]++; });
+  const maxB=Math.max(1,...buckets);
+
+  // ── Row 2: Seat analysis (Broadway only) ──
+  const broadway = seen.filter(e=>(e.tags||[]).some(t=>t.cat==='location'&&t.label==='Broadway'));
+  const seated = broadway.filter(e=>e.seatRow);
+
+  // Top rows (funnel)
+  const rowMap = {};
+  seated.forEach(e => {
+    const r = (ROW_ALIASES[e.seatRow]||e.seatRow||'').toUpperCase();
+    if (!r) return;
+    if (!rowMap[r]) rowMap[r]={count:0,ratings:[]};
+    rowMap[r].count++;
+    if (e.rating!=null) rowMap[r].ratings.push(e.rating);
+  });
+  const topRows = Object.entries(rowMap).sort((a,b)=>b[1].count-a[1].count).slice(0,7)
+    .map(([r,d])=>({r, count:d.count, avg:d.ratings.length?d.ratings.reduce((s,v)=>s+v,0)/d.ratings.length:null}));
+  const maxRow = Math.max(1,...topRows.map(x=>x.count));
+
+  // Sections
+  const secs = {'House Left':{count:0,ratings:[]},'Center':{count:0,ratings:[]},'House Right':{count:0,ratings:[]}};
+  seated.forEach(e => {
+    if (e.seatNum==null) return;
+    const sec = e.seatNum>=101?'Center':e.seatNum%2===1?'House Left':'House Right';
+    secs[sec].count++;
+    if (e.rating!=null) secs[sec].ratings.push(e.rating);
+  });
+  const secTotal = Object.values(secs).reduce((s,d)=>s+d.count,0)||1;
+
+  // Orch vs Mezz pie
+  const levels = {};
+  broadway.filter(e=>e.seatLocation).forEach(e=>{
+    if(!levels[e.seatLocation]) levels[e.seatLocation]={count:0,ratings:[]};
+    levels[e.seatLocation].count++;
+    if(e.rating!=null) levels[e.seatLocation].ratings.push(e.rating);
+  });
+  const PIE_COLORS = {'Orchestra':'var(--accent)','Mezzanine':'#93c5fd'};
+  const svgPie = (segs, sz=110) => {
+    const total=segs.reduce((s,d)=>s+d.v,0); if(!total) return '';
+    if(segs.length===1) return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}"><circle cx="${sz/2}" cy="${sz/2}" r="${sz/2-3}" fill="${segs[0].color}"${segs[0].tip?` data-tip="${segs[0].tip}" style="cursor:pointer"`:''}/></svg>`;
+    const cx=sz/2,cy=sz/2,r=sz/2-3; let ang=-Math.PI/2;
+    return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}">${segs.map(d=>{
+      const sw=(d.v/total)*2*Math.PI,x1=cx+r*Math.cos(ang),y1=cy+r*Math.sin(ang);
+      ang+=sw; const x2=cx+r*Math.cos(ang),y2=cy+r*Math.sin(ang),lg=sw>Math.PI?1:0;
+      return `<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${lg},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${d.color}"${d.tip?` data-tip="${d.tip}" style="cursor:pointer"`:''}/>`;
+    }).join('')}</svg>`;
+  };
+  const pieSegs = Object.entries(levels).map(([l,d])=>({l,v:d.count,color:PIE_COLORS[l]||'var(--ink-3)',ratings:d.ratings}));
+  const pieTotal = pieSegs.reduce((s,d)=>s+d.v,0)||1;
+  pieSegs.forEach(d => { d.tip = `${d.v} show${d.v===1?'':'s'} • ${Math.round((d.v/pieTotal)*100)}%`; });
+
+  // ── Row 3: Time analysis ──
+  const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const dayData = DAYS.map((lbl,i)=>({lbl,mat:0,eve:0,ratings:[]}));
+  const matRatings=[], eveRatings=[];
+  seen.forEach(e=>{
+    if(!e.date) return;
+    const dow=e.date.getDay();
+    const isMat=(e.tags||[]).some(t=>t.cat==='time'&&t.label==='Matinee');
+    if(isMat) { dayData[dow].mat++; if(e.rating!=null) matRatings.push(e.rating); }
+    else      { dayData[dow].eve++; if(e.rating!=null) eveRatings.push(e.rating); }
+    if(e.rating!=null) dayData[dow].ratings.push(e.rating);
+  });
+  const maxDay=Math.max(1,...dayData.map(d=>d.mat+d.eve));
+  const matTotal=dayData.reduce((s,d)=>s+d.mat,0);
+  const eveTotal=dayData.reduce((s,d)=>s+d.eve,0);
+  const timeSegs=[
+    {l:'Matinee',v:matTotal,color:'#93c5fd',ratings:matRatings},
+    {l:'Evening',v:eveTotal,color:'var(--accent)',ratings:eveRatings},
+  ];
+  const timeTotal=matTotal+eveTotal||1;
+  timeSegs[0].tip = `${matTotal} matinee${matTotal===1?'':'s'} • ${Math.round((matTotal/timeTotal)*100)}%`;
+  timeSegs[1].tip = `${eveTotal} evening${eveTotal===1?'':'s'} • ${Math.round((eveTotal/timeTotal)*100)}%`;
+
+  const MONTHS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const moData=MONTHS_S.map(lbl=>({lbl,count:0,ratings:[]}));
+  seen.forEach(e=>{
+    if(!e.date) return;
+    moData[e.date.getMonth()].count++;
+    if(e.rating!=null) moData[e.date.getMonth()].ratings.push(e.rating);
+  });
+  const maxMo=Math.max(1,...moData.map(d=>d.count));
+
+  const yrMap={};
+  seen.forEach(e=>{
+    if(!e.date) return;
+    const y=e.date.getFullYear();
+    if(!yrMap[y]) yrMap[y]={count:0,ratings:[]};
+    yrMap[y].count++;
+    if(e.rating!=null) yrMap[y].ratings.push(e.rating);
+  });
+  const yrData=Object.entries(yrMap).sort((a,b)=>a[0]-b[0]).map(([y,d])=>({lbl:String(y).slice(2),full:y,count:d.count,ratings:d.ratings}));
+  const maxYr=Math.max(1,...yrData.map(d=>d.count));
+
+  // ── Helpers ──
+  const avgOf = arr => arr.filter(v=>v!=null).length?arr.filter(v=>v!=null).reduce((s,v)=>s+v,0)/arr.filter(v=>v!=null).length:null;
+  const chip = avg => {
+    if (avg==null) return '';
+    const grade = avgLetterGrade(avg);
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1">
+      <span style="font-size:13px;color:var(--ink-2);font-weight:600;white-space:nowrap">${avg.toFixed(1)}★</span>
+      <span class="grade-pill" data-grade="${grade}" style="font-size:10px;padding:2px 6px">${grade}</span>
+    </div>`;
+  };
+  const inlineChip = (avg, white=false) => {
+    if (avg==null) return '';
+    const grade = avgLetterGrade(avg);
+    const c = white ? '#fff' : 'var(--ink-2)';
+    return `<span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap;line-height:1">
+      <span style="font-size:13px;color:${c};font-weight:600">${avg.toFixed(1)}★</span>
+      <span class="grade-pill" data-grade="${grade}" style="font-size:10px;padding:2px 6px">${grade}</span>
+    </span>`;
+  };
+  const GRADE_COLORS = {'A+':'#1b5e20','A':'#2e7d32','A-':'#388e3c','B+':'#558b2f','B':'#689f38','B-':'#7cb342','C+':'#f9a825','C':'#f57f17','C-':'#ef6c00','D+':'#e64a19','D':'#d84315','D-':'#bf360c','F':'#b71c1c'};
+  const gradeColor = g => GRADE_COLORS[g] || '#007FFF';
+
+  // vertical bar column
+  const vCol = (barH, total, {mat=0, plain=false, empty=false, label='', avg=null, tip=''}) => {
+    const g = avg!=null ? `<div class="vbar-chip">${chip(avg)}</div>` : '';
+    const barContent = empty
+      ? `<div class="vbar-empty" style="height:${barH}px"></div>`
+      : plain
+        ? `<div class="vbar-seg-plain" style="height:${barH}px"${tip?` data-tip="${tip}"`:``}></div>`
+        : `<div class="vbar-stack" style="height:${barH}px"${tip?` data-tip="${tip}"`:``}>
+             ${mat>0?`<div class="vbar-seg-mat" style="flex:${mat}"></div>`:''}
+             ${(total-mat)>0?`<div class="vbar-seg-eve" style="flex:${total-mat}"></div>`:''}
+           </div>`;
+    return `<div class="vbar-col">${g}${barContent}<div class="vbar-lbl">${label}</div></div>`;
+  };
+
+  const CHART_H = 110;
+  const YEAR_CHART_H = 200;
+
   return `
     <div class="sec-hd"><h2>Favorites &amp; figures</h2><div class="rule"></div></div>
+
     <div class="boards">
-      <div class="board"><h3>Most-visited venues</h3>${venues.length ? venues.map(([v,c],i)=>`<div class="board-item"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name"${/[֐-׿]/.test(v)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}</div><div class="board-count">${c}</div></div>`).join("") : `<div style="color:var(--ink-3)">—</div>`}</div>
-      <div class="board"><h3>Most-seen shows</h3>${shows.length ? shows.map(([t,c],i)=>`<div class="board-item"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name"${/[֐-׿]/.test(t)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(t)}</div><div class="board-count">${c}</div></div>`).join("") : `<div style="color:var(--ink-3)">—</div>`}</div>
+      <div class="board"><h3>Most-visited venues</h3>${venues.length?venues.map(([v,c],i)=>`<div class="board-item"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name"${/[֐-׿]/.test(v)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}</div><div class="board-count">${c}</div></div>`).join(""):`<div style="color:var(--ink-3)">—</div>`}</div>
+      <div class="board"><h3>Most-seen shows</h3>${shows.length?shows.map(([t,c],i)=>`<div class="board-item"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name"${/[֐-׿]/.test(t)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(t)}</div><div class="board-count">${c}</div></div>`).join(""):`<div style="color:var(--ink-3)">—</div>`}</div>
       <div class="board"><h3>Rating distribution</h3>
-        <div class="hist">${buckets.map((b,i) => { const lbl=['1★','1½','2★','2½','3★','3½','4★','4½','5★'][i]; return `<div class="hist-bar"${b===0?' data-empty="true"':''} style="height:${(b/maxB)*100}%"${b>0?` data-tip="${b} show${b===1?'':'s'}"`:''} ></div>`; }).join("")}</div>
+        <div class="hist">${buckets.map((b,i)=>`<div class="hist-bar"${b===0?' data-empty="true"':''} style="height:${(b/maxB)*100}%"${b>0?` data-tip="${b} show${b===1?'':'s'}"`:''} ></div>`).join("")}</div>
         <div class="hist-labels">${[['1★',['F']],['1½',['D']],['2★',['D+','C-']],['2½',['C']],['3★',['C+','B-']],['3½',['B']],['4★',['B+','A-']],['4½',['A']],['5★',['A+']]].map(([lbl,grades])=>`<span>${lbl}<div class="pills">${grades.map(g=>`<span class="grade-pill" data-grade="${g}">${g}</span>`).join('')}</div></span>`).join('')}</div>
+      </div>
+    </div>
+
+    <div class="boards-seats">
+      <div class="board"><h3>Level</h3>
+        <div class="pie-wrap">
+          ${svgPie(pieSegs)}
+          <div class="pie-legend">
+            ${pieSegs.map(d=>`<div class="pie-legend-row">
+              <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.l)}</span></div>
+              <span style="display:flex;align-items:center;gap:5px;color:var(--ink-2)">${inlineChip(avgOf(d.ratings))}</span>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="board"><h3>Section</h3>
+        ${(() => {
+          const VW=699.17, VH=375.47;
+          // Section widths in SVG units (used for proportional HTML label alignment)
+          // Left: 197.25, gap: 16.92, Center: 270.84, gap: 16.92, Right: 197.24
+          const st = Object.values(secs).reduce((s,d)=>s+d.count,0)||1;
+          const sections = [
+            { key:'House Left',  label:'House Left',  shape:'polygon', pts:'197.25,375.47 0,375.47 0,187.74 80.3,0 197.25,0',                            fw:197.25 },
+            { key:'Center',      label:'House Center', shape:'rect',   x:214.17, y:0, w:270.84, h:VH,                                                    fw:270.84 },
+            { key:'House Right', label:'House Right', shape:'polygon', pts:'501.93,375.47 699.17,375.47 699.17,187.74 618.87,0 501.93,0',                 fw:197.24 },
+          ];
+          const GAP_W = 16.92;
+          const defs = sections.map((s,i) => {
+            const inner = s.shape==='rect'
+              ? `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}"/>`
+              : `<polygon points="${s.pts}"/>`;
+            return `<clipPath id="scp-${i}">${inner}</clipPath>`;
+          }).join('');
+          const shapes = sections.map((s,i) => {
+            const d = secs[s.key];
+            const pct = d.count / st;
+            const fillY = (VH * (1 - pct)).toFixed(1);
+            const fillH = (VH * pct + 4).toFixed(1);
+            const tipStr = `${d.count} show${d.count===1?'':'s'} · ${Math.round(pct*100)}%`;
+            const bg = s.shape==='rect'
+              ? `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" fill="#007FFF" opacity="0.15" data-tip="${tipStr}" style="cursor:pointer"/>`
+              : `<polygon points="${s.pts}" fill="#007FFF" opacity="0.15" data-tip="${tipStr}" style="cursor:pointer"/>`;
+            return `${bg}
+              <rect x="0" y="${fillY}" width="${VW}" height="${fillH}" fill="#007FFF" opacity="0.85" clip-path="url(#scp-${i})" data-tip="${tipStr}" style="cursor:pointer"/>`;
+          }).join('');
+          const svg = `<svg viewBox="0 0 ${VW} ${VH}" width="100%" style="flex:1;display:block"><defs>${defs}</defs>${shapes}</svg>`;
+          // HTML labels below SVG, proportionally aligned to sections
+          const labels = sections.map((s,i) => {
+            const d = secs[s.key];
+            const avg = avgOf(d.ratings);
+            const gradeStr = avg!=null ? avgLetterGrade(avg) : '';
+            const gap = i < sections.length-1 ? `<div style="flex:${GAP_W}"></div>` : '';
+            return `<div style="flex:${s.fw};text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:8px">
+              <span style="font-size:11px;color:var(--ink-3);font-weight:500;white-space:nowrap">${s.label}</span>
+              ${avg!=null?`<span style="font-size:13px;color:var(--ink-2);font-weight:600">${avg.toFixed(1)}★</span>`:''}
+              ${gradeStr?`<span class="grade-pill" data-grade="${gradeStr}" style="font-size:10px;padding:2px 6px">${gradeStr}</span>`:''}
+            </div>${gap}`;
+          }).join('');
+          return `${svg}<div style="display:flex;width:100%">${labels}</div>`;
+        })()}
+      </div>
+      <div class="board"><h3>Row</h3>
+        <div class="funnel-chart">
+          ${topRows.map(x=>{
+            const w=Math.round((x.count/maxRow)*100);
+            return `<div class="funnel-row">
+              <div class="funnel-lbl">${esc(x.r)}</div>
+              <div class="funnel-track"><div class="funnel-bar" style="width:${w}%" data-tip="${x.count} show${x.count===1?'':'s'} · Row ${x.r}"></div></div>
+              <div class="funnel-meta">${x.avg!=null?inlineChip(x.avg):''}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="boards-3">
+      <div class="board"><h3>Showtime</h3>
+        <div class="pie-wrap">
+          ${svgPie(timeSegs)}
+          <div class="pie-legend">
+            ${timeSegs.map(d=>`<div class="pie-legend-row">
+              <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.l)}</span></div>
+              <span style="display:flex;align-items:center;gap:6px;color:var(--ink-2)">${chip(avgOf(d.ratings))}</span>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="board"><h3>Day of week</h3>
+        <div class="vbar-wrap">
+          <div class="vbar-chart">
+            ${dayData.map(d=>{
+              const total=d.mat+d.eve;
+              const barH=total>0?Math.round((total/maxDay)*CHART_H):0;
+              const avg=avgOf(d.ratings);
+              const tip=total>0?`${total} show${total===1?'':'s'} · ${d.mat} mat · ${d.eve} eve`:'';
+              return vCol(barH,total,{mat:d.mat,label:d.lbl,avg,tip});
+            }).join('')}
+          </div>
+          <div class="vbar-baseline"></div>
+          <div class="vbar-legend">
+            <span><div class="vbar-legend-dot" style="background:#93c5fd"></div>Matinee</span>
+            <span><div class="vbar-legend-dot" style="background:var(--accent)"></div>Evening</span>
+          </div>
+        </div>
+      </div>
+      <div class="board"><h3>Month</h3>
+        <div class="vbar-wrap">
+          <div class="vbar-chart">
+            ${moData.map(d=>{
+              const barH=d.count>0?Math.round((d.count/maxMo)*CHART_H):0;
+              const avg=avgOf(d.ratings);
+              const tip=d.count>0?`${d.count} show${d.count===1?'':'s'}`:'';
+              return vCol(barH,d.count,{plain:true,empty:d.count===0,label:d.lbl,avg,tip});
+            }).join('')}
+          </div>
+          <div class="vbar-baseline"></div>
+        </div>
+      </div>
+    </div>
+    <div class="board" style="margin-bottom:var(--gap)"><h3>Year</h3>
+      <div class="vbar-wrap">
+        <div class="vbar-chart">
+          ${yrData.map(d=>{
+            const barH=Math.max(2, Math.round((d.count/maxYr)*YEAR_CHART_H));
+            const avg=avgOf(d.ratings);
+            const tip=`${d.count} show${d.count===1?'':'s'}`;
+            return vCol(barH,d.count,{plain:true,label:d.full,avg,tip});
+          }).join('')}
+        </div>
+        <div class="vbar-baseline"></div>
       </div>
     </div>`;
 }
