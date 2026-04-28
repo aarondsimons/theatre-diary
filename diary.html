@@ -666,7 +666,8 @@ function buildEntries(rows) {
     date: findCol(headers,["date","seen","performance date","when"]),
     title: findCol(headers,["title","show","production","play","name"]),
     venue: findCol(headers,["venue","theatre","theater","house","location"]),
-    rating: findCol(headers,["rating","stars","score","grade"]),
+    rating: findCol(headers,["rating","stars","score"]),
+    grade: findCol(headers,["grade","letter grade"]),
     type: findCol(headers,["type","category","kind","genre"]),
     playwright: findCol(headers,["playwright","writer","author","by","book"]),
     director: findCol(headers,["director","directed by"]),
@@ -691,7 +692,7 @@ function buildEntries(rows) {
   const tagsCol = headers.findIndex(h => (h||"").toLowerCase().trim() === "tags");
   const customTagsCol = headers.findIndex(h => (h||"").toLowerCase().trim() === "custom tags");
   const HIDDEN = new Set([
-    "theater+city","theatre+city","numerical grade","numeric grade",
+    "theater+city","theatre+city","numerical grade","numeric grade","grade","letter grade",
     "seat row","seat number","seat number for grid","seat location","seat name",
     "row as number","helper column","helper",
     "playbill cover","playbill64","tags","custom tags",
@@ -706,6 +707,7 @@ function buildEntries(rows) {
       date: parseDate(g("date")), dateRaw: g("date"),
       title: g("title"), venue: g("venue"),
       rating: parseRating(g("rating")), ratingRaw: g("rating"),
+      grade: g("grade"),
       type: g("type"), playwright: g("playwright"),
       director: g("director"), composer: g("composer"),
       notes: g("notes"), cast: g("cast"), company: g("company"),
@@ -970,7 +972,7 @@ function renderRepRows() {
   if (VIEW.mode === 'grid') {
     rep.className = 'rep-grid';
     rep.innerHTML = filtered.map(e => {
-      const grade = letterGrade(e.rating);
+      const grade = e.grade;
       return `<div class="rep-grid-card${e.isHebrew?' hebrew':''}" data-idx="${ENTRIES.indexOf(e)}">
         <div class="rep-grid-cover${e.coverSrc?'':' empty'}">
           ${e.coverSrc ? `<img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('empty');this.remove();">` : '♪'}
@@ -1166,7 +1168,7 @@ function openDetail(idx) {
     ${e.milestone ? `<div class="pb-milestone-wrap"><span class="pb-milestone"${/[֐-׿]/.test(e.milestone)?` style="font-family:var(--ff-heb)"`:""}>${esc(e.milestone)}</span></div>` : ""}
     <h2 class="pb-title">${esc(e.title || "(untitled)")}</h2>
 
-    <div class="pb-rating">${stars(e.rating)}${e.rating != null ? `<span class="grade-sep">•</span><span class="grade-pill" data-grade="${letterGrade(e.rating)}">${letterGrade(e.rating)}</span>` : ""}</div>
+    <div class="pb-rating">${stars(e.rating)}${e.grade ? `<span class="grade-sep">•</span><span class="grade-pill" data-grade="${e.grade}">${e.grade}</span>` : ""}</div>
     ${(() => { const c = buildChips(e); const s = e.seat?`<span class="chip chip-seat"${/[֐-׿]/.test(e.seat)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(e.seat)}</span>`:""; return (c||s)?`<div class="pb-tags">${c}${s}</div>`:""; })()}
     <div class="pb-rule"></div>
     ${meta.length ? `<dl class="pb-meta">${meta.map(([k,v,sub])=>`<div><dt>${esc(k)}</dt><dd${/[֐-׿]/.test(String(v))?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}${sub?`<span class="pb-venue-sub">${esc(sub)}</span>`:""}</dd></div>`).join("")}</dl>` : ""}
@@ -1341,7 +1343,7 @@ function redrawSeatMap(s) {
         <div class="sm-tt-title">${esc(p.title||'')}</div>
         <div class="sm-tt-sub">${p.date ? fmtDateShort(p.date) : '—'} · ${esc(p.venue||'')}</div>
         <div class="sm-tt-sub">${esc(p.seat || (p.seatRow && p.seatNum != null ? `${p.seatRow}-${p.seatNum}` : ''))}</div>
-        <div class="sm-tt-rating">${stars(p.rating)}${letterGrade(p.rating)?`<span class="grade-sep">•</span><span class="grade-pill" data-grade="${letterGrade(p.rating)}">${letterGrade(p.rating)}</span>`:''}</div>
+        <div class="sm-tt-rating">${stars(p.rating)}${p.grade?`<span class="grade-sep">•</span><span class="grade-pill" data-grade="${p.grade}">${p.grade}</span>`:''}</div>
       </div>
     </div>`;
   document.querySelectorAll(".sm-dot").forEach(dot => {
