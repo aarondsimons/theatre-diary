@@ -184,15 +184,23 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     width: 100%; background: var(--panel); border: 1px solid var(--rule);
     border-radius: var(--radius); color: var(--ink);
     font-family: inherit; font-size: 14px;
-    padding: 10px 14px 10px 38px;
+    padding: 10px 36px 10px 38px;
     outline: none;
     transition: border-color 0.15s, box-shadow 0.15s;
   }
   .search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
   .search::before {
     content: "⌕"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-    color: var(--ink-3); font-size: 16px;
+    color: var(--ink-3); font-size: 22px;
   }
+  .search-clear {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    background: var(--ink-4); border: none; border-radius: 50%; color: #fff;
+    font-size: 8px; width: 13px; height: 13px; line-height: 13px; text-align: center;
+    cursor: pointer; display: none; padding: 0;
+  }
+  .search-clear:hover { background: var(--ink-3); }
+  .search.has-value .search-clear { display: block; }
   .sort { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); padding: 3px; }
   .sort button {
     background: none; border: none; color: var(--ink-2);
@@ -882,7 +890,7 @@ function renderRepertoire() {
     </div>
     <div id="tag-filter-wrap"></div>
     <div class="toolbar">
-      <div class="search"><input id="search" placeholder="Search title, venue, creator, director, review…" value="${esc(VIEW.search)}"></div>
+      <div class="search${VIEW.search ? ' has-value' : ''}"><input id="search" placeholder="Search title, venue, creator, director, review…" value="${esc(VIEW.search)}"><button class="search-clear" id="search-clear" title="Clear search">✕</button></div>
       <div class="sort">
         <button data-sort="date-desc" class="${VIEW.sort==='date-desc'?'active':''}">Newest</button>
         <button data-sort="date-asc" class="${VIEW.sort==='date-asc'?'active':''}">Oldest</button>
@@ -1040,7 +1048,19 @@ function renderTagFilters() {
 function attachListeners() {
   renderTagFilters();
   renderRepRows();
-  document.getElementById("search")?.addEventListener("input", e => { VIEW.search = e.target.value; VIEW.limit = 10; renderRepRows(); });
+  document.getElementById("search")?.addEventListener("input", e => {
+    VIEW.search = e.target.value;
+    VIEW.limit = 10;
+    e.target.closest('.search').classList.toggle('has-value', !!e.target.value);
+    renderRepRows();
+  });
+  document.getElementById("search-clear")?.addEventListener("click", () => {
+    const inp = document.getElementById("search");
+    inp.value = ""; VIEW.search = ""; VIEW.limit = 10;
+    inp.closest('.search').classList.remove('has-value');
+    inp.focus();
+    renderRepRows();
+  });;
   document.querySelectorAll(".sort button").forEach(b => b.addEventListener("click", () => {
     VIEW.sort = b.dataset.sort; document.querySelectorAll(".sort button").forEach(x => x.classList.toggle("active", x === b));
     VIEW.limit = 10; renderRepRows();
