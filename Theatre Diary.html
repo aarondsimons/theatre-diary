@@ -1101,14 +1101,37 @@ function openDetail(idx) {
     .map(([k, v]) => [/^book by$/i.test(k.trim()) && e.isPlay ? 'Written by' : k, v]);
   const locationVal  = (Object.entries(e.extra).find(([k]) => /^location$/i.test(k.trim())) || [])[1] || '';
   const showtimeVal  = (Object.entries(e.extra).find(([k]) => /^showtime$/i.test(k.trim())) || [])[1] || '';
+
+  // Smart creator credit combining
+  const bookKey    = e.isPlay ? 'Written by' : 'Book by';
+  const musicVal   = e.composer || '';
+  const lyricsVal  = (extraMeta.find(([k]) => /^lyrics by$/i.test(k)) || [])[1] || '';
+  const bookVal    = (extraMeta.find(([k]) => /^(book|written) by$/i.test(k)) || [])[1] || '';
+  const CREATOR_KEYS = /^(lyrics by|book by|written by)$/i;
+  const filteredExtraMeta = extraMeta.filter(([k]) => !CREATOR_KEYS.test(k));
+  const creditRows = [];
+  if (musicVal && lyricsVal && bookVal && musicVal === lyricsVal && lyricsVal === bookVal) {
+    creditRows.push(['Book, Music, and Lyrics by', musicVal]);
+  } else if (musicVal && lyricsVal && musicVal === lyricsVal) {
+    creditRows.push(['Music and Lyrics by', musicVal]);
+    if (bookVal) creditRows.push([bookKey, bookVal]);
+  } else if (lyricsVal && bookVal && lyricsVal === bookVal) {
+    if (musicVal) creditRows.push(['Music by', musicVal]);
+    creditRows.push(['Book and Lyrics by', lyricsVal]);
+  } else {
+    if (musicVal) creditRows.push(['Music by', musicVal]);
+    if (lyricsVal) creditRows.push(['Lyrics by', lyricsVal]);
+    if (bookVal) creditRows.push([bookKey, bookVal]);
+  }
+
   const meta = [
     e.date && ["Seen", fmtDate(e.date)],
     e.venue && ["Venue", e.venue, locationVal],
+    ...creditRows,
+    ...filteredExtraMeta.map(([k,v])=>[k,v]),
     e.director && ["Director", e.director],
-    e.composer && e.playwright && ["Music by", e.composer],
     e.company && ["Company", e.company],
     e.type && ["Category", e.type],
-    ...extraMeta.map(([k,v])=>[k,v])
   ].filter(Boolean);
   const bylineLabel = e.isPlay ? 'Written by' : 'Book by';
   const pb = document.getElementById("playbill");
