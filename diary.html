@@ -784,15 +784,6 @@ function stars(r) {
   return `<span class="star-row">${'★'.repeat(full)}${half ? '½' : ''}</span>`;
 }
 
-// Reverse numeric rating → closest letter grade
-function letterGrade(r) {
-  if (r == null) return '';
-  const grades = [[5,'A+'],[4.7,'A'],[4.3,'A-'],[4,'B+'],[3.7,'B'],[3.3,'B-'],[3,'C+'],[2.7,'C'],[2.3,'C-'],[2,'D+'],[1.7,'D'],[1.3,'D-'],[1,'F']];
-  let best = grades[grades.length-1];
-  let bestDiff = Infinity;
-  for (const [v, g] of grades) { const d = Math.abs(r - v); if (d < bestDiff) { bestDiff = d; best = [v, g]; } }
-  return best[1];
-}
 function avgLetterGrade(avg) {
   if (avg == null) return '';
   const score = avg * 10 + 50;
