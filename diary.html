@@ -409,6 +409,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .vbar-seg-plain { background: var(--accent); opacity: 0.85; border-radius: 3px 3px 0 0; width: 100%; }
   .vbar-empty { background: var(--panel-2); border-radius: 3px 3px 0 0; width: 100%; }
   .vbar-lbl { font-size: 11px; color: var(--ink-3); line-height: 1; }
+  .yr-short { display: none; }
   .vbar-baseline { border-top: 1px solid var(--rule); margin-top: 2px; }
   .vbar-legend { display: flex; gap: 10px; margin-top: 8px; font-size: 10px; color: var(--ink-3); }
   .vbar-legend span { display: flex; align-items: center; gap: 3px; }
@@ -582,6 +583,8 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     .stats { grid-template-columns: repeat(2, 1fr); }
     .boards, .boards-seats, .boards-3 { grid-template-columns: 1fr; }
     .vbar-chip { display: none; }
+    .yr-full { display: none; }
+    .yr-short { display: inline; }
     .rep-row {
       grid-template-columns: 40px 80px 1fr 70px;
       row-gap: 4px;
@@ -1410,7 +1413,7 @@ function renderBoards() {
             const barH=Math.max(2, Math.round((d.count/maxYr)*YEAR_CHART_H));
             const avg=avgOf(d.ratings);
             const tip=`${d.count} show${d.count===1?'':'s'}`;
-            return vCol(barH,d.count,{plain:true,label:d.full,avg,tip});
+            return vCol(barH,d.count,{plain:true,label:`<span class="yr-full">${d.full}</span><span class="yr-short">’${d.lbl}</span>`,avg,tip});
           }).join('')}
         </div>
         <div class="vbar-baseline"></div>
