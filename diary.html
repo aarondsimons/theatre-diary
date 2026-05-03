@@ -617,6 +617,12 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     .rep-title { font-size: 14px; }
     .date-full { display: none; }
     .date-mini { display: inline; }
+
+    /* Stacked search + sort */
+    .toolbar { flex-direction: column; }
+    .search { flex: none; width: 100%; }
+    .sort { width: 100%; justify-content: stretch; }
+    .sort button { flex: 1; }
   }
 </style>
 </head>
@@ -954,7 +960,7 @@ function renderRepertoire() {
     </div>
     <div id="tag-filter-wrap"></div>
     <div class="toolbar">
-      <div class="search${VIEW.search ? ' has-value' : ''}"><input id="search" placeholder="Search title, venue, creator, director, review…" value="${esc(VIEW.search)}"><button class="search-clear" id="search-clear" title="Clear search">✕</button></div>
+      <div class="search${VIEW.search ? ' has-value' : ''}"><input id="search" placeholder="Search" value="${esc(VIEW.search)}"><button class="search-clear" id="search-clear" title="Clear search">✕</button></div>
       <div class="sort">
         <button data-sort="date-desc" class="${VIEW.sort==='date-desc'?'active':''}">Newest</button>
         <button data-sort="date-asc" class="${VIEW.sort==='date-asc'?'active':''}">Oldest</button>
@@ -1155,6 +1161,13 @@ function attachListeners() {
   document.getElementById("hide-future")?.addEventListener("change", e => {
     VIEW.hideFuture = e.target.checked; VIEW.limit = 10; renderRepRows();
   });
+  function updateSearchPlaceholder() {
+    const inp = document.getElementById("search");
+    if (!inp) return;
+    inp.placeholder = window.innerWidth > 620 ? "Search title, venue, creator, director, review…" : "Search";
+  }
+  updateSearchPlaceholder();
+  window.addEventListener("resize", updateSearchPlaceholder);
   const histTt = document.getElementById("hist-tt");
   document.querySelectorAll("[data-tip]").forEach(bar => {
     bar.addEventListener("mousemove", ev => {
