@@ -1193,13 +1193,15 @@ function renderBoards() {
   seen.forEach(e=>{ if(e.rating==null) return; const i=Math.min(8,Math.max(0,Math.round(e.rating*2)-2)); buckets[i]++; });
   const maxB=Math.max(1,...buckets);
 
-  // ── Row 2: Seat analysis (Broadway only) ──
-  const broadway = seen.filter(e=>(e.tags||[]).some(t=>t.cat==='location'&&t.label==='Broadway'));
-  const seated = broadway.filter(e=>e.seatRow);
+  // ── Row 2: Seat analysis ──
+  const hasTag = (e, label) => (e.tags||[]).some(t=>t.label===label);
+  const isIsrael = e => hasTag(e, 'Israel');
+  const isBroadwayStyle = e => hasTag(e,'Broadway') || hasTag(e,'Off-Broadway') || hasTag(e,'National Tour');
 
-  // Top rows (funnel)
+  // Row: everything except Israel
+  const seatedRow = seen.filter(e=>e.seatRow && !isIsrael(e));
   const rowMap = {};
-  seated.forEach(e => {
+  seatedRow.forEach(e => {
     const r = (ROW_ALIASES[e.seatRow]||e.seatRow||'').toUpperCase();
     if (!r) return;
     if (!rowMap[r]) rowMap[r]={count:0,ratings:[]};
@@ -1210,9 +1212,10 @@ function renderBoards() {
     .map(([r,d])=>({r, count:d.count, avg:d.ratings.length?d.ratings.reduce((s,v)=>s+v,0)/d.ratings.length:null}));
   const maxRow = Math.max(1,...topRows.map(x=>x.count));
 
-  // Sections
+  // Section: Broadway, Off-Broadway, National Tour
+  const seatedSection = seen.filter(e=>e.seatRow && isBroadwayStyle(e));
   const secs = {'House Left':{count:0,ratings:[]},'Center':{count:0,ratings:[]},'House Right':{count:0,ratings:[]}};
-  seated.forEach(e => {
+  seatedSection.forEach(e => {
     if (e.seatNum==null) return;
     const sec = e.seatNum>=101?'Center':e.seatNum%2===1?'House Left':'House Right';
     secs[sec].count++;
@@ -1220,9 +1223,9 @@ function renderBoards() {
   });
   const secTotal = Object.values(secs).reduce((s,d)=>s+d.count,0)||1;
 
-  // Orch vs Mezz pie
+  // Level: all shows
   const levels = {};
-  broadway.filter(e=>e.seatLocation).forEach(e=>{
+  seen.filter(e=>e.seatLocation).forEach(e=>{
     if(!levels[e.seatLocation]) levels[e.seatLocation]={count:0,ratings:[]};
     levels[e.seatLocation].count++;
     if(e.rating!=null) levels[e.seatLocation].ratings.push(e.rating);
