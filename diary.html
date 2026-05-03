@@ -747,6 +747,7 @@ function buildEntries(rows) {
     type: findCol(headers,["type","category","kind","genre"]),
     playwright: findCol(headers,["playwright","writer","author","by","book"]),
     director: findCol(headers,["director","directed by"]),
+    translator: findCol(headers,["translated by"]),
     composer: findCol(headers,["composer","music"]),
     notes: findCol(headers,["notes","review","thoughts","comment","diary","description"]),
     cast: findCol(headers,["cast","starring","performers"]),
@@ -785,7 +786,7 @@ function buildEntries(rows) {
       rating: parseRating(g("rating")), ratingRaw: g("rating"),
       grade: g("grade"),
       type: g("type"), playwright: g("playwright"),
-      director: g("director"), composer: g("composer"),
+      director: g("director"), composer: g("composer"), translator: g("translator"),
       notes: g("notes"), cast: g("cast"), company: g("company"),
       seat: g("seat"), seatRow: g("seatRow"), seatLocation: g("seatLocation"),
       seatNum: (() => { const n = parseInt(g("seatNum"), 10); return isNaN(n) ? null : n; })(),
@@ -1477,6 +1478,22 @@ function openDetail(idx) {
   const locationVal  = (Object.entries(e.extra).find(([k]) => /^location$/i.test(k.trim())) || [])[1] || '';
   const showtimeVal  = (Object.entries(e.extra).find(([k]) => /^showtime$/i.test(k.trim())) || [])[1] || '';
 
+  // Hebrew label translations
+  const HE_LABELS = {
+    'Book by':                   'כתיבה',
+    'Music by':                  'מוזיקה',
+    'Lyrics by':                 'מילות השירים',
+    'Book, Music, and Lyrics by':'כתיבה, מוזיקה ומילים',
+    'Book and Lyrics by':        'כתיבה ומילים',
+    'Music and Lyrics by':       'מוזיקה ומילים',
+    'Written by':                'מאת',
+    'Director':                  'בימוי',
+    'Translated by':             'נוסח עברי',
+    'Venue':                     'תיאטרון',
+    'Seen':                      'תאריך הצפייה',
+  };
+  const lbl = s => e.isHebrew && HE_LABELS[s] ? HE_LABELS[s] : s;
+
   // Smart creator credit combining
   const bookKey    = e.isPlay ? 'Written by' : 'Book by';
   const musicVal   = e.composer || '';
@@ -1486,25 +1503,26 @@ function openDetail(idx) {
   const filteredExtraMeta = extraMeta.filter(([k]) => !CREATOR_KEYS.test(k));
   const creditRows = [];
   if (musicVal && lyricsVal && bookVal && musicVal === lyricsVal && lyricsVal === bookVal) {
-    creditRows.push(['Book, Music, and Lyrics by', musicVal]);
+    creditRows.push([lbl('Book, Music, and Lyrics by'), musicVal]);
   } else if (musicVal && lyricsVal && musicVal === lyricsVal) {
-    creditRows.push(['Music and Lyrics by', musicVal]);
-    if (bookVal) creditRows.push([bookKey, bookVal]);
+    creditRows.push([lbl('Music and Lyrics by'), musicVal]);
+    if (bookVal) creditRows.push([lbl(bookKey), bookVal]);
   } else if (lyricsVal && bookVal && lyricsVal === bookVal) {
-    if (musicVal) creditRows.push(['Music by', musicVal]);
-    creditRows.push(['Book and Lyrics by', lyricsVal]);
+    if (musicVal) creditRows.push([lbl('Music by'), musicVal]);
+    creditRows.push([lbl('Book and Lyrics by'), lyricsVal]);
   } else {
-    if (musicVal) creditRows.push(['Music by', musicVal]);
-    if (lyricsVal) creditRows.push(['Lyrics by', lyricsVal]);
-    if (bookVal) creditRows.push([bookKey, bookVal]);
+    if (musicVal) creditRows.push([lbl('Music by'), musicVal]);
+    if (lyricsVal) creditRows.push([lbl('Lyrics by'), lyricsVal]);
+    if (bookVal) creditRows.push([lbl(bookKey), bookVal]);
   }
 
   const meta = [
-    e.date && ["Seen", fmtDate(e.date)],
-    e.venue && ["Venue", e.venue, locationVal],
+    e.date && [lbl('Seen'), fmtDate(e.date)],
+    e.venue && [lbl('Venue'), e.venue, locationVal],
     ...creditRows,
     ...filteredExtraMeta.map(([k,v])=>[k,v]),
-    e.director && ["Director", e.director],
+    e.isHebrew && e.translator && [lbl('Translated by'), e.translator],
+    e.director && [lbl('Director'), e.director],
     e.company && ["Company", e.company],
     e.type && ["Category", e.type],
   ].filter(Boolean);
@@ -1519,7 +1537,7 @@ function openDetail(idx) {
     <div class="pb-rating">${stars(e.rating)}${e.grade ? `<span class="grade-sep">•</span><span class="grade-pill" data-grade="${e.grade}">${e.grade}</span>` : ""}</div>
     ${(() => { const c = buildChips(e); const s = e.seat?`<span class="chip chip-seat"${/[֐-׿]/.test(e.seat)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(e.seat)}</span>`:""; return (c||s)?`<div class="pb-tags">${c}${s}</div>`:""; })()}
     <div class="pb-rule"></div>
-    ${meta.length ? `<dl class="pb-meta">${meta.map(([k,v,sub])=>`<div><dt>${esc(k)}</dt><dd${/[֐-׿]/.test(String(v))?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}${sub?`<span class="pb-venue-sub">${esc(sub)}</span>`:""}</dd></div>`).join("")}</dl>` : ""}
+    ${meta.length ? `<dl class="pb-meta"${e.isHebrew?` style="direction:rtl"`:``}>${meta.map(([k,v,sub])=>`<div><dt${/[֐-׿]/.test(String(k))?` style="font-family:var(--ff-heb);text-align:right"`:``}>${esc(k)}</dt><dd${/[֐-׿]/.test(String(v))?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}${sub?`<span class="pb-venue-sub">${esc(sub)}</span>`:""}</dd></div>`).join("")}</dl>` : ""}
     ${e.notes || e.cast || extraReviews.length ? `<div class="pb-rule"></div>${e.cast ? `<div class="pb-notes" style="font-size:14px;color:var(--ink-2);">${esc(e.cast)}</div>` : ""}${extraReviews.map(([,v])=>`<div class="pb-review"${/[֐-׿]/.test(String(v))?` style="font-family:var(--ff-heb-serif);direction:rtl"`:``}>${esc(v)}</div>`).join("")}${extraReviews.length && e.notes ? `<div class="pb-rule"></div>` : ""}${e.notes ? `<div class="pb-notes"${/[֐-׿]/.test(String(e.notes))?` style="font-family:var(--ff-heb-serif);direction:rtl"`:``}>${esc(e.notes)}</div>` : ""}` : ""}`;
   document.getElementById("scrim").classList.add("open");
 }
