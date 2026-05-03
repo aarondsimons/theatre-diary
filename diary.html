@@ -1013,7 +1013,7 @@ function filterAndSort() {
       return d !== 0 ? d : timeOrder(a) - timeOrder(b); // same day: matinee before evening
     }); break;
     case "rating-desc": list.sort((a,b) => (b.rating ?? -1) - (a.rating ?? -1)); break;
-    case "title-asc": list.sort((a,b) => (a.title||"").localeCompare(b.title||"")); break;
+    case "title-asc": { const sk = t => (t||"").replace(/^the\s+/i,""); list.sort((a,b) => sk(a.title).localeCompare(sk(b.title))); break; }
   }
   return list;
 }
