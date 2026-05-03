@@ -249,6 +249,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.01em;
   }
+  .date-mini { display: none; }
   .rep-title {
     font-size: 16px; font-weight: 600; color: var(--ink);
     line-height: 1.25;
@@ -578,6 +579,13 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .sm-tt-sep { border-top: 1px solid var(--rule); margin: 8px 0; }
 
 
+  /* Intermediate: tags hidden, venue shown (843–1100px) */
+  @media (max-width: 1100px) and (min-width: 621px) {
+    .rep-row { grid-template-columns: 48px 88px 1fr 140px 110px 18px; }
+    .rep-tags { display: none; }
+  }
+
+  /* Mobile layout for boards/stats/header */
   @media (max-width: 900px) {
     :root { --pad: 20px; }
     .stats { grid-template-columns: repeat(2, 1fr); }
@@ -585,15 +593,30 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     .vbar-chip { display: none; }
     .yr-full { display: none; }
     .yr-short { display: inline; }
-    .rep-row {
-      grid-template-columns: 40px 80px 1fr 70px;
-      row-gap: 4px;
-    }
-    .rep-venue, .rep-tags, .rep-arrow { display: none; }
     header.hd { flex-direction: column; align-items: flex-start; }
     .hd-title h1 { font-size: 32px; }
     .playbill { padding: 28px 22px; }
     .pb-title { font-size: 26px; }
+  }
+
+  /* Narrow mobile: minimal rep-row (≤620px) */
+  @media (max-width: 620px) {
+    .rep-row {
+      grid-template-columns: 44px 48px 1fr auto;
+      column-gap: 18px;
+      row-gap: 4px;
+      align-items: center;
+    }
+    .rep-venue, .rep-tags, .rep-arrow { display: none; }
+    .rep-rating {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    .rep-rating .grade-sep { display: none; }
+    .rep-title { font-size: 14px; }
+    .date-full { display: none; }
+    .date-mini { display: inline; }
   }
 </style>
 </head>
@@ -823,6 +846,7 @@ const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov
 const MONTHS_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const fmtDate = d => d ? `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` : "—";
 const fmtDateShort = d => d ? `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` : "—";
+const fmtDateMini  = d => d ? `${d.getMonth()+1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}` : "—";
 function stars(r) {
   if (r == null) return '';
   const rounded = Math.round(r * 2) / 2;
@@ -971,9 +995,17 @@ function filterAndSort() {
     (e.seat||"").toLowerCase().includes(s) || (e.tags||[]).some(t => t.label.toLowerCase().includes(s)) ||
     Object.entries(e.extra||{}).some(([k,v]) => REVIEW_RE.test(k.trim()) && String(v).toLowerCase().includes(s))
   );
+  // Matinee = earlier in the day (0), Evening/unknown = later (1)
+  const timeOrder = e => (e.tags||[]).some(t=>t.cat==='time'&&t.label==='Matinee') ? 0 : 1;
   switch (VIEW.sort) {
-    case "date-desc": list.sort((a,b) => (b.date?.getTime()||0) - (a.date?.getTime()||0)); break;
-    case "date-asc": list.sort((a,b) => (a.date?.getTime()||Infinity) - (b.date?.getTime()||Infinity)); break;
+    case "date-desc": list.sort((a,b) => {
+      const d = (b.date?.getTime()||0) - (a.date?.getTime()||0);
+      return d !== 0 ? d : timeOrder(b) - timeOrder(a); // same day: evening before matinee
+    }); break;
+    case "date-asc": list.sort((a,b) => {
+      const d = (a.date?.getTime()||Infinity) - (b.date?.getTime()||Infinity);
+      return d !== 0 ? d : timeOrder(a) - timeOrder(b); // same day: matinee before evening
+    }); break;
     case "rating-desc": list.sort((a,b) => (b.rating ?? -1) - (a.rating ?? -1)); break;
     case "title-asc": list.sort((a,b) => (a.title||"").localeCompare(b.title||"")); break;
   }
@@ -1048,7 +1080,7 @@ function renderRepRows() {
     return `
     <div class="rep-row${e.isHebrew ? ' hebrew' : ''}" data-idx="${ENTRIES.indexOf(e)}">
       <div class="rep-thumb${e.coverSrc ? '' : ' empty'}">${e.coverSrc ? `<img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('empty');this.remove();">` : ""}</div>
-      <div class="rep-date">${e.date ? fmtDateShort(e.date) : "—"}</div>
+      <div class="rep-date"><span class="date-full">${e.date ? fmtDateShort(e.date) : "—"}</span><span class="date-mini">${e.date ? fmtDateMini(e.date) : "—"}</span></div>
       <div class="rep-title">
         ${e.milestone ? `<div class="rep-milestone">${esc(e.milestone)}</div>` : ""}
         <div class="rep-title-text">${esc(e.title || "(untitled)")}</div>
