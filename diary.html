@@ -231,7 +231,6 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .rep-thumb {
     width: 52px;
     background: var(--panel-2);
-    border-radius: 3px;
     overflow: hidden;
     position: relative;
     box-shadow: var(--shadow-sm);
@@ -336,7 +335,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
 
   /* Grid view */
   .rep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-  .rep-grid-card { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+  .rep-grid-card { background: var(--panel); border: 1px solid var(--rule); border-radius: 0 0 8px 8px; overflow: hidden; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
   .rep-grid-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
   .rep-grid-cover { background: var(--panel-2); overflow: hidden; position: relative; }
   .rep-grid-cover img { width: 100%; height: auto; display: block; }
@@ -481,7 +480,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   }
   .pb-close:hover { background: var(--panel-2); color: var(--ink); }
   .pb-cover { text-align: center; margin: -8px 0 20px; }
-  .pb-cover img { max-width: 240px; height: auto; display: block; margin: 0 auto; border-radius: 4px; box-shadow: var(--shadow-md); }
+  .pb-cover img { max-width: 240px; height: auto; display: block; margin: 0 auto; box-shadow: var(--shadow-md); }
   .pb-milestone-wrap { text-align: center; margin-bottom: 14px; }
   .pb-milestone {
     display: inline-block;
@@ -570,7 +569,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   }
   .sm-tooltip.open { display: block; }
   .sm-tt-card { display: flex; gap: 10px; align-items: flex-start; }
-  .sm-tt-thumb { width: 44px; height: auto; border-radius: 3px; flex-shrink: 0; display: block; }
+  .sm-tt-thumb { width: 44px; height: auto; flex-shrink: 0; display: block; }
   .sm-tt-thumb-empty { width: 44px; height: 60px; background: var(--panel-2); border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--ink-4); }
   .sm-tt-card-info { flex: 1; min-width: 0; }
   .sm-tt-title { font-weight: 600; font-family: var(--ff-serif); font-size: 14px; line-height: 1.3; }
