@@ -878,7 +878,7 @@ async function load() {
   try {
     const [res] = await Promise.all([
       fetch(SHEET_CSV_URL),
-      new Promise(r => setTimeout(r, 400))
+      new Promise(r => setTimeout(r, 800))
     ]);
     if (!res.ok) throw new Error("HTTP " + res.status);
     const text = await res.text();
