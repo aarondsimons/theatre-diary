@@ -532,6 +532,64 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     color: #b42318;
   }
 
+  /* ── Loading stage ── */
+  .loading-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 20px 0;
+    gap: 0;
+  }
+  .loading-valance {
+    width: 160px;
+    height: 28px;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        #5a1313 0px, #5a1313 12px,
+        #6b1a1a 12px, #6b1a1a 22px,
+        #4a0f0f 22px, #4a0f0f 24px
+      );
+    -webkit-mask:
+      radial-gradient(ellipse 20px 14px at 10px 100%, transparent 95%, black 96%) 0 0 / 20px 100% repeat-x,
+      linear-gradient(black, black) 0 0 / 100% calc(100% - 10px) no-repeat;
+    mask:
+      radial-gradient(ellipse 20px 14px at 10px 100%, transparent 95%, black 96%) 0 0 / 20px 100% repeat-x,
+      linear-gradient(black, black) 0 0 / 100% calc(100% - 10px) no-repeat;
+  }
+  .loading-curtain {
+    width: 160px;
+    height: 96px;
+    position: relative;
+    overflow: hidden;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0px, transparent 16px,
+        rgba(0,0,0,0.10) 16px, rgba(0,0,0,0.10) 18px,
+        transparent 18px, transparent 28px,
+        rgba(255,255,255,0.05) 28px, rgba(255,255,255,0.05) 30px
+      ),
+      linear-gradient(180deg, #8b2c2c 0%, #6b1a1a 40%, #4a0f0f 100%);
+    box-shadow: inset 0 -8px 16px rgba(0,0,0,0.25);
+  }
+  .loading-lift {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 0;
+    background: var(--bg);
+  }
+  .loading-stage.rising .loading-lift {
+    animation: curtain-lift 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  @keyframes curtain-lift {
+    from { height: 0; }
+    to   { height: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .loading-stage.rising .loading-lift { animation: none; height: 100%; }
+  }
+
   /* Seat map */
   .seatmap-wrap {
     background: var(--panel);
@@ -638,7 +696,13 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     </header>
 
     <main id="main">
-      <div class="loading">Loading diary…</div>
+      <div class="loading-stage" id="loading-stage">
+        <div class="loading-valance"></div>
+        <div class="loading-curtain">
+          <div class="loading-lift"></div>
+        </div>
+        <div class="loading">Loading...</div>
+      </div>
     </main>
   </div>
 
@@ -831,21 +895,43 @@ function buildEntries(rows) {
 let ENTRIES = [];
 let VIEW = { sort: "date-desc", search: "", limit: 10, activeTagByGroup: {}, mode: "grid", hideFuture: true, milestoneOnly: false };
 
+// ── Loading curtain ──────────────────────────────
+const CURTAIN_MIN_MS = 800;
+
+function _riseCurtain(afterFn) {
+  const stage = document.getElementById("loading-stage");
+  if (!stage) { afterFn(); return; }
+  const lift = stage.querySelector(".loading-lift");
+  const dur = lift ? parseFloat(getComputedStyle(lift).animationDuration) || 0 : 0;
+  stage.classList.add("rising");
+  if (dur === 0) {
+    requestAnimationFrame(afterFn);
+  } else {
+    lift.addEventListener("animationend", afterFn, { once: true });
+  }
+}
+
 async function load() {
+  const t0 = Date.now();
+  let afterFn;
   try {
     const res = await fetch(SHEET_CSV_URL);
     if (!res.ok) throw new Error("HTTP " + res.status);
     const text = await res.text();
     ENTRIES = buildEntries(parseCSV(text));
-    render();
+    afterFn = render;
   } catch (err) {
-    document.getElementById("main").innerHTML = `
-      <div class="errstate">
-        Couldn't load the sheet.
-        <code>${err.message}</code>
-        <div style="margin-top:12px;font-size:13px;color:var(--ink-3);">Make sure it's still published as CSV.</div>
-      </div>`;
+    afterFn = () => {
+      document.getElementById("main").innerHTML = `
+        <div class="errstate">
+          Couldn't load the sheet.
+          <code>${err.message}</code>
+          <div style="margin-top:12px;font-size:13px;color:var(--ink-3);">Make sure it's still published as CSV.</div>
+        </div>`;
+    };
   }
+  const elapsed = Date.now() - t0;
+  setTimeout(() => _riseCurtain(afterFn), Math.max(0, CURTAIN_MIN_MS - elapsed));
 }
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
