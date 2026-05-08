@@ -516,9 +516,28 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .rep-grid-card.hebrew .rep-grid-title { font-family: var(--ff-heb); direction: rtl; unicode-bidi: embed; }
 
   /* Loading / error */
-  .loading, .errstate {
+  .loading-stage {
     text-align: center; padding: 80px 20px;
-    color: var(--ink-3); font-size: 16px;
+    color: var(--ink-3); font-size: 14px;
+  }
+  .curtain-widget {
+    width: 160px; height: auto;
+    display: block; margin: 0 auto 10px;
+  }
+  @keyframes curtain-raise {
+    0%   { transform: translateY(0); }
+    60%  { transform: translateY(-100%); }
+    70%  { transform: translateY(-100%); }
+    71%  { transform: translateY(0); }
+    100% { transform: translateY(0); }
+  }
+  .curtain-drop {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: curtain-raise 2.8s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .curtain-drop { animation: none; }
   }
   .errstate {
     background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius);
@@ -638,7 +657,34 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     </header>
 
     <main id="main">
-      <div class="loading">Loading diary…</div>
+      <div class="loading-stage">
+        <svg class="curtain-widget" viewBox="191 255 772 530" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <clipPath id="drop-clip">
+              <rect x="191.9" y="258.3" width="770.1" height="498.5"/>
+            </clipPath>
+          </defs>
+          <!-- Animated drop curtain (clipped to stage opening) -->
+          <g clip-path="url(#drop-clip)">
+            <rect class="curtain-drop" x="191.9" y="258.3" width="770.1" height="498.5" fill="#007FFF"/>
+          </g>
+          <!-- Right tassel -->
+          <path fill="#005FCC" d="M962.1,756.9c.8,3.5-.8,6.9-3.5,8.3-1.9,1-4-1.1-5.8,0-1.5.9-1,2.7-2.1,4.9-1.7,3.5-6.3,6-10.1,5.8-4.4-.2-5.6-3.7-9.5-3.1-1.5.2-1.8.8-5.2,3.1-5.6,3.8-8.4,5.7-11,5.8-3.7.2-7-2-9.5-3.7-3.3-2.2-3.5-3.5-5.8-4-2.6-.6-4,.7-8.6,2.1-4.3,1.4-8.3,2.6-11.7,1.5-4.5-1.5-6.7-6.8-7.7-10.1l41.4-178.5,49.2-8.5v176.2Z"/>
+          <!-- Right panel -->
+          <path fill="#005FCC" d="M962.1,580.7c-10.4,6.6-36.3,20.8-70.5,18.3-47.4-3.6-75.7-36.9-83.1-45.6-9.9-11.6-17.8-25.1-27.9-53.2-10.6-29.5-23.3-74.5-27.4-133.3l-5.6-108.4h214.5v322.4Z"/>
+          <!-- Left tassel -->
+          <path fill="#005FCC" d="M191.9,756.9c-.8,3.5.8,6.9,3.5,8.3,1.9,1,4-1.1,5.8,0,1.5.9,1,2.7,2.1,4.9,1.7,3.5,6.3,6,10.1,5.8,4.4-.2,5.6-3.7,9.5-3.1,1.5.2,1.8.8,5.2,3.1,5.6,3.8,8.4,5.7,11,5.8,3.7.2,7-2,9.5-3.7,3.3-2.2,3.5-3.5,5.8-4,2.6-.6,4,.7,8.6,2.1,4.3,1.4,8.3,2.6,11.7,1.5,4.5-1.5,6.7-6.8,7.7-10.1l-41.4-178.5-49.2-8.5v176.2Z"/>
+          <!-- Left panel -->
+          <path fill="#005FCC" d="M191.9,580.7c10.4,6.6,36.3,20.8,70.5,18.3,47.4-3.6,75.7-36.9,83.1-45.6,9.9-11.6,17.8-25.1,27.9-53.2,10.6-29.5,23.3-74.5,27.4-133.3l5.6-108.4h-214.5v322.4Z"/>
+          <!-- Valance swags (in original order for correct overlap) -->
+          <path fill="#004A9E" d="M328.3,258.3h231.5s-48.8,86.2-109.2,86.3c-77.8,0-122.2-86.3-122.2-86.3Z"/>
+          <path fill="#004A9E" d="M595.6,258.3h231.5s-48.8,86.2-109.2,86.3c-77.8,0-122.2-86.3-122.2-86.3Z"/>
+          <path fill="#004A9E" d="M191.9,258.3h231.5s-48.8,86.2-109.2,86.3c-77.8,0-122.2-86.3-122.2-86.3Z"/>
+          <path fill="#004A9E" d="M690.7,258.3s-47.4,86.4-106.5,86.4c-78.1,0-126.4-86.4-126.4-86.4h233Z"/>
+          <path fill="#004A9E" d="M962.2,258.3s-45.4,85.4-104.5,85.4c-78.1,0-123.4-85.4-123.4-85.4h228Z"/>
+        </svg>
+        Loading…
+      </div>
     </main>
   </div>
 
@@ -833,7 +879,10 @@ let VIEW = { sort: "date-desc", search: "", limit: 10, activeTagByGroup: {}, mod
 
 async function load() {
   try {
-    const res = await fetch(SHEET_CSV_URL);
+    const [res] = await Promise.all([
+      fetch(SHEET_CSV_URL),
+      new Promise(r => setTimeout(r, 700))
+    ]);
     if (!res.ok) throw new Error("HTTP " + res.status);
     const text = await res.text();
     ENTRIES = buildEntries(parseCSV(text));
