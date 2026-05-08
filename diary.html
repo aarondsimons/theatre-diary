@@ -525,16 +525,13 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     display: block; margin: 0 auto 10px;
   }
   @keyframes curtain-raise {
-    0%   { transform: translateY(0); }
-    60%  { transform: translateY(-100%); }
-    70%  { transform: translateY(-100%); }
-    71%  { transform: translateY(0); }
-    100% { transform: translateY(0); }
+    from { transform: translateY(0); }
+    to   { transform: translateY(-100%); }
   }
   .curtain-drop {
     transform-box: fill-box;
     transform-origin: top center;
-    animation: curtain-raise 2.8s ease-in-out infinite;
+    animation: curtain-raise 1.8s ease-in-out forwards;
   }
   @media (prefers-reduced-motion: reduce) {
     .curtain-drop { animation: none; }
