@@ -6,7 +6,7 @@
 <title>Aaron's Theatre Diary</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=Assistant:wght@400;500;600;700&family=Google+Sans:wght@400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=Assistant:wght@400;500;600;700&family=Google+Sans:wght@400;500;600;700&family=Noto+Serif+Hebrew:wght@400;700;800&display=swap" rel="stylesheet">
 <script>
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1FXASLMEeovADIFo8akP8G1aNCOl_r12RfCgla-jIWBRWW2Ie7rYpTBr1a2bvEd0FlQXnBj/pub?output=csv";
 </script>
@@ -34,7 +34,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     --ff-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --ff-serif: "Source Serif 4", Georgia, serif;
     --ff-heb: "Google Sans", "Assistant", sans-serif;
-    --ff-heb-serif: "Tinos", serif;
+    --ff-heb-serif: "Noto Serif Hebrew", serif;
     --pad: 56px;
     --gap: 24px;
     --row-pad: 18px;
@@ -511,6 +511,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .pb-review { font-family: var(--ff-serif); font-size: 15px; font-style: italic; line-height: 1.5; color: var(--ink-2); white-space: pre-wrap; }
   .grade-sep { color: var(--ink-4); font-size: 12px; margin: 0 1px; }
   .playbill.hebrew .pb-title, .playbill.hebrew .pb-by { direction: rtl; unicode-bidi: embed; font-family: var(--ff-heb-serif); font-weight: 700; }
+  .playbill.hebrew .pb-title { font-weight: 800; }
   .playbill.hebrew .pb-notes { direction: rtl; text-align: right; font-family: var(--ff-heb-serif); }
   .rep-grid-card.hebrew .rep-grid-info { direction: rtl; }
   .rep-grid-card.hebrew .rep-grid-title { font-family: var(--ff-heb); direction: rtl; unicode-bidi: embed; }
@@ -1536,9 +1537,9 @@ function openDetail(idx) {
     'Music and Lyrics by':       'מוזיקה ומילים',
     'Written by':                'מאת',
     'Director':                  'בימוי',
-    'Translated by':             'נוסח עברי',
+    'Translated by':             'תרגום',
     'Venue':                     'תיאטרון',
-    'Seen':                      'תאריך הצפייה',
+    'Seen':                      'תאריך צפייה',
   };
   const lbl = s => e.isHebrew && HE_LABELS[s] ? HE_LABELS[s] : s;
 
@@ -1586,7 +1587,7 @@ function openDetail(idx) {
     ${(() => { const c = buildChips(e); const s = e.seat?`<span class="chip chip-seat"${/[֐-׿]/.test(e.seat)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(e.seat)}</span>`:""; return (c||s)?`<div class="pb-tags">${c}${s}</div>`:""; })()}
     <div class="pb-rule"></div>
     ${meta.length ? `<dl class="pb-meta"${e.isHebrew?` style="direction:rtl"`:``}>${meta.map(([k,v,sub])=>`<div><dt${/[֐-׿]/.test(String(k))?` style="font-family:var(--ff-heb);text-align:right"`:``}>${esc(k)}</dt><dd${/[֐-׿]/.test(String(v))?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}${sub?`<span class="pb-venue-sub">${esc(sub)}</span>`:""}</dd></div>`).join("")}</dl>` : ""}
-    ${e.notes || e.cast || extraReviews.length ? `<div class="pb-rule"></div>${e.cast ? `<div class="pb-notes" style="font-size:14px;color:var(--ink-2);">${esc(e.cast)}</div>` : ""}${extraReviews.map(([,v])=>`<div class="pb-review"${/[֐-׿]/.test(String(v))?` style="font-family:var(--ff-heb-serif);direction:rtl"`:``}>${esc(v)}</div>`).join("")}${extraReviews.length && e.notes ? `<div class="pb-rule"></div>` : ""}${e.notes ? `<div class="pb-notes"${/[֐-׿]/.test(String(e.notes))?` style="font-family:var(--ff-heb-serif);direction:rtl"`:``}>${esc(e.notes)}</div>` : ""}` : ""}`;
+    ${e.notes || e.cast || extraReviews.length ? `<div class="pb-rule"></div>${e.cast ? `<div class="pb-notes" style="font-size:14px;color:var(--ink-2);">${esc(e.cast)}</div>` : ""}${extraReviews.map(([,v])=>`<div class="pb-review"${/[֐-׿]/.test(String(v))?` style="font-family:var(--ff-heb-serif);direction:rtl;font-style:normal"`:``}>${esc(v)}</div>`).join("")}${extraReviews.length && e.notes ? `<div class="pb-rule"></div>` : ""}${e.notes ? `<div class="pb-notes"${/[֐-׿]/.test(String(e.notes))?` style="font-family:var(--ff-heb-serif);direction:rtl"`:``}>${esc(e.notes)}</div>` : ""}` : ""}`;
   document.getElementById("scrim").classList.add("open");
 }
 function closeDetail() { document.getElementById("scrim").classList.remove("open"); }
