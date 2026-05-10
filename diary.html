@@ -117,6 +117,12 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     font-size: 13px;
   }
   .sec-hd .rule { flex: 1; height: 1px; background: var(--rule); margin-bottom: 4px; }
+  .sec-hd .sec-hd-toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-3); cursor: pointer; white-space: nowrap; user-select: none; }
+  .hide-ratings .vbar-chip,
+  .hide-ratings .funnel-meta,
+  .hide-ratings .chart-rating { display: none !important; }
+  .hide-ratings .pie-legend { flex-direction: row; flex-wrap: wrap; gap: 4px 14px; justify-content: center; }
+  .hide-ratings .pie-legend-row { width: auto; }
 
   /* Stats */
   .stats {
@@ -373,6 +379,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   /* Leaderboards */
   .boards { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: var(--gap); margin-bottom: var(--gap); }
   .boards-3 { display: grid; grid-template-columns: 0.6fr 1.0fr 1.4fr; gap: var(--gap); margin-bottom: var(--gap); }
+  .boards-genre { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--gap); margin-bottom: var(--gap); }
   .boards-seats { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: var(--gap); margin-bottom: var(--gap); }
 
   /* Funnel chart */
@@ -605,7 +612,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   @media (max-width: 900px) {
     :root { --pad: 20px; }
     .stats { grid-template-columns: repeat(2, 1fr); }
-    .boards, .boards-seats, .boards-3 { grid-template-columns: 1fr; }
+    .boards, .boards-seats, .boards-3, .boards-genre { grid-template-columns: 1fr; }
     .vbar-chip { display: none; }
     .yr-full { display: none; }
     .yr-short { display: inline; }
@@ -1002,7 +1009,7 @@ function renderRepertoire() {
       </div>
       <label class="future-toggle">
         <input type="checkbox" id="hide-future" ${VIEW.hideFuture?'checked':''}>
-        Hide future shows
+        hide future shows
       </label>
     </div>
     <div id="tag-filter-wrap"></div>
@@ -1215,6 +1222,9 @@ function attachListeners() {
   }
   updateSearchPlaceholder();
   window.addEventListener("resize", updateSearchPlaceholder);
+  document.getElementById("show-ratings-cb")?.addEventListener("change", e => {
+    document.getElementById("boards-wrap")?.classList.toggle("hide-ratings", !e.target.checked);
+  });
   const histTt = document.getElementById("hist-tt");
   document.querySelectorAll("[data-tip]").forEach(bar => {
     bar.addEventListener("mousemove", ev => {
@@ -1289,7 +1299,7 @@ function renderBoards() {
   };
   const pieSegs = Object.entries(levels).map(([l,d])=>({l,v:d.count,color:PIE_COLORS[l]||'var(--ink-3)',ratings:d.ratings}));
   const pieTotal = pieSegs.reduce((s,d)=>s+d.v,0)||1;
-  pieSegs.forEach(d => { d.tip = `${d.v} show${d.v===1?'':'s'} • ${Math.round((d.v/pieTotal)*100)}%`; });
+  pieSegs.forEach(d => { d.tip = `${d.l} • ${d.v} show${d.v===1?'':'s'} • ${Math.round((d.v/pieTotal)*100)}%`; });
 
   // ── Row 3: Time analysis ──
   const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -1311,8 +1321,8 @@ function renderBoards() {
     {l:'Evening',v:eveTotal,color:'var(--accent)',ratings:eveRatings},
   ];
   const timeTotal=matTotal+eveTotal||1;
-  timeSegs[0].tip = `${matTotal} matinee${matTotal===1?'':'s'} • ${Math.round((matTotal/timeTotal)*100)}%`;
-  timeSegs[1].tip = `${eveTotal} evening${eveTotal===1?'':'s'} • ${Math.round((eveTotal/timeTotal)*100)}%`;
+  timeSegs[0].tip = `Matinee • ${matTotal} show${matTotal===1?'':'s'} • ${Math.round((matTotal/timeTotal)*100)}%`;
+  timeSegs[1].tip = `Evening • ${eveTotal} show${eveTotal===1?'':'s'} • ${Math.round((eveTotal/timeTotal)*100)}%`;
 
   const MONTHS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const moData=MONTHS_S.map(lbl=>({lbl,count:0,ratings:[]}));
@@ -1333,6 +1343,54 @@ function renderBoards() {
   });
   const yrData=Object.entries(yrMap).sort((a,b)=>a[0]-b[0]).map(([y,d])=>({lbl:String(y).slice(2),full:y,count:d.count,ratings:d.ratings}));
   const maxYr=Math.max(1,...yrData.map(d=>d.count));
+
+  // ── Row N: Genre / Venue type / Show status ──
+  // Genre: Musical vs Play (exclude Concerts)
+  const musD={count:0,ratings:[]}, playD={count:0,ratings:[]};
+  seen.filter(e => !hasTag(e,'Concert')).forEach(e => {
+    if (hasTag(e,'Play')) { playD.count++; if(e.rating!=null) playD.ratings.push(e.rating); }
+    else                  { musD.count++; if(e.rating!=null) musD.ratings.push(e.rating); }
+  });
+  const typeSegs = [];
+  if (musD.count)  typeSegs.push({l:'Musical', v:musD.count,  color:'var(--accent)', ratings:musD.ratings});
+  if (playD.count) typeSegs.push({l:'Play',    v:playD.count, color:'#93c5fd',       ratings:playD.ratings});
+  const typeTotal = typeSegs.reduce((s,d)=>s+d.v,0)||1;
+  typeSegs.forEach(d => { d.tip = `${d.l} • ${d.v} show${d.v===1?'':'s'} • ${Math.round((d.v/typeTotal)*100)}%`; });
+
+  // Venue type (pie)
+  const VENUE_TYPE_DEFS = [
+    {key:'Broadway',      label:'Broadway'},
+    {key:'Off-Broadway',  label:'Off-Broadway'},
+    {key:'National Tour', label:'National Tour'},
+    {key:'West End',      label:'West End'},
+    {key:'Israel',        label:'Israel'},
+  ];
+  const venueTypeData = VENUE_TYPE_DEFS.map(vt => ({...vt, count:0, ratings:[]}));
+  const otherVenueD = {label:'Other', count:0, ratings:[]};
+  seen.forEach(e => {
+    const match = venueTypeData.find(vt => hasTag(e, vt.key));
+    if (match) { match.count++; if(e.rating!=null) match.ratings.push(e.rating); }
+    else       { otherVenueD.count++; if(e.rating!=null) otherVenueD.ratings.push(e.rating); }
+  });
+  const LOCALE_BLUES = ['#007FFF','#3395ff','#60a5fa','#7eb8fd','#93c5fd','#bfdbfe'];
+  const venueSegs = [...venueTypeData, otherVenueD].filter(d => d.count > 0).map(d => ({...d, v:d.count})).sort((a,b) => b.v - a.v);
+  venueSegs.forEach((d, i) => { d.color = LOCALE_BLUES[i] || '#dbeafe'; });
+  const venuePieTotal = venueSegs.reduce((s,d)=>s+d.v,0)||1;
+  venueSegs.forEach(d => { d.tip = `${d.label} • ${d.v} show${d.v===1?'':'s'} • ${Math.round((d.v/venuePieTotal)*100)}%`; });
+
+  // Show status
+  const regularD={count:0,ratings:[]}, previewD={count:0,ratings:[]}, closingD={count:0,ratings:[]};
+  seen.forEach(e => {
+    if      (hasTag(e,'Preview') || hasTag(e,'First Preview')) { previewD.count++;  if(e.rating!=null) previewD.ratings.push(e.rating); }
+    else if (hasTag(e,'Closing'))                              { closingD.count++;  if(e.rating!=null) closingD.ratings.push(e.rating); }
+    else                                                       { regularD.count++;  if(e.rating!=null) regularD.ratings.push(e.rating); }
+  });
+  const statusSegs = [];
+  if (regularD.count) statusSegs.push({l:'Regular', v:regularD.count, color:'#007FFF', ratings:regularD.ratings});
+  if (previewD.count) statusSegs.push({l:'Preview', v:previewD.count, color:'#60a5fa', ratings:previewD.ratings});
+  if (closingD.count) statusSegs.push({l:'Closing', v:closingD.count, color:'#bfdbfe', ratings:closingD.ratings});
+  const statusTotal = statusSegs.reduce((s,d)=>s+d.v,0)||1;
+  statusSegs.forEach(d => { d.tip = `${d.l} • ${d.v} show${d.v===1?'':'s'} • ${Math.round((d.v/statusTotal)*100)}%`; });
 
   // ── Helpers ──
   const avgOf = arr => arr.filter(v=>v!=null).length?arr.filter(v=>v!=null).reduce((s,v)=>s+v,0)/arr.filter(v=>v!=null).length:null;
@@ -1373,8 +1431,8 @@ function renderBoards() {
   const CHART_H = 110;
   const YEAR_CHART_H = 200;
 
-  return `
-    <div class="sec-hd"><h2>Favorites &amp; figures</h2><div class="rule"></div></div>
+  return `<div id="boards-wrap" class="hide-ratings">
+    <div class="sec-hd"><h2>Favorites &amp; figures</h2><div class="rule"></div><label class="sec-hd-toggle"><input type="checkbox" id="show-ratings-cb"> show ratings</label></div>
 
     <div class="boards">
       <div class="board"><h3>Most-visited venues</h3>${venues.length?venues.map(([v,c],i)=>`<div class="board-item"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name"${/[֐-׿]/.test(v)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}</div><div class="board-count">${c}</div></div>`).join(""):`<div style="color:var(--ink-3)">—</div>`}</div>
@@ -1385,6 +1443,41 @@ function renderBoards() {
       </div>
     </div>
 
+    <div class="boards-genre">
+      <div class="board"><h3>Genre</h3>
+        <div class="pie-wrap">
+          ${svgPie(typeSegs)}
+          <div class="pie-legend">
+            ${typeSegs.map(d=>`<div class="pie-legend-row">
+              <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.l)}</span></div>
+              <span class="chart-rating" style="display:flex;align-items:center;gap:6px;color:var(--ink-2)">${inlineChip(avgOf(d.ratings))}</span>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="board"><h3>Locale</h3>
+        <div class="pie-wrap">
+          ${svgPie(venueSegs)}
+          <div class="pie-legend">
+            ${venueSegs.map(d=>`<div class="pie-legend-row">
+              <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.label||d.l)}</span></div>
+              <span class="chart-rating" style="display:flex;align-items:center;gap:6px;color:var(--ink-2)">${inlineChip(avgOf(d.ratings))}</span>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="board"><h3>Performance type</h3>
+        <div class="pie-wrap">
+          ${svgPie(statusSegs)}
+          <div class="pie-legend">
+            ${statusSegs.map(d=>`<div class="pie-legend-row">
+              <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.l)}</span></div>
+              <span class="chart-rating" style="display:flex;align-items:center;gap:6px;color:var(--ink-2)">${inlineChip(avgOf(d.ratings))}</span>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="boards-seats">
       <div class="board"><h3>Level</h3>
         <div class="pie-wrap">
@@ -1392,7 +1485,7 @@ function renderBoards() {
           <div class="pie-legend">
             ${pieSegs.map(d=>`<div class="pie-legend-row">
               <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.l)}</span></div>
-              <span style="display:flex;align-items:center;gap:5px;color:var(--ink-2)">${inlineChip(avgOf(d.ratings))}</span>
+              <span class="chart-rating" style="display:flex;align-items:center;gap:5px;color:var(--ink-2)">${inlineChip(avgOf(d.ratings))}</span>
             </div>`).join('')}
           </div>
         </div>
@@ -1404,9 +1497,9 @@ function renderBoards() {
           // Left: 197.25, gap: 16.92, Center: 270.84, gap: 16.92, Right: 197.24
           const st = Object.values(secs).reduce((s,d)=>s+d.count,0)||1;
           const sections = [
-            { key:'House Left',  label:'House Left',  shape:'polygon', pts:'197.25,375.47 0,375.47 0,187.74 80.3,0 197.25,0',                            fw:197.25 },
-            { key:'Center',      label:'House Center', shape:'rect',   x:214.17, y:0, w:270.84, h:VH,                                                    fw:270.84 },
-            { key:'House Right', label:'House Right', shape:'polygon', pts:'501.93,375.47 699.17,375.47 699.17,187.74 618.87,0 501.93,0',                 fw:197.24 },
+            { key:'House Left',  label:'Left',   shape:'polygon', pts:'197.25,375.47 0,375.47 0,187.74 80.3,0 197.25,0',                            fw:197.25 },
+            { key:'Center',      label:'Center', shape:'rect',    x:214.17, y:0, w:270.84, h:VH,                                                    fw:270.84 },
+            { key:'House Right', label:'Right',  shape:'polygon', pts:'501.93,375.47 699.17,375.47 699.17,187.74 618.87,0 501.93,0',                 fw:197.24 },
           ];
           const GAP_W = 16.92;
           const defs = sections.map((s,i) => {
@@ -1420,7 +1513,7 @@ function renderBoards() {
             const pct = d.count / st;
             const fillY = (VH * (1 - pct)).toFixed(1);
             const fillH = (VH * pct + 4).toFixed(1);
-            const tipStr = `${d.count} show${d.count===1?'':'s'} · ${Math.round(pct*100)}%`;
+            const tipStr = `${s.label} • ${d.count} show${d.count===1?'':'s'} • ${Math.round(pct*100)}%`;
             const bg = s.shape==='rect'
               ? `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" fill="#007FFF" opacity="0.15" data-tip="${tipStr}" style="cursor:pointer"/>`
               : `<polygon points="${s.pts}" fill="#007FFF" opacity="0.15" data-tip="${tipStr}" style="cursor:pointer"/>`;
@@ -1435,9 +1528,10 @@ function renderBoards() {
             const gradeStr = avg!=null ? avgLetterGrade(avg) : '';
             const gap = i < sections.length-1 ? `<div style="flex:${GAP_W}"></div>` : '';
             return `<div style="flex:${s.fw};text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:8px">
-              <span style="font-size:11px;color:var(--ink-3);font-weight:500;white-space:nowrap">${s.label}</span>
-              ${avg!=null?`<span style="font-size:13px;color:var(--ink-2);font-weight:600">${avg.toFixed(1)}★</span>`:''}
-              ${gradeStr?`<span class="grade-pill" data-grade="${gradeStr}" style="font-size:10px;padding:2px 6px">${gradeStr}</span>`:''}
+              <span class="chart-rating" style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                ${avg!=null?`<span style="font-size:13px;color:var(--ink-2);font-weight:600">${avg.toFixed(1)}★</span>`:''}
+                ${gradeStr?`<span class="grade-pill" data-grade="${gradeStr}" style="font-size:10px;padding:2px 6px">${gradeStr}</span>`:''}
+              </span>
             </div>${gap}`;
           }).join('');
           return `${svg}<div style="display:flex;width:100%">${labels}</div>`;
@@ -1464,7 +1558,7 @@ function renderBoards() {
           <div class="pie-legend">
             ${timeSegs.map(d=>`<div class="pie-legend-row">
               <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.l)}</span></div>
-              <span style="display:flex;align-items:center;gap:6px;color:var(--ink-2)">${inlineChip(avgOf(d.ratings))}</span>
+              <span class="chart-rating" style="display:flex;align-items:center;gap:6px;color:var(--ink-2)">${inlineChip(avgOf(d.ratings))}</span>
             </div>`).join('')}
           </div>
         </div>
@@ -1480,7 +1574,6 @@ function renderBoards() {
               return vCol(barH,total,{mat:d.mat,label:d.lbl,avg,tip});
             }).join('')}
           </div>
-          <div class="vbar-baseline"></div>
           <div class="vbar-legend">
             <span><div class="vbar-legend-dot" style="background:#93c5fd"></div>Matinee</span>
             <span><div class="vbar-legend-dot" style="background:var(--accent)"></div>Evening</span>
@@ -1497,7 +1590,6 @@ function renderBoards() {
               return vCol(barH,d.count,{plain:true,empty:d.count===0,label:d.lbl,avg,tip});
             }).join('')}
           </div>
-          <div class="vbar-baseline"></div>
         </div>
       </div>
     </div>
@@ -1511,9 +1603,9 @@ function renderBoards() {
             return vCol(barH,d.count,{plain:true,label:`<span class="yr-full">${d.full}</span><span class="yr-short">’${d.lbl}</span>`,avg,tip});
           }).join('')}
         </div>
-        <div class="vbar-baseline"></div>
       </div>
-    </div>`;
+    </div>
+  </div>`;
 }
 
 // ───────────── Detail modal ─────────────
