@@ -1226,15 +1226,41 @@ function attachListeners() {
     document.getElementById("boards-wrap")?.classList.toggle("hide-ratings", !e.target.checked);
   });
   const histTt = document.getElementById("hist-tt");
-  document.querySelectorAll("[data-tip]").forEach(bar => {
-    bar.addEventListener("mousemove", ev => {
-      histTt.textContent = bar.dataset.tip;
-      histTt.style.left = (ev.clientX + 12) + "px";
-      histTt.style.top = (ev.clientY - 32) + "px";
-      histTt.style.display = "block";
-    });
-    bar.addEventListener("mouseleave", () => { histTt.style.display = "none"; });
+  const isTouch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+
+  function showTipAbove(el) {
+    histTt.style.display = 'block';
+    histTt.style.left = '-9999px'; histTt.style.top = '-9999px';
+    const ttW = histTt.offsetWidth, ttH = histTt.offsetHeight;
+    const rect = el.getBoundingClientRect();
+    let left = rect.left + rect.width / 2 - ttW / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - ttW - 8));
+    let top = rect.top - ttH - 8;
+    if (top < 8) top = rect.bottom + 8;
+    histTt.style.left = left + 'px';
+    histTt.style.top = top + 'px';
+  }
+
+  document.querySelectorAll("[data-tip]").forEach(el => {
+    if (isTouch) {
+      el.addEventListener("touchend", () => {
+        histTt.textContent = el.dataset.tip;
+        showTipAbove(el);
+      }, { passive: true });
+    } else {
+      el.addEventListener("mousemove", ev => {
+        histTt.textContent = el.dataset.tip;
+        histTt.style.left = (ev.clientX + 12) + "px";
+        histTt.style.top = (ev.clientY - 32) + "px";
+        histTt.style.display = "block";
+      });
+      el.addEventListener("mouseleave", () => { histTt.style.display = "none"; });
+    }
   });
+
+  if (isTouch) {
+    document.addEventListener("touchstart", () => { histTt.style.display = "none"; }, { passive: true });
+  }
 }
 
 function renderBoards() {
