@@ -1297,7 +1297,8 @@ function renderBoards() {
       return `<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${lg},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${d.color}"${d.tip?` data-tip="${d.tip}" style="cursor:pointer"`:''}/>`;
     }).join('')}</svg>`;
   };
-  const pieSegs = Object.entries(levels).map(([l,d])=>({l,v:d.count,color:PIE_COLORS[l]||'var(--ink-3)',ratings:d.ratings}));
+  const PIE_ORDER = ['Orchestra','Mezzanine'];
+  const pieSegs = Object.entries(levels).map(([l,d])=>({l,v:d.count,color:PIE_COLORS[l]||'var(--ink-3)',ratings:d.ratings})).sort((a,b)=>PIE_ORDER.indexOf(a.l)-PIE_ORDER.indexOf(b.l));
   const pieTotal = pieSegs.reduce((s,d)=>s+d.v,0)||1;
   pieSegs.forEach(d => { d.tip = `${d.l} • ${d.v} show${d.v===1?'':'s'} • ${Math.round((d.v/pieTotal)*100)}%`; });
 
@@ -1317,12 +1318,12 @@ function renderBoards() {
   const matTotal=dayData.reduce((s,d)=>s+d.mat,0);
   const eveTotal=dayData.reduce((s,d)=>s+d.eve,0);
   const timeSegs=[
-    {l:'Matinee',v:matTotal,color:'#93c5fd',ratings:matRatings},
     {l:'Evening',v:eveTotal,color:'var(--accent)',ratings:eveRatings},
+    {l:'Matinee',v:matTotal,color:'#93c5fd',ratings:matRatings},
   ];
   const timeTotal=matTotal+eveTotal||1;
-  timeSegs[0].tip = `Matinee • ${matTotal} show${matTotal===1?'':'s'} • ${Math.round((matTotal/timeTotal)*100)}%`;
-  timeSegs[1].tip = `Evening • ${eveTotal} show${eveTotal===1?'':'s'} • ${Math.round((eveTotal/timeTotal)*100)}%`;
+  timeSegs[0].tip = `Evening • ${eveTotal} show${eveTotal===1?'':'s'} • ${Math.round((eveTotal/timeTotal)*100)}%`;
+  timeSegs[1].tip = `Matinee • ${matTotal} show${matTotal===1?'':'s'} • ${Math.round((matTotal/timeTotal)*100)}%`;
 
   const MONTHS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const moData=MONTHS_S.map(lbl=>({lbl,count:0,ratings:[]}));
@@ -1446,7 +1447,7 @@ function renderBoards() {
     <div class="boards-genre">
       <div class="board"><h3>Genre</h3>
         <div class="pie-wrap">
-          ${svgPie(typeSegs)}
+          ${svgPie([...typeSegs].reverse())}
           <div class="pie-legend">
             ${typeSegs.map(d=>`<div class="pie-legend-row">
               <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.l)}</span></div>
@@ -1457,7 +1458,7 @@ function renderBoards() {
       </div>
       <div class="board"><h3>Locale</h3>
         <div class="pie-wrap">
-          ${svgPie(venueSegs)}
+          ${svgPie([...venueSegs].reverse())}
           <div class="pie-legend">
             ${venueSegs.map(d=>`<div class="pie-legend-row">
               <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.label||d.l)}</span></div>
@@ -1468,7 +1469,7 @@ function renderBoards() {
       </div>
       <div class="board"><h3>Performance type</h3>
         <div class="pie-wrap">
-          ${svgPie(statusSegs)}
+          ${svgPie([...statusSegs].reverse())}
           <div class="pie-legend">
             ${statusSegs.map(d=>`<div class="pie-legend-row">
               <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.l)}</span></div>
@@ -1481,7 +1482,7 @@ function renderBoards() {
     <div class="boards-seats">
       <div class="board"><h3>Level</h3>
         <div class="pie-wrap">
-          ${svgPie(pieSegs)}
+          ${svgPie([...pieSegs].reverse())}
           <div class="pie-legend">
             ${pieSegs.map(d=>`<div class="pie-legend-row">
               <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.l)}</span></div>
@@ -1554,7 +1555,7 @@ function renderBoards() {
     <div class="boards-3">
       <div class="board"><h3>Showtime</h3>
         <div class="pie-wrap">
-          ${svgPie(timeSegs)}
+          ${svgPie([...timeSegs].reverse())}
           <div class="pie-legend">
             ${timeSegs.map(d=>`<div class="pie-legend-row">
               <div class="pie-legend-left"><div class="pie-swatch" style="background:${d.color}"></div><span>${esc(d.l)}</span></div>
@@ -1575,8 +1576,8 @@ function renderBoards() {
             }).join('')}
           </div>
           <div class="vbar-legend">
-            <span><div class="vbar-legend-dot" style="background:#93c5fd"></div>Matinee</span>
             <span><div class="vbar-legend-dot" style="background:var(--accent)"></div>Evening</span>
+            <span><div class="vbar-legend-dot" style="background:#93c5fd"></div>Matinee</span>
           </div>
         </div>
       </div>
