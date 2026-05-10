@@ -418,7 +418,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .vbar-lbl { font-size: 11px; color: var(--ink-3); line-height: 1; }
   .yr-short { display: none; }
   .vbar-baseline { border-top: 1px solid var(--rule); margin-top: 2px; }
-  .vbar-legend { display: flex; gap: 10px; margin-top: 8px; font-size: 10px; color: var(--ink-3); }
+  .vbar-legend { display: flex; gap: 10px; margin-top: 8px; font-size: 10px; color: var(--ink-3); justify-content: center; }
   .vbar-legend span { display: flex; align-items: center; gap: 3px; }
   .vbar-legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
   .board {
@@ -613,7 +613,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     :root { --pad: 20px; }
     .stats { grid-template-columns: repeat(2, 1fr); }
     .boards, .boards-seats, .boards-3, .boards-genre { grid-template-columns: 1fr; }
-    .vbar-chip { display: none; }
+    .chart-month .vbar-chip, .chart-year .vbar-chip { display: none; }
     .yr-full { display: none; }
     .yr-short { display: inline; }
     header.hd { flex-direction: column; align-items: flex-start; }
@@ -1543,7 +1543,7 @@ function renderBoards() {
             const w=Math.round((x.count/maxRow)*100);
             return `<div class="funnel-row">
               <div class="funnel-lbl">${esc(x.r)}</div>
-              <div class="funnel-track"><div class="funnel-bar" style="width:${w}%" data-tip="${x.count} show${x.count===1?'':'s'} · Row ${x.r}"></div></div>
+              <div class="funnel-track"><div class="funnel-bar" style="width:${w}%" data-tip="Row ${x.r} • ${x.count} show${x.count===1?'':'s'}"></div></div>
               <div class="funnel-meta">${x.avg!=null?inlineChip(x.avg):''}</div>
             </div>`;
           }).join('')}
@@ -1580,7 +1580,7 @@ function renderBoards() {
           </div>
         </div>
       </div>
-      <div class="board"><h3>Month</h3>
+      <div class="board chart-month"><h3>Month</h3>
         <div class="vbar-wrap">
           <div class="vbar-chart">
             ${moData.map(d=>{
@@ -1593,7 +1593,7 @@ function renderBoards() {
         </div>
       </div>
     </div>
-    <div class="board" style="margin-bottom:var(--gap)"><h3>Year</h3>
+    <div class="board chart-year" style="margin-bottom:var(--gap)"><h3>Year</h3>
       <div class="vbar-wrap">
         <div class="vbar-chart">
           ${yrData.map(d=>{
