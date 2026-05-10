@@ -1886,15 +1886,30 @@ function redrawSeatMap(s) {
         <div class="sm-tt-rating">${stars(p.rating)}${p.grade?`<span class="grade-sep">•</span><span class="grade-pill" data-grade="${p.grade}">${p.grade}</span>`:''}</div>
       </div>
     </div>`;
-  document.querySelectorAll(".sm-dot").forEach(dot => {
-    const key = dot.dataset.key;
-    const perfs = cellMap[key];
-    if (isTouch) {
-      dot.addEventListener("touchend", () => {
-        tt.innerHTML = perfs.map(perfCard).join('<div class="sm-tt-sep"></div>');
-        tt.classList.add("open");
+  if (isTouch) {
+    const svgEl = document.querySelector("#sm-svg svg");
+    if (svgEl) {
+      svgEl.addEventListener("touchend", ev => {
+        const touch = ev.changedTouches[0];
+        const tx = touch.clientX, ty = touch.clientY;
+        let nearest = null, minDist = Infinity;
+        document.querySelectorAll(".sm-dot").forEach(dot => {
+          const r = dot.getBoundingClientRect();
+          const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+          const dist = Math.hypot(tx - cx, ty - cy);
+          if (dist < minDist) { minDist = dist; nearest = dot; }
+        });
+        if (nearest && minDist < 40) {
+          const perfs = cellMap[nearest.dataset.key];
+          tt.innerHTML = perfs.map(perfCard).join('<div class="sm-tt-sep"></div>');
+          tt.classList.add("open");
+        }
       }, { passive: true });
-    } else {
+    }
+  } else {
+    document.querySelectorAll(".sm-dot").forEach(dot => {
+      const key = dot.dataset.key;
+      const perfs = cellMap[key];
       dot.addEventListener("mousemove", ev => {
         tt.innerHTML = perfs.map(perfCard).join('<div class="sm-tt-sep"></div>');
         tt.style.left = Math.min(window.innerWidth - 280, ev.clientX + 12) + "px";
@@ -1902,8 +1917,8 @@ function redrawSeatMap(s) {
         tt.classList.add("open");
       });
       dot.addEventListener("mouseleave", () => tt.classList.remove("open"));
-    }
-  });
+    });
+  }
 }
 
 load();
