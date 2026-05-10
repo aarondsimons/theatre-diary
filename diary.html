@@ -592,9 +592,6 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     display: none;
   }
   .sm-tooltip.open { display: block; }
-  @media (hover: none) and (pointer: coarse) {
-    .sm-tooltip { left: 16px !important; right: 16px; bottom: 16px !important; top: auto !important; width: auto; }
-  }
   .sm-tt-card { display: flex; gap: 10px; align-items: flex-start; }
   .sm-tt-thumb { width: 44px; height: auto; flex-shrink: 0; display: block; }
   .sm-tt-thumb-empty { width: 44px; height: 60px; background: var(--panel-2); border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--ink-4); }
@@ -1265,6 +1262,7 @@ function attachListeners() {
     document.addEventListener("touchstart", () => {
       histTt.style.display = "none";
       document.getElementById("sm-tt")?.classList.remove("open");
+      document.querySelector(".sm-dot-tapped")?.classList.remove("sm-dot-tapped");
     }, { passive: true });
   }
 }
@@ -1904,9 +1902,13 @@ function redrawSeatMap(s) {
           const threshold = nr.width / 2 + 8;
           if (minDist < threshold) {
             nearest.classList.add("sm-dot-tapped");
-            setTimeout(() => nearest.classList.remove("sm-dot-tapped"), 200);
             const perfs = cellMap[nearest.dataset.key];
             tt.innerHTML = perfs.map(perfCard).join('<div class="sm-tt-sep"></div>');
+            const cRect = document.getElementById("sm-svg").getBoundingClientRect();
+            tt.style.left = (cRect.left + 16) + "px";
+            tt.style.width = (cRect.width - 32) + "px";
+            tt.style.top = "auto";
+            tt.style.bottom = (window.innerHeight - cRect.bottom + 16) + "px";
             tt.classList.add("open");
           }
         }
