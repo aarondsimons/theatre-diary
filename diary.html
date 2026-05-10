@@ -380,6 +380,26 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .boards { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: var(--gap); margin-bottom: var(--gap); }
   .boards-3 { display: grid; grid-template-columns: 0.6fr 1.0fr 1.4fr; gap: var(--gap); margin-bottom: var(--gap); }
   .boards-genre { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--gap); margin-bottom: var(--gap); }
+  /* Boards collapse */
+  #boards-outer { position: relative; }
+  #boards-outer.boards-collapsed { overflow: hidden; }
+  .boards-fade-overlay {
+    display: none; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 130px; pointer-events: none;
+    background: linear-gradient(to bottom, transparent, var(--bg) 77%);
+  }
+  #boards-outer.boards-collapsed .boards-fade-overlay { display: block; }
+  #boards-more-wrap { display: none; justify-content: center; margin-top: 16px; }
+  #boards-outer.boards-collapsed + #boards-more-wrap { display: flex; }
+  #boards-more-btn, .boards-show-less button {
+    pointer-events: auto; cursor: pointer;
+    background: var(--panel); border: 1px solid var(--rule);
+    color: var(--ink-2); font: inherit; font-size: 13px; font-weight: 500;
+    padding: 10px 22px; border-radius: var(--radius);
+  }
+  #boards-more-btn:hover, .boards-show-less button:hover { border-color: var(--accent); color: var(--accent); }
+  .boards-show-less { display: none; justify-content: center; padding: 20px 0 4px; }
+  #boards-outer:not(.boards-collapsed) .boards-show-less { display: flex; }
   .boards-seats { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: var(--gap); margin-bottom: var(--gap); }
 
   /* Funnel chart */
@@ -1226,6 +1246,34 @@ function attachListeners() {
   document.getElementById("show-ratings-cb")?.addEventListener("change", e => {
     document.getElementById("boards-wrap")?.classList.toggle("hide-ratings", !e.target.checked);
   });
+
+  // Boards collapse
+  (() => {
+    const outer = document.getElementById("boards-outer");
+    const genreEl = document.querySelector(".boards-genre");
+    if (!outer || !genreEl) return;
+    const outerRect = outer.getBoundingClientRect();
+    const genreRect = genreEl.getBoundingClientRect();
+    const genreTopOffset = genreRect.top - outerRect.top;
+    const isMobile = window.innerWidth <= 900;
+    const collapseH = isMobile
+      ? genreTopOffset + genreRect.height / 6
+      : genreTopOffset + genreRect.height / 2;
+    outer.style.maxHeight = collapseH + "px";
+
+    function expand() {
+      outer.style.maxHeight = "";
+      outer.classList.remove("boards-collapsed");
+    }
+    function collapse() {
+      outer.style.maxHeight = collapseH + "px";
+      outer.classList.add("boards-collapsed");
+      const targetY = outer.getBoundingClientRect().top + window.scrollY + collapseH - 80;
+      window.scrollTo({ top: targetY });
+    }
+    document.getElementById("boards-more-btn")?.addEventListener("click", expand);
+    document.getElementById("boards-less-btn")?.addEventListener("click", collapse);
+  })();
   const histTt = document.getElementById("hist-tt");
 
   function showTipAbove(el) {
@@ -1462,7 +1510,7 @@ function renderBoards() {
   const CHART_H = 110;
   const YEAR_CHART_H = 200;
 
-  return `<div id="boards-wrap" class="hide-ratings">
+  return `<div id="boards-outer" class="boards-collapsed"><div id="boards-wrap" class="hide-ratings">
     <div class="sec-hd"><h2>Favorites &amp; figures</h2><div class="rule"></div><label class="sec-hd-toggle"><input type="checkbox" id="show-ratings-cb"> show ratings</label></div>
 
     <div class="boards">
@@ -1636,7 +1684,11 @@ function renderBoards() {
         </div>
       </div>
     </div>
-  </div>`;
+    <div class="boards-show-less"><button id="boards-less-btn">Show less</button></div>
+  </div>
+  <div class="boards-fade-overlay"></div>
+</div>
+<div id="boards-more-wrap"><button id="boards-more-btn">Show more</button></div>`;
 }
 
 // ───────────── Detail modal ─────────────
