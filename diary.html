@@ -1904,7 +1904,7 @@ function redrawSeatMap(s) {
             nearest.classList.add("sm-dot-tapped");
             const perfs = cellMap[nearest.dataset.key];
             tt.innerHTML = perfs.map(perfCard).join('<div class="sm-tt-sep"></div>');
-            const cRect = document.getElementById("sm-svg").getBoundingClientRect();
+            const cRect = document.querySelector(".seatmap-wrap").getBoundingClientRect();
             tt.style.left = (cRect.left + 16) + "px";
             tt.style.width = (cRect.width - 32) + "px";
             tt.style.top = "auto";
