@@ -592,6 +592,9 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     display: none;
   }
   .sm-tooltip.open { display: block; }
+  @media (hover: none) and (pointer: coarse) {
+    .sm-tooltip { left: 16px !important; right: 16px; bottom: 16px !important; top: auto !important; width: auto; }
+  }
   .sm-tt-card { display: flex; gap: 10px; align-items: flex-start; }
   .sm-tt-thumb { width: 44px; height: auto; flex-shrink: 0; display: block; }
   .sm-tt-thumb-empty { width: 44px; height: 60px; background: var(--panel-2); border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--ink-4); }
@@ -881,6 +884,7 @@ function buildEntries(rows) {
 // ───────────── State + render ─────────────
 let ENTRIES = [];
 let VIEW = { sort: "date-desc", search: "", limit: 10, activeTagByGroup: {}, mode: "grid", hideFuture: true, milestoneOnly: false };
+const isTouch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
 async function load() {
   try {
@@ -1226,7 +1230,6 @@ function attachListeners() {
     document.getElementById("boards-wrap")?.classList.toggle("hide-ratings", !e.target.checked);
   });
   const histTt = document.getElementById("hist-tt");
-  const isTouch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
   function showTipAbove(el) {
     histTt.style.display = 'block';
@@ -1259,7 +1262,10 @@ function attachListeners() {
   });
 
   if (isTouch) {
-    document.addEventListener("touchstart", () => { histTt.style.display = "none"; }, { passive: true });
+    document.addEventListener("touchstart", () => {
+      histTt.style.display = "none";
+      document.getElementById("sm-tt")?.classList.remove("open");
+    }, { passive: true });
   }
 }
 
@@ -1883,13 +1889,20 @@ function redrawSeatMap(s) {
   document.querySelectorAll(".sm-dot").forEach(dot => {
     const key = dot.dataset.key;
     const perfs = cellMap[key];
-    dot.addEventListener("mousemove", ev => {
-      tt.innerHTML = perfs.map(perfCard).join('<div class="sm-tt-sep"></div>');
-      tt.style.left = Math.min(window.innerWidth - 280, ev.clientX + 12) + "px";
-      tt.style.top = (ev.clientY + 12) + "px";
-      tt.classList.add("open");
-    });
-    dot.addEventListener("mouseleave", () => tt.classList.remove("open"));
+    if (isTouch) {
+      dot.addEventListener("touchend", () => {
+        tt.innerHTML = perfs.map(perfCard).join('<div class="sm-tt-sep"></div>');
+        tt.classList.add("open");
+      }, { passive: true });
+    } else {
+      dot.addEventListener("mousemove", ev => {
+        tt.innerHTML = perfs.map(perfCard).join('<div class="sm-tt-sep"></div>');
+        tt.style.left = Math.min(window.innerWidth - 280, ev.clientX + 12) + "px";
+        tt.style.top = (ev.clientY + 12) + "px";
+        tt.classList.add("open");
+      });
+      dot.addEventListener("mouseleave", () => tt.classList.remove("open"));
+    }
   });
 }
 
