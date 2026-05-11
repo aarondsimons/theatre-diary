@@ -216,7 +216,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     cursor: pointer; border-radius: 7px;
   }
   .sort button.active { background: var(--ink); color: #fff; }
-  .sort button:not(.active):hover { color: var(--ink); }
+  .sort button:not(.active):hover { color: var(--ink); background: var(--panel-2); }
 
   /* Repertoire */
   .rep { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; }
@@ -1040,7 +1040,7 @@ function renderRepertoire() {
         <button data-sort="date-desc" class="${VIEW.sort==='date-desc'?'active':''}">Newest</button>
         <button data-sort="date-asc" class="${VIEW.sort==='date-asc'?'active':''}">Oldest</button>
         <button data-sort="rating-desc" class="${VIEW.sort==='rating-desc'?'active':''}">Best</button>
-        <button data-sort="title-asc" class="${VIEW.sort==='title-asc'?'active':''}">A–Z</button>
+        <button data-sort="title-asc" class="${VIEW.sort==='title-asc'?'active':''}">A-Z</button>
       </div>
     </div>
     <div id="rep"></div>`;
