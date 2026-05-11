@@ -398,7 +398,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     padding: 10px 22px; border-radius: var(--radius);
   }
   #boards-more-btn:hover, .boards-show-less button:hover { border-color: var(--accent); color: var(--accent); }
-  .boards-show-less { display: none; justify-content: center; padding: 20px 0 4px; }
+  .boards-show-less { display: none; justify-content: center; padding: 20px 0 0; }
   #boards-outer:not(.boards-collapsed) .boards-show-less { display: flex; }
   .boards-seats { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: var(--gap); margin-bottom: var(--gap); }
 
@@ -1087,7 +1087,17 @@ function filterAndSort() {
       const d = (a.date?.getTime()||Infinity) - (b.date?.getTime()||Infinity);
       return d !== 0 ? d : timeOrder(a) - timeOrder(b); // same day: matinee before evening
     }); break;
-    case "rating-desc": list.sort((a,b) => (b.rating ?? -1) - (a.rating ?? -1)); break;
+    case "rating-desc": {
+      const GRADE_ORDER = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','F'];
+      list.sort((a, b) => {
+        const ga = a.grade ? GRADE_ORDER.indexOf(a.grade) : GRADE_ORDER.length;
+        const gb = b.grade ? GRADE_ORDER.indexOf(b.grade) : GRADE_ORDER.length;
+        if (ga !== gb) return ga - gb;
+        const da = a.date?.getTime() ?? Infinity, db = b.date?.getTime() ?? Infinity;
+        if (da !== db) return da - db;
+        return timeOrder(a) - timeOrder(b);
+      }); break;
+    }
     case "title-asc": { const sk = t => (t||"").replace(/^the\s+/i,""); list.sort((a,b) => sk(a.title).localeCompare(sk(b.title))); break; }
   }
   return list;
@@ -1266,10 +1276,11 @@ function attachListeners() {
       outer.classList.remove("boards-collapsed");
     }
     function collapse() {
+      const lessTop = document.getElementById("boards-less-btn").getBoundingClientRect().top;
       outer.style.maxHeight = collapseH + "px";
       outer.classList.add("boards-collapsed");
-      const targetY = outer.getBoundingClientRect().top + window.scrollY + collapseH - 80;
-      window.scrollTo({ top: targetY });
+      const moreTop = document.getElementById("boards-more-wrap").getBoundingClientRect().top;
+      window.scrollBy({ top: moreTop - lessTop });
     }
     document.getElementById("boards-more-btn")?.addEventListener("click", expand);
     document.getElementById("boards-less-btn")?.addEventListener("click", collapse);
