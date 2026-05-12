@@ -2216,23 +2216,89 @@ function renderMap() {
     </section>`;
 }
 
-// Manual coordinate overrides for venues Nominatim gets wrong.
+// Hardcoded coordinates for all known venues — eliminates Nominatim geocoding delay on first load.
 // Keys must match the theater+city column value exactly.
 const VENUE_OVERRIDES = {
-  'Stage 42, New York City': { lat: 40.7594, lng: -73.9875 },
-  'Broward Center for the Performing Arts, Fort Lauderdale, FL': { lat: 26.119764698686502, lng: -80.14960768627348 },
-  'Adrienne Arsht Center, Miami, FL': { lat: 25.78766091035271, lng: -80.19000865995592 },
-  'תיאטרון הבימה, תל אביב, ישראל': { lat: 32.0728, lng: 34.7788 },
-  'Westside Theatre - Upstairs, New York City': { lat: 40.7590, lng: -73.9938 },
-  'Sam S. Shubert Theatre, New York City': { lat: 40.7579, lng: -73.9880 },
-  'New York City Center - Mainstage, New York City': { lat: 40.76383394132859, lng: -73.97944334515286 },
+  // ── New York City: Broadway ──────────────────────────────────────────
+  'Al Hirschfeld Theatre, New York City':          { lat: 40.7592532, lng: -73.9892108 },
+  'August Wilson Theatre, New York City':          { lat: 40.7633730, lng: -73.9841934 },
+  'Belasco Theatre, New York City':                { lat: 40.7566440, lng: -73.9838007 },
+  'Bernard B. Jacobs Theatre, New York City':      { lat: 40.7586082, lng: -73.9877405 },
+  'Booth Theatre, New York City':                  { lat: 40.7583730, lng: -73.9870903 },
+  'Broadhurst Theatre, New York City':             { lat: 40.7582686, lng: -73.9876171 },
+  'Broadway Theatre, New York City':               { lat: 40.7633982, lng: -73.9833550 },
+  'Circle in the Square Theatre, New York City':   { lat: 40.7622484, lng: -73.9853553 },
+  'Ethel Barrymore Theatre, New York City':        { lat: 40.7601222, lng: -73.9861351 },
+  'Eugene O\'Neill Theatre, New York City':        { lat: 40.7611047, lng: -73.9857404 },
+  'Gerald Schoenfeld Theatre, New York City':      { lat: 40.7584859, lng: -73.9874377 },
+  'Gershwin Theatre, New York City':               { lat: 40.7623619, lng: -73.9852044 },
+  'Hayes Theatre, New York City':                  { lat: 40.7578513, lng: -73.9878417 },
+  'Hudson Theatre, New York City':                 { lat: 40.7571077, lng: -73.9844244 },
+  'Imperial Theatre, New York City':               { lat: 40.7591227, lng: -73.9871216 },
+  'James Earl Jones Theatre, New York City':       { lat: 40.7591035, lng: -73.9830898 },
+  'John Golden Theatre, New York City':            { lat: 40.7587046, lng: -73.9879846 },
+  'Lena Horne Theatre, New York City':             { lat: 40.7599753, lng: -73.9869664 },
+  'Longacre Theatre, New York City':               { lat: 40.7603178, lng: -73.9859687 },
+  'Lunt-Fontanne Theatre, New York City':          { lat: 40.7591662, lng: -73.9859015 },
+  'Lyceum Theatre, New York City':                 { lat: 40.7578694, lng: -73.9845006 },
+  'Lyric Theatre, New York City':                  { lat: 40.7567924, lng: -73.9874615 },
+  'Majestic Theatre, New York City':               { lat: 40.7584179, lng: -73.9880164 },
+  'Marquis Theatre, New York City':                { lat: 40.7585971, lng: -73.9861935 },
+  'Minskoff Theatre, New York City':               { lat: 40.7580630, lng: -73.9862053 },
+  'Music Box Theatre, New York City':              { lat: 40.7588721, lng: -73.9871508 },
+  'Nederlander Theatre, New York City':            { lat: 40.7554837, lng: -73.9883023 },
+  'New Amsterdam Theatre, New York City':          { lat: 40.7560000, lng: -73.9880631 },
+  'Palace Theatre, New York City':                 { lat: 40.758832162610695, lng: -73.98403337700917 },
+  'Richard Rodgers Theatre, New York City':        { lat: 40.7590309, lng: -73.9867479 },
+  'St. James Theatre, New York City':              { lat: 40.7579845, lng: -73.9881584 },
+  'Stage 42, New York City':                       { lat: 40.7586197, lng: -73.9938834 },
+  'Stephen Sondheim Theatre, New York City':       { lat: 40.7558962, lng: -73.9849328 },
+  'Studio 54, New York City':                      { lat: 40.7643461, lng: -73.9837786 },
+  'Walter Kerr Theatre, New York City':            { lat: 40.7606810, lng: -73.9855847 },
+  'Winter Garden Theatre, New York City':          { lat: 40.7616856, lng: -73.9835045 },
+  // ── New York City: Off-Broadway / Other ────────────────────────────
+  'Alice Griffin Jewel Box Theatre, New York City':                 { lat: 40.7592846, lng: -73.9951283 },
+  'Classic Stage Company - Lynn F. Angelson Theater, New York City':{ lat: 40.7327227, lng: -73.9882473 },
+  'Daryl Roth Theatre, New York City':             { lat: 40.7352914, lng: -73.9894585 },
+  'Laura Pels Theatre, New York City':             { lat: 40.7579298, lng: -73.9829276 },
+  'Madison Square Garden, New York City':          { lat: 40.7505129, lng: -73.9935159 },
+  'MCC Newman Mills Theater, New York City':       { lat: 40.7664555, lng: -73.9917224 },
+  'New World Stages, New York City':               { lat: 40.7627588, lng: -73.9875605 },
+  'New York City Center - Mainstage, New York City':{ lat: 40.76383394132859, lng: -73.97944334515286 },
   'New York City Center - Stage I, New York City': { lat: 40.76378549559964, lng: -73.97958385353988 },
-  'MCC Newman Mills Theater, New York City': { lat: 40.7634, lng: -73.9940 },
-  'Alice Griffin Jewel Box Theatre, New York City': { lat: 40.7596, lng: -73.9966 },
-  'Richard Rodgers Amphitheater, New York City': { lat: 40.80488623622555, lng: -73.94461596500356 },
-  'The Shed - Kenneth C. Griffin Theater, New York City': { lat: 40.7542, lng: -74.0025 },
-  'Classic Stage Company - Lynn F. Angelson Theater, New York City': { lat: 40.7317, lng: -73.9881 },
-  'Palace Theatre, New York City': { lat: 40.7578, lng: -73.9855 },
+  'Orpheum Theatre, New York City':                { lat: 40.728265260978205, lng: -73.9877176989796 },
+  'Richard Rodgers Amphitheater, New York City':   { lat: 40.80488623622555, lng: -73.94461596500356 },
+  'Sam S. Shubert Theatre, New York City':         { lat: 40.7581448, lng: -73.9872564 },
+  'The Shed - Kenneth C. Griffin Theater, New York City': { lat: 40.7532813, lng: -74.0026711 },
+  'Theater 555, New York City':                    { lat: 40.76073961216596, lng: -73.99750883833015 },
+  'Vivian Beaumont Theater, New York City':        { lat: 40.7736770, lng: -73.9848015 },
+  'Westside Theatre - Upstairs, New York City':    { lat: 40.7594480, lng: -73.9926202 },
+  // ── Other US ────────────────────────────────────────────────────────
+  'Adrienne Arsht Center, Miami, FL':              { lat: 25.78766091035271, lng: -80.19000865995592 },
+  'Broward Center for the Performing Arts, Fort Lauderdale, FL': { lat: 26.119764698686502, lng: -80.14960768627348 },
+  'CIBC Theatre, Chicago, IL':                     { lat: 41.8811752, lng: -87.6285961 },
+  'Hippodrome Theatre, Baltimore, MD':             { lat: 39.2897651, lng: -76.6214105 },
+  'Kravis Center, West Palm Beach, FL':            { lat: 26.7069007, lng: -80.0600727 },
+  'Stanley Theatre, Utica, NY':                    { lat: 43.0988868, lng: -75.2352743 },
+  // ── London ──────────────────────────────────────────────────────────
+  'Ambassadors Theatre, London':                   { lat: 51.5130407, lng: -0.1278360 },
+  'Apollo Victoria Theatre, London':               { lat: 51.4955925, lng: -0.1425702 },
+  'Cambridge Theatre, London':                     { lat: 51.5136329, lng: -0.1265296 },
+  'Dominion Theatre, London':                      { lat: 51.5169242, lng: -0.1295774 },
+  'Noël Coward Theatre, London':                   { lat: 51.5111212, lng: -0.1274584 },
+  'Sondheim Theatre, London':                      { lat: 51.5120287, lng: -0.1328534 },
+  'St Martin\'s Theatre, London':                  { lat: 51.51287244403877, lng: -0.1275814484401047 },
+  'Theatre Royal Drury Lane, London':              { lat: 51.5129942, lng: -0.1202295 },
+  // ── Stratford-upon-Avon ─────────────────────────────────────────────
+  'Royal Shakespeare Theatre, Stratford-upon-Avon':{ lat: 52.1904701, lng: -1.7040369 },
+  // ── Israel ──────────────────────────────────────────────────────────
+  'בית ליסין, תל אביב, ישראל':                    { lat: 32.0796303, lng: 34.7736171 },
+  'הקאמרי, תל אביב, ישראל':                       { lat: 32.0770063, lng: 34.7845334 },
+  'היכל התרבות, תל אביב, ישראל':                  { lat: 32.0734714, lng: 34.7800344 },
+  'תיאטרון הבימה, תל אביב, ישראל':                { lat: 32.0728, lng: 34.7788 },
+  'תיאטרון הצפון, חיפה, ישראל':                   { lat: 32.8218116, lng: 35.0740132 },
+  'תיאטרון ירושלים, ירושלים, ישראל':              { lat: 31.7689181, lng: 35.2155172 },
+  'צוותא, תל אביב, ישראל':                        { lat: 32.0752405, lng: 34.7822687 },
 };
 
 async function initMap() {
@@ -2254,11 +2320,13 @@ async function initMap() {
   let cache = {};
   try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch(e) {}
 
+  const totalVenues = venueEntries.size;
+  const alreadyCached = [...venueEntries.keys()].filter(k => k in cache).length;
   const toGeocode = [...venueEntries.keys()].filter(k => !(k in cache));
   if (toGeocode.length > 0) {
     for (let i = 0; i < toGeocode.length; i++) {
       const q = toGeocode[i];
-      statusEl.textContent = `Locating venues… ${i + 1} / ${toGeocode.length}`;
+      statusEl.textContent = `Locating venues… ${alreadyCached + i + 1} / ${totalVenues}`;
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,
@@ -2332,7 +2400,7 @@ async function initMap() {
       </div>`;
     }).join('');
     // Use the venue column value as display name; city from theaterCity key
-    const venueName = (v.entries[0].venue || v.key.split(',')[0]).trim();
+    const venueName = (sorted[0].venue || v.key.split(',')[0]).trim();
     const venueCity = v.key.includes(',') ? v.key.slice(v.key.indexOf(',') + 1).trim() : '';
     const venueIsHeb = /[֐-׿]/.test(venueName);
     const venueNameStyle = venueIsHeb
