@@ -66,7 +66,6 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     justify-content: space-between;
     gap: 24px;
     padding-bottom: 28px;
-    border-bottom: 1px solid var(--rule);
   }
   .hd-title h1 {
     font-family: var(--ff-serif);
@@ -90,6 +89,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     display: flex; gap: 28px;
     font-size: 13px;
     color: var(--ink-3);
+    margin-bottom: 1px;
   }
   .hd-meta .n { display: block; font-size: 22px; font-weight: 600; color: var(--ink); font-family: var(--ff-serif); margin-bottom: 2px; }
   .live {
@@ -103,6 +103,10 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .sec-hd {
     display: flex; align-items: baseline; gap: 14px;
     margin: 60px 0 20px;
+  }
+  #main > .sec-hd:first-child,
+  #main > .otd-wrap + .sec-hd {
+    margin-top: 20px;
   }
   .sec-hd h2 {
     font-family: var(--ff-serif);
@@ -125,6 +129,44 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .hide-ratings .pie-legend-row { width: auto; }
 
   /* Stats */
+  /* On this day */
+  .otd-wrap {
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: var(--radius); padding: 14px 18px;
+    margin-bottom: var(--gap);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .otd-label { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+  .otd-date { font-weight: 500; letter-spacing: 0; text-transform: none; }
+  .otd-entries { display: flex; flex-direction: column; gap: 8px; }
+
+  /* Desktop: years | title+badge | link all on one row */
+  .otd-entry { display: flex; align-items: baseline; gap: 0; flex-wrap: nowrap; }
+  .otd-years { color: var(--ink-3); font-size: 13px; white-space: nowrap; order: 1; }
+  .otd-years::after { content: " \2014\00a0"; }
+  .otd-years-ago { color: var(--ink-4); font-size: 12px; }
+  .otd-title-wrap { font-size: 14px; color: var(--ink); flex: 1; order: 2; }
+  .otd-title-wrap strong { font-weight: 600; }
+  .otd-link { font-size: 12px; color: var(--accent); cursor: pointer; white-space: nowrap;
+    flex-shrink: 0; order: 3; margin-left: 12px; }
+  .otd-link:hover { text-decoration: underline; }
+  .otd-milestone {
+    font-size: 10px; font-weight: 700; color: #6b4a00;
+    background: linear-gradient(135deg, #fde68a, #fbbf24);
+    padding: 1px 6px; border-radius: 4px; border: 1px solid #f4c64b;
+    display: inline-block; margin-left: 6px; vertical-align: middle;
+    position: relative; top: -1px;
+  }
+
+  /* Mobile: title on row 1 (full width), years + link on row 2 */
+  @media (max-width: 600px) {
+    .otd-entry { flex-wrap: wrap; gap: 0; row-gap: 3px; }
+    .otd-title-wrap { order: 1; flex-basis: 100%; }
+    .otd-years { order: 2; flex: 1; }
+    .otd-years::after { display: none; }
+    .otd-link { order: 3; margin-left: 8px; }
+  }
+
   .stats {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -994,6 +1036,7 @@ function render() {
   document.getElementById("hd-last").textContent = dated[0] ? `Latest entry: ${fmtDate(dated[0].date)}` : "no dates";
   if (!total) { main.innerHTML = `<div class="errstate">Diary is empty.</div>`; return; }
   const parts = [];
+  parts.push(renderOnThisDay());
   parts.push(renderStats());
   parts.push(renderRepertoire());
   parts.push(renderBoards());
@@ -1001,6 +1044,35 @@ function render() {
   main.innerHTML = parts.join("");
   attachListeners();
   initSeatMap();
+}
+
+function renderOnThisDay() {
+  const today = new Date();
+  const mm = today.getMonth(), dd = today.getDate(), yyyy = today.getFullYear();
+  const matches = seenEntries().filter(e =>
+    e.date &&
+    datePrecision(e.date) === 'full' &&
+    e.date.getMonth() === mm &&
+    e.date.getDate() === dd &&
+    e.date.getFullYear() < yyyy
+  ).sort((a, b) => b.date - a.date);
+  if (!matches.length) return '';
+  const dateLabel = `${MONTHS_FULL[mm]} ${dd}`;
+  const entries = matches.map(e => {
+    const years = yyyy - e.date.getFullYear();
+    const idx = ENTRIES.indexOf(e);
+    const milestoneHtml = e.milestone ? `<span class="otd-milestone">${esc(e.milestone)}</span>` : '';
+    const yearsHtml = `<span class="otd-years">${e.date.getFullYear()} <span class="otd-years-ago">(${years} year${years===1?'':'s'} ago)</span></span>`;
+    return `<div class="otd-entry">
+      <span class="otd-title-wrap"><strong>${esc(e.title||'')}</strong>${milestoneHtml}</span>
+      ${yearsHtml}
+      <span class="otd-link" onclick="openDetail(${idx})">View details</span>
+    </div>`;
+  }).join('');
+  return `<div class="otd-wrap">
+    <div class="otd-label">On this day <span class="otd-date">— ${dateLabel}</span></div>
+    <div class="otd-entries">${entries}</div>
+  </div>`;
 }
 
 function renderStats() {
