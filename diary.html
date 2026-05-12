@@ -1063,8 +1063,10 @@ function renderOnThisDay() {
     const idx = ENTRIES.indexOf(e);
     const milestoneHtml = e.milestone ? `<span class="otd-milestone">${esc(e.milestone)}</span>` : '';
     const yearsHtml = `<span class="otd-years">${e.date.getFullYear()} <span class="otd-years-ago">(${years} year${years===1?'':'s'} ago)</span></span>`;
+    const isHeb = /[֐-׿]/.test(e.title||'');
+    const titleStyle = isHeb ? ` style="font-family:var(--ff-heb);direction:rtl;unicode-bidi:embed"` : '';
     return `<div class="otd-entry">
-      <span class="otd-title-wrap"><strong>${esc(e.title||'')}</strong>${milestoneHtml}</span>
+      <span class="otd-title-wrap"><strong${titleStyle}>${esc(e.title||'')}</strong>${milestoneHtml}</span>
       ${yearsHtml}
       <span class="otd-link" onclick="openDetail(${idx})">View details</span>
     </div>`;
@@ -1820,7 +1822,7 @@ function openDetail(idx) {
     'Book by':                   'כתיבה',
     'Music by':                  'מוזיקה',
     'Lyrics by':                 'מילים',
-    'Book, Music, and Lyrics by':'כתיבה, מוזיקה ומילים',
+    'Book, Music, and Lyrics by':'מוזיקה, מילים וכתיבה',
     'Book and Lyrics by':        'כתיבה ומילים',
     'Music and Lyrics by':       'מוזיקה ומילים',
     'Written by':                'מאת',
