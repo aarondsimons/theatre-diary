@@ -2320,13 +2320,11 @@ async function initMap() {
   let cache = {};
   try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch(e) {}
 
-  const totalVenues = venueEntries.size;
-  const alreadyCached = [...venueEntries.keys()].filter(k => k in cache).length;
-  const toGeocode = [...venueEntries.keys()].filter(k => !(k in cache));
+  const toGeocode = [...venueEntries.keys()].filter(k => !(k in cache) && !(k in VENUE_OVERRIDES));
   if (toGeocode.length > 0) {
     for (let i = 0; i < toGeocode.length; i++) {
       const q = toGeocode[i];
-      statusEl.textContent = `Locating venues… ${alreadyCached + i + 1} / ${totalVenues}`;
+      statusEl.textContent = `Locating new venue… ${i + 1} / ${toGeocode.length}`;
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,
