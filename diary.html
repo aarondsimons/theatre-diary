@@ -1815,8 +1815,8 @@ const MEZZ_ROWS = "ABCDEFGH".split("");
 const ROW_ALIASES = { "EE":"E","AX":"A","AA":"A","BB":"B","FF":"F" };
 const SM = { CX: 600, FY: -500, BR: 560, ROW_SP: 19, SEAT_SP: 14.5, AISLE: 12, R: 5 };
 
-function buildRowSeats(ri) {
-  const side = Math.min(ri + 5, 12);
+function buildRowSeats(ri, riOffset = 0) {
+  const side = Math.min(ri + riOffset + 5, 12);
   const leftMax = side * 2 - 1, rightMax = side * 2;
   const left = [], center = [], right = [];
   for (let n = leftMax; n >= 1; n -= 2) left.push(n);
@@ -1824,11 +1824,11 @@ function buildRowSeats(ri) {
   for (let n = 2; n <= rightMax; n += 2) right.push(n);
   return { left, center, right };
 }
-function computeRow(rows, yShift) {
+function computeRow(rows, yShift, riOffset = 0, riStart = 0) {
   const seats = [];
   rows.forEach((letter, ri) => {
-    const radius = SM.BR + ri * SM.ROW_SP;
-    const { left, center, right } = buildRowSeats(ri);
+    const radius = SM.BR + (riStart + ri) * SM.ROW_SP;
+    const { left, center, right } = buildRowSeats(ri, riOffset);
     const total = left.length + center.length + right.length;
     const totalW = (total - 1) * SM.SEAT_SP + 2 * SM.AISLE;
     const totalA = totalW / radius;
@@ -1868,9 +1868,9 @@ function renderSeatMap() {
 function initSeatMap() {
   const orch = computeRow(ORCH_ROWS, 0);
   const orchMax = Math.max(...orch.map(s => s.y));
-  const mezzRaw = computeRow(MEZZ_ROWS, 0);
+  const mezzRaw = computeRow(MEZZ_ROWS, 0, 7, 25);
   const mezzMin = Math.min(...mezzRaw.map(s => s.y));
-  const shift = (orchMax + 70) - mezzMin;
+  const shift = (orchMax + 50) - mezzMin;
   const mezz = mezzRaw.map(s => ({ ...s, y: s.y + shift }));
   const mezzTop = Math.min(...mezz.map(s => s.y));
   const mezzMax = Math.max(...mezz.map(s => s.y));
@@ -1955,7 +1955,7 @@ function redrawSeatMap(s) {
       ${mezz.map(s => `<circle cx="${s.x}" cy="${s.y}" r="${SM.R}" fill="#e8e3d5"/>`).join("")}
       ${rowLabels.map(l => `<text class="sm-row-label" x="${l.x}" y="${l.y - 1}" text-anchor="middle" dominant-baseline="central">${l.letter}</text>`).join("")}
       <text class="sm-sec-label" x="${SM.CX}" y="${orchMaxY+30}" text-anchor="middle">ORCHESTRA</text>
-      <text class="sm-sec-label" x="${SM.CX}" y="${mezzMinY-14}" text-anchor="middle">MEZZANINE</text>
+      <text class="sm-sec-label" x="${SM.CX}" y="${mezzMinY+22}" text-anchor="middle">MEZZANINE</text>
       ${dots}
     </svg>`;
   document.getElementById("sm-svg").innerHTML = svg;
