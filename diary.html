@@ -928,6 +928,36 @@ const MONTHS_FULL = ["January","February","March","April","May","June","July","A
 const fmtDate = d => d ? `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` : "—";
 const fmtDateShort = d => d ? `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` : "—";
 const fmtDateMini  = d => d ? `${d.getMonth()+1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}` : "—";
+
+// For entries in 2012 or earlier, day=1 means month is approximate; Jan 1 means year only
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function datePrecision(d) {
+  if (!d || d.getFullYear() > 2012) return 'full';
+  if (d.getMonth() === 0 && d.getDate() === 1) return 'year';
+  if (d.getDate() === 1) return 'month';
+  return 'full';
+}
+const fmtDateDetail = d => {
+  if (!d) return '—';
+  const p = datePrecision(d);
+  if (p === 'year')  return String(d.getFullYear());
+  if (p === 'month') return `${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()}`;
+  return `${DAY_NAMES[d.getDay()]}, ${MONTHS_FULL[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+};
+const fmtDateApprox = d => {
+  if (!d) return '—';
+  const p = datePrecision(d);
+  if (p === 'year')  return String(d.getFullYear());
+  if (p === 'month') return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  return fmtDateShort(d);
+};
+const fmtDateMiniApprox = d => {
+  if (!d) return '—';
+  const p = datePrecision(d);
+  if (p === 'year')  return String(d.getFullYear());
+  if (p === 'month') return `${d.getMonth()+1}/${d.getFullYear()}`;
+  return fmtDateMini(d);
+};
 function stars(r) {
   if (r == null) return '';
   const rounded = Math.round(r * 2) / 2;
@@ -1141,7 +1171,7 @@ function renderRepRows() {
         ${e.milestone ? `<div class="rep-grid-milestone-strip"${/[֐-׿]/.test(e.milestone)?` style="font-family:var(--ff-heb)"`:``}>${esc(e.milestone)}</div>` : ''}
         <div class="rep-grid-info">
           <div class="rep-grid-title">${esc(e.title||'(untitled)')}</div>
-          <div class="rep-grid-sub">${e.date ? fmtDateShort(e.date) : '—'}</div>
+          <div class="rep-grid-sub">${e.date ? fmtDateApprox(e.date) : '—'}</div>
           <div class="rep-grid-rating">${stars(e.rating)}${grade?`<span class="grade-sep">•</span><span class="grade-pill" data-grade="${grade}">${grade}</span>`:''}</div>
         </div>
       </div>`;
@@ -1171,7 +1201,7 @@ function renderRepRows() {
     return `
     <div class="rep-row${e.isHebrew ? ' hebrew' : ''}" data-idx="${ENTRIES.indexOf(e)}">
       <div class="rep-thumb${e.coverSrc ? '' : ' empty'}">${e.coverSrc ? `<img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('empty');this.remove();">` : ""}</div>
-      <div class="rep-date"><span class="date-full">${e.date ? fmtDateShort(e.date) : "—"}</span><span class="date-mini">${e.date ? fmtDateMini(e.date) : "—"}</span></div>
+      <div class="rep-date"><span class="date-full">${e.date ? fmtDateApprox(e.date) : "—"}</span><span class="date-mini">${e.date ? fmtDateMiniApprox(e.date) : "—"}</span></div>
       <div class="rep-title">
         ${e.milestone ? `<div class="rep-milestone">${esc(e.milestone)}</div>` : ""}
         <div class="rep-title-text">${esc(e.title || "(untitled)")}</div>
@@ -1752,7 +1782,7 @@ function openDetail(idx) {
   }
 
   const meta = [
-    e.date && [lbl('Seen'), fmtDate(e.date)],
+    e.date && [lbl('Seen'), fmtDateDetail(e.date)],
     e.venue && [lbl('Venue'), e.venue, locationVal],
     ...creditRows,
     ...filteredExtraMeta.map(([k,v])=>[k,v]),
@@ -1942,7 +1972,7 @@ function redrawSeatMap(s) {
       ${p.coverSrc ? `<img class="sm-tt-thumb" src="${esc(p.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : `<div class="sm-tt-thumb-empty">♪</div>`}
       <div class="sm-tt-card-info">
         <div class="sm-tt-title">${esc(p.title||'')}</div>
-        <div class="sm-tt-sub">${p.date ? fmtDateShort(p.date) : '—'} · ${esc(p.venue||'')}</div>
+        <div class="sm-tt-sub">${p.date ? fmtDateApprox(p.date) : '—'} · ${esc(p.venue||'')}</div>
         <div class="sm-tt-sub">${esc(p.seat || (p.seatRow && p.seatNum != null ? `${p.seatRow}-${p.seatNum}` : ''))}</div>
         <div class="sm-tt-rating">${stars(p.rating)}${p.grade?`<span class="grade-sep">•</span><span class="grade-pill" data-grade="${p.grade}">${p.grade}</span>`:''}</div>
       </div>
