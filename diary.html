@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=Assistant:wght@400;500;600;700&family=Google+Sans:wght@400;500;600;700&family=Noto+Serif+Hebrew:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script>
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1FXASLMEeovADIFo8akP8G1aNCOl_r12RfCgla-jIWBRWW2Ie7rYpTBr1a2bvEd0FlQXnBj/pub?output=csv";
 </script>
@@ -684,6 +687,103 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     .pb-title { font-size: 26px; }
   }
 
+  /* Map section */
+  .map-wrap {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .map-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .map-status { font-size: 13px; color: var(--ink-3); flex: 1; }
+  .map-reset-btn {
+    background: none; border: none; color: var(--ink-3);
+    font-size: 16px; cursor: pointer; padding: 4px 6px;
+    border-radius: 6px; line-height: 1;
+    transition: color 0.1s, background 0.1s;
+  }
+  .map-reset-btn:hover { color: var(--ink); background: var(--panel-2); }
+  /* Zoom controls */
+  .leaflet-control-zoom {
+    border: 1px solid var(--rule) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow-sm) !important;
+    overflow: hidden;
+  }
+  .leaflet-control-zoom a {
+    background: var(--panel) !important;
+    color: var(--ink-2) !important;
+    border-bottom: 1px solid var(--rule) !important;
+    font-family: var(--ff-sans) !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    width: 30px !important; height: 30px !important;
+    line-height: 30px !important;
+    transition: background 0.1s, color 0.1s;
+  }
+  .leaflet-control-zoom a:last-child { border-bottom: none !important; }
+  .leaflet-control-zoom a:hover { background: var(--panel-2) !important; color: var(--ink) !important; }
+  #venue-map {
+    height: 480px;
+    border-radius: var(--radius);
+  }
+  /* Leaflet popup restyled to match diary cards */
+  .leaflet-popup-content-wrapper {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 0;
+  }
+  .leaflet-popup-content {
+    margin: 0;
+    font-family: var(--ff-sans);
+    color: var(--ink);
+    width: auto !important;
+    min-width: 240px;
+    max-width: 320px;
+  }
+  .leaflet-popup-tip-container .leaflet-popup-tip {
+    background: var(--panel);
+    box-shadow: none;
+  }
+  .leaflet-popup-close-button {
+    color: var(--ink-3) !important;
+    font-size: 18px !important;
+    top: 6px !important; right: 8px !important;
+  }
+  .popup-rtl .leaflet-popup-close-button {
+    right: auto !important;
+    left: 8px !important;
+  }
+  .map-popup-venue {
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .map-popup-venue-name {
+    font-family: var(--ff-serif); font-weight: 600; font-size: 15px; line-height: 1.2;
+    display: block;
+  }
+  .map-popup-count {
+    font-size: 11px; font-weight: 400; color: var(--ink-3); margin-top: 2px;
+  }
+  .map-popup-list {
+    padding: 8px 14px 12px;
+    max-height: 180px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 7px;
+  }
+  .map-popup-item { font-size: 12px; line-height: 1.3; display: flex; gap: 8px; align-items: flex-start; }
+  .map-popup-item-img { width: 28px; flex-shrink: 0; display: block; }
+  .map-popup-item-info { flex: 1; min-width: 0; }
+  .map-popup-item-title { font-weight: 500; display: block; }
+  .map-popup-item-date { color: var(--ink-3); font-size: 11px; display: block; margin-top: 1px; }
+  @media (max-width: 620px) {
+    #venue-map { height: 340px; }
+  }
+
   /* Narrow mobile: minimal rep-row (≤620px) */
   @media (max-width: 620px) {
     .rep-row {
@@ -871,6 +971,7 @@ function buildEntries(rows) {
     seatNum: findCol(headers,["seat number","seat num"]),
     seatLocation: findCol(headers,["seat location","section"]),
     milestone: findCol(headers,["milestone"]),
+    theaterCity: findCol(headers,["theater+city","theatre+city","venue+city"]),
   };
   const TAG_LOOKUP = {};
   for (const [k, l, c] of TAG_DEFS) { TAG_LOOKUP[k.toLowerCase()] = { label: l, cat: c }; TAG_LOOKUP[l.toLowerCase()] = { label: l, cat: c }; }
@@ -903,6 +1004,7 @@ function buildEntries(rows) {
       seat: g("seat"), seatRow: g("seatRow"), seatLocation: g("seatLocation"),
       seatNum: (() => { const n = parseInt(g("seatNum"), 10); return isNaN(n) ? null : n; })(),
       milestone: g("milestone"),
+      theaterCity: g("theaterCity"),
       tags: [], extra: {}
     };
     const seen = new Set();
@@ -1041,9 +1143,11 @@ function render() {
   parts.push(renderRepertoire());
   parts.push(renderBoards());
   parts.push(renderSeatMap());
+  parts.push(renderMap());
   main.innerHTML = parts.join("");
   attachListeners();
   initSeatMap();
+  initMap();
 }
 
 function renderOnThisDay() {
@@ -2094,6 +2198,206 @@ function redrawSeatMap(s) {
       dot.addEventListener("mouseleave", () => tt.classList.remove("open"));
     });
   }
+}
+
+function renderMap() {
+  return `
+    <div class="sec-hd"><h2>Where I&#8217;ve been</h2><div class="rule"></div></div>
+    <div class="map-toolbar">
+      <div class="sort">
+        <button id="map-pins-btn" class="active">Pins</button>
+        <button id="map-heat-btn">Heatmap</button>
+      </div>
+      <span class="map-status" id="map-status">Locating venues…</span>
+      <button class="map-reset-btn" id="map-reset-btn" title="Reset view">↺</button>
+    </div>
+    <section class="map-wrap">
+      <div id="venue-map"></div>
+    </section>`;
+}
+
+// Manual coordinate overrides for venues Nominatim gets wrong.
+// Keys must match the theater+city column value exactly.
+const VENUE_OVERRIDES = {
+  'Stage 42, New York City': { lat: 40.7594, lng: -73.9875 },
+  'Broward Center for the Performing Arts, Fort Lauderdale, FL': { lat: 26.119764698686502, lng: -80.14960768627348 },
+  'Adrienne Arsht Center, Miami, FL': { lat: 25.78766091035271, lng: -80.19000865995592 },
+  'תיאטרון הבימה, תל אביב, ישראל': { lat: 32.0728, lng: 34.7788 },
+  'Westside Theatre - Upstairs, New York City': { lat: 40.7590, lng: -73.9938 },
+  'Sam S. Shubert Theatre, New York City': { lat: 40.7579, lng: -73.9880 },
+  'New York City Center - Mainstage, New York City': { lat: 40.76383394132859, lng: -73.97944334515286 },
+  'New York City Center - Stage I, New York City': { lat: 40.76378549559964, lng: -73.97958385353988 },
+  'MCC Newman Mills Theater, New York City': { lat: 40.7634, lng: -73.9940 },
+  'Alice Griffin Jewel Box Theatre, New York City': { lat: 40.7596, lng: -73.9966 },
+  'Richard Rodgers Amphitheater, New York City': { lat: 40.80488623622555, lng: -73.94461596500356 },
+  'The Shed - Kenneth C. Griffin Theater, New York City': { lat: 40.7542, lng: -74.0025 },
+  'Classic Stage Company - Lynn F. Angelson Theater, New York City': { lat: 40.7317, lng: -73.9881 },
+  'Palace Theatre, New York City': { lat: 40.7578, lng: -73.9855 },
+};
+
+async function initMap() {
+  const mapEl = document.getElementById('venue-map');
+  const statusEl = document.getElementById('map-status');
+  if (!mapEl || !statusEl) return;
+
+  // Build unique venue → entries map using theaterCity (or fall back to venue name)
+  const venueEntries = new Map();
+  for (const e of seenEntries()) {
+    const key = (e.theaterCity || e.venue || '').trim();
+    if (!key) continue;
+    if (!venueEntries.has(key)) venueEntries.set(key, []);
+    venueEntries.get(key).push(e);
+  }
+
+  // Geocode with localStorage cache
+  const CACHE_KEY = 'map_geocache_v2';
+  let cache = {};
+  try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch(e) {}
+
+  const toGeocode = [...venueEntries.keys()].filter(k => !(k in cache));
+  if (toGeocode.length > 0) {
+    for (let i = 0; i < toGeocode.length; i++) {
+      const q = toGeocode[i];
+      statusEl.textContent = `Locating venues… ${i + 1} / ${toGeocode.length}`;
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,
+          { headers: { 'User-Agent': 'AaronTheatreDiary/1.0 (personal project)' } }
+        );
+        const data = await res.json();
+        cache[q] = data[0] ? { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) } : null;
+      } catch(_) { cache[q] = null; }
+      if (i < toGeocode.length - 1) await new Promise(r => setTimeout(r, 1100));
+    }
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch(_) {}
+  }
+
+  statusEl.style.display = 'none';
+
+  // Build list of located venues (manual overrides take priority over cache)
+  const venues = [];
+  for (const [key, entries] of venueEntries) {
+    const coords = VENUE_OVERRIDES[key] || cache[key];
+    if (!coords) continue;
+    venues.push({ key, entries, lat: coords.lat, lng: coords.lng });
+  }
+
+  if (!venues.length) {
+    statusEl.textContent = 'No venues could be located.';
+    statusEl.style.display = '';
+    return;
+  }
+
+  // Init Leaflet map
+  const map = L.map('venue-map', { scrollWheelZoom: true, zoomControl: false });
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd', maxZoom: 19, minZoom: 5, pane: 'shadowPane'
+  }).addTo(map);
+
+  // Build pins layer
+  const pinsLayer = L.layerGroup();
+  const heatPoints = [];
+
+  for (const v of venues) {
+    const count = v.entries.length;
+    const radius = Math.min(5 + count * 1.5, 18);
+    const marker = L.circleMarker([v.lat, v.lng], {
+      radius,
+      fillColor: '#007FFF',
+      color: '#fff',
+      weight: 1.5,
+      opacity: 1,
+      fillOpacity: 0.75
+    });
+    // Build popup — every performance, sorted newest first
+    const sorted = [...v.entries].sort((a, b) => (b.date || 0) - (a.date || 0));
+    const items = sorted.map(e => {
+      const dateStr = e.date ? fmtDateShort(e.date) : '';
+      const isHeb = /[֐-׿]/.test(e.title || '');
+      const itemStyle = isHeb ? ' style="text-align:right;direction:rtl"' : '';
+      const titleStyle = isHeb ? ` style="font-family:var(--ff-heb);direction:rtl;unicode-bidi:embed"` : '';
+      const dateStyle = isHeb ? ` style="direction:ltr;unicode-bidi:embed;text-align:right"` : '';
+      const imgHtml = e.coverSrc ? `<img class="map-popup-item-img" src="${e.coverSrc}" alt="">` : '';
+      return `<div class="map-popup-item"${itemStyle}>
+        ${imgHtml}
+        <div class="map-popup-item-info">
+          <span class="map-popup-item-title"${titleStyle}>${esc(e.title||'(untitled)')}</span>
+          ${dateStr ? `<span class="map-popup-item-date"${dateStyle}>${dateStr}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    // Use the venue column value as display name; city from theaterCity key
+    const venueName = (v.entries[0].venue || v.key.split(',')[0]).trim();
+    const venueCity = v.key.includes(',') ? v.key.slice(v.key.indexOf(',') + 1).trim() : '';
+    const venueIsHeb = /[֐-׿]/.test(venueName);
+    const venueNameStyle = venueIsHeb
+      ? ` style="font-family:var(--ff-heb-serif);direction:rtl;unicode-bidi:embed;text-align:right"`
+      : '';
+    const venueCityStyle = venueIsHeb
+      ? ` style="font-family:var(--ff-heb);direction:rtl;unicode-bidi:embed;text-align:right"`
+      : '';
+    const venueHeaderStyle = venueIsHeb ? ' style="text-align:right;direction:rtl"' : '';
+    marker.bindPopup(
+      `<div class="map-popup-venue"${venueHeaderStyle}>` +
+      `<span class="map-popup-venue-name"${venueNameStyle}>${esc(venueName)}</span>` +
+      (venueCity ? `<div class="map-popup-count"${venueCityStyle}>${esc(venueCity)}</div>` : '') +
+      `<div class="map-popup-count"${venueIsHeb ? ` style="font-family:var(--ff-heb)"` : ''}>${venueIsHeb ? `${count} ${count === 1 ? 'הופעה' : 'הופעות'}` : `${count} performance${count === 1 ? '' : 's'}`}</div></div>` +
+      `<div class="map-popup-list">${items}</div>`,
+      { maxWidth: 320, className: venueIsHeb ? 'popup-rtl' : '' }
+    );
+    pinsLayer.addLayer(marker);
+    for (let i = 0; i < count; i++) heatPoints.push([v.lat, v.lng, 1]);
+  }
+
+  pinsLayer.addTo(map);
+
+  // Fit to all venues
+  const bounds = L.latLngBounds(venues.map(v => [v.lat, v.lng]));
+  map.fitBounds(bounds, { padding: [30, 30] });
+
+  // Heatmap layer
+  let heatLayer = null;
+  if (typeof L.heatLayer === 'function') {
+    heatLayer = L.heatLayer(heatPoints, {
+      radius: 45,
+      blur: 30,
+      maxZoom: 12,
+      max: 2,
+      minOpacity: 0.55,
+      gradient: { 0.2: '#bfdbfe', 0.45: '#60a5fa', 0.7: '#2563eb', 1.0: '#007FFF' }
+    });
+  }
+
+  // Toggle buttons
+  let mode = 'pins';
+  const pinsBtn = document.getElementById('map-pins-btn');
+  const heatBtn = document.getElementById('map-heat-btn');
+  pinsBtn?.addEventListener('click', () => {
+    if (mode === 'pins') return;
+    mode = 'pins';
+    if (heatLayer) map.removeLayer(heatLayer);
+    pinsLayer.addTo(map);
+    pinsBtn.classList.add('active');
+    heatBtn.classList.remove('active');
+  });
+  heatBtn?.addEventListener('click', () => {
+    if (mode === 'heat' || !heatLayer) return;
+    mode = 'heat';
+    map.removeLayer(pinsLayer);
+    heatLayer.addTo(map);
+    pinsBtn.classList.remove('active');
+    heatBtn.classList.add('active');
+  });
+
+  // Reset button
+  document.getElementById('map-reset-btn')?.addEventListener('click', () => {
+    map.fitBounds(bounds, { padding: [30, 30] });
+  });
 }
 
 load();
