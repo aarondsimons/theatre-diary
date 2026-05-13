@@ -708,7 +708,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .map-reset-btn:hover { color: var(--ink); background: var(--panel-2); }
 
   /* Scorecards */
-  .scorecard-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 16px; }
+  .scorecard-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 16px; align-items: start; }
   .scorecard { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); padding: 18px 20px 10px; }
   .scorecard-hd { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
   .scorecard-hd h3 { font-family: var(--ff-sans); font-size: 13px; font-weight: 600; color: var(--ink-3); margin: 0; }
@@ -1644,12 +1644,12 @@ function renderBoards() {
   const PIE_COLORS = {'Orchestra':'var(--accent)','Mezzanine':'#93c5fd'};
   const svgPie = (segs, sz=110) => {
     const total=segs.reduce((s,d)=>s+d.v,0); if(!total) return '';
-    if(segs.length===1) return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}"><circle cx="${sz/2}" cy="${sz/2}" r="${sz/2-3}" fill="${segs[0].color}"${segs[0].tip?` data-tip="${segs[0].tip}" style="cursor:pointer"`:''}/></svg>`;
+    if(segs.length===1) return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}"><circle cx="${sz/2}" cy="${sz/2}" r="${sz/2-3}" fill="${segs[0].color}"${segs[0].tip?` data-tip="${segs[0].tip}" style="cursor:default"`:''}/></svg>`;
     const cx=sz/2,cy=sz/2,r=sz/2-3; let ang=-Math.PI/2;
     return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}">${segs.map(d=>{
       const sw=(d.v/total)*2*Math.PI,x1=cx+r*Math.cos(ang),y1=cy+r*Math.sin(ang);
       ang+=sw; const x2=cx+r*Math.cos(ang),y2=cy+r*Math.sin(ang),lg=sw>Math.PI?1:0;
-      return `<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${lg},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${d.color}"${d.tip?` data-tip="${d.tip}" style="cursor:pointer"`:''}/>`;
+      return `<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${lg},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${d.color}"${d.tip?` data-tip="${d.tip}" style="cursor:default"`:''}/>`;
     }).join('')}</svg>`;
   };
   const PIE_ORDER = ['Orchestra','Mezzanine'];
@@ -1871,10 +1871,10 @@ function renderBoards() {
             const fillH = (VH * pct + 4).toFixed(1);
             const tipStr = `${s.label} • ${d.count} show${d.count===1?'':'s'} • ${Math.round(pct*100)}%`;
             const bg = s.shape==='rect'
-              ? `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" fill="#007FFF" opacity="0.15" data-tip="${tipStr}" style="cursor:pointer"/>`
-              : `<polygon points="${s.pts}" fill="#007FFF" opacity="0.15" data-tip="${tipStr}" style="cursor:pointer"/>`;
+              ? `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" fill="#007FFF" opacity="0.15" data-tip="${tipStr}" style="cursor:default"/>`
+              : `<polygon points="${s.pts}" fill="#007FFF" opacity="0.15" data-tip="${tipStr}" style="cursor:default"/>`;
             return `${bg}
-              <rect x="0" y="${fillY}" width="${VW}" height="${fillH}" fill="#007FFF" opacity="0.85" clip-path="url(#scp-${i})" data-tip="${tipStr}" style="cursor:pointer"/>`;
+              <rect x="0" y="${fillY}" width="${VW}" height="${fillH}" fill="#007FFF" opacity="0.85" clip-path="url(#scp-${i})" data-tip="${tipStr}" style="cursor:default"/>`;
           }).join('');
           const svg = `<svg viewBox="0 0 ${VW} ${VH}" width="100%" style="flex:1;display:block"><defs>${defs}</defs>${shapes}</svg>`;
           // HTML labels below SVG, proportionally aligned to sections
@@ -2359,15 +2359,15 @@ function buildScorecards() {
       return `<span class="sc-chip${v ? ' visited' : u ? ' upcoming' : ''}"${(v||u) ? ` data-sc-key="${key}"` : ''}>${esc(n)}</span>`;
     }).join('');
     return `
-      <div class="scorecard" id="${id}">
+      <div class="scorecard" id="${id}" onclick="toggleScorecard('${id}')">
         <div class="scorecard-hd">
           <h3>${esc(title)}</h3>
           <span class="scorecard-fraction"><strong>${pct}%</strong> · ${visited.length} / ${list.length}</span>
         </div>
         <div class="scorecard-bar"><div class="scorecard-bar-fill" style="width:${pct}%"></div></div>
-        <div class="scorecard-grid">${chips}</div>
+        <div class="scorecard-grid" onclick="event.stopPropagation()">${chips}</div>
         <div class="scorecard-toggle-row">
-          <button class="scorecard-toggle-btn" onclick="toggleScorecard('${id}')" aria-label="Expand"><span class="sc-chevron"></span></button>
+          <button class="scorecard-toggle-btn" aria-label="Expand"><span class="sc-chevron"></span></button>
         </div>
       </div>`;
   }
