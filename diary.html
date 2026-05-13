@@ -1497,8 +1497,8 @@ function attachListeners() {
     inp.focus();
     renderRepRows();
   });;
-  document.querySelectorAll(".sort button").forEach(b => b.addEventListener("click", () => {
-    VIEW.sort = b.dataset.sort; document.querySelectorAll(".sort button").forEach(x => x.classList.toggle("active", x === b));
+  document.querySelectorAll(".sort button[data-sort]").forEach(b => b.addEventListener("click", () => {
+    VIEW.sort = b.dataset.sort; document.querySelectorAll(".sort button[data-sort]").forEach(x => x.classList.toggle("active", x === b));
     VIEW.limit = 10; renderRepRows();
   }));
   document.getElementById("rep").addEventListener("click", e => {
