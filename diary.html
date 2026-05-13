@@ -706,6 +706,37 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     transition: color 0.1s, background 0.1s;
   }
   .map-reset-btn:hover { color: var(--ink); background: var(--panel-2); }
+
+  /* Scorecards */
+  .scorecard-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 16px; }
+  .scorecard { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); padding: 18px 20px 10px; }
+  .scorecard-hd { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+  .scorecard-hd h3 { font-family: var(--ff-sans); font-size: 13px; font-weight: 600; color: var(--ink-3); margin: 0; }
+  .scorecard-fraction { font-size: 13px; color: var(--ink-3); margin-left: auto; white-space: nowrap; }
+  .scorecard-fraction strong { color: var(--ink); }
+  .scorecard-bar { height: 3px; background: var(--rule); border-radius: 2px; }
+  .scorecard-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+  .scorecard-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 14px; max-height: 0; overflow: hidden; transition: max-height 0.4s ease, margin-top 0.4s ease; margin-top: 0; }
+  .scorecard-grid.open { max-height: 600px; margin-top: 14px; }
+  .sc-chip { font-size: 11.5px; padding: 3px 9px; border-radius: 5px; border: 1px solid var(--rule); color: var(--ink-4); background: var(--bg); white-space: nowrap; }
+  .sc-chip.visited { background: var(--accent-soft); border-color: #93c5fd; color: #1d4ed8; font-weight: 500; }
+  .sc-chip.upcoming { background: #f0f7ff; border: 1px dashed #93c5fd; color: #93c5fd; }
+  .sc-chip.visited, .sc-chip.upcoming { cursor: default; }
+  #sc-tooltip { position: fixed; z-index: 9999; background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 8px 12px; pointer-events: none; display: none; max-width: 240px; }
+  .sc-tt-row { font-size: 12px; color: var(--ink); padding: 3px 0; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--rule-2); }
+  .sc-tt-row:last-child { border-bottom: none; }
+  .sc-tt-row.upcoming { color: #93c5fd; }
+  .sc-tt-date { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+  .sc-tt-row.upcoming .sc-tt-date { color: #93c5fd; }
+  .scorecard-toggle-row { display: flex; justify-content: flex-end; margin-top: 6px; }
+  .scorecard-toggle-btn { background: none; border: none; color: var(--ink-4); cursor: pointer; padding: 4px 4px 2px; line-height: 1; transition: color 0.15s; }
+  .scorecard-toggle-btn:hover { color: var(--ink-2); }
+  .sc-chevron { display: inline-block; width: 9px; height: 9px; border-left: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform 0.2s; vertical-align: middle; position: relative; top: -3px; }
+  .scorecard-toggle-btn.expanded .sc-chevron { transform: rotate(135deg); top: 1px; }
+  @media (max-width: 700px) {
+    .scorecard-pair { grid-template-columns: 1fr; }
+  }
+
   /* Zoom controls */
   .leaflet-control-zoom {
     border: 1px solid var(--rule) !important;
@@ -865,6 +896,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
 
   <div class="sm-tooltip" id="sm-tt"></div>
   <div id="hist-tt"></div>
+  <div id="sc-tooltip"></div>
 
 <script>
 // ───────────── CSV + parse ─────────────
@@ -1419,6 +1451,32 @@ function renderTagFilters() {
 function attachListeners() {
   renderTagFilters();
   renderRepRows();
+
+  // Scorecard chip tooltips
+  const scTt = document.getElementById('sc-tooltip');
+  document.addEventListener('mouseover', e => {
+    const chip = e.target.closest('.sc-chip[data-sc-key]');
+    if (!chip) return;
+    const shows = SC_SHOW_DATA[chip.dataset.scKey];
+    if (!shows || !shows.length) return;
+    scTt.innerHTML = shows.map(s =>
+      `<div class="sc-tt-row${s.upcoming ? ' upcoming' : ''}">
+        <span>${esc(s.title)}</span>
+        ${s.date ? `<span class="sc-tt-date">${s.date}</span>` : ''}
+      </div>`
+    ).join('');
+    scTt.style.display = 'block';
+    const r = chip.getBoundingClientRect();
+    const ttW = scTt.offsetWidth, ttH = scTt.offsetHeight;
+    const top = r.top - ttH - 8 < 0 ? r.bottom + 8 : r.top - ttH - 8;
+    const left = Math.min(Math.max(r.left + r.width / 2 - ttW / 2, 8), window.innerWidth - ttW - 8);
+    scTt.style.top = top + 'px';
+    scTt.style.left = left + 'px';
+  });
+  document.addEventListener('mouseout', e => {
+    if (!e.target.closest('.sc-chip[data-sc-key]')) return;
+    scTt.style.display = 'none';
+  });
   document.getElementById("search")?.addEventListener("input", e => {
     VIEW.search = e.target.value;
     VIEW.limit = 10;
@@ -1911,6 +1969,18 @@ function renderBoards() {
 }
 
 // ───────────── Detail modal ─────────────
+function toggleScorecard(id) {
+  const isMobile = window.innerWidth <= 700;
+  const ids = isMobile ? [id] : ['sc-broadway', 'sc-west-end'];
+  const anyOpen = ids.some(i => document.getElementById(i)?.querySelector('.scorecard-grid')?.classList.contains('open'));
+  ids.forEach(i => {
+    const card = document.getElementById(i);
+    if (!card) return;
+    card.querySelector('.scorecard-grid').classList.toggle('open', !anyOpen);
+    card.querySelector('.scorecard-toggle-btn').classList.toggle('expanded', !anyOpen);
+  });
+}
+
 function openDetail(idx) {
   const e = ENTRIES[idx]; if (!e) return;
   const REVIEW_KEYS = /^(review|notes?|thoughts?|comments?|diary|description)$/i;
@@ -2200,6 +2270,114 @@ function redrawSeatMap(s) {
   }
 }
 
+const BROADWAY_THEATRES = [
+  'Al Hirschfeld Theatre','Ambassador Theatre','August Wilson Theatre','Belasco Theatre',
+  'Bernard B. Jacobs Theatre','Booth Theatre','Broadhurst Theatre','Broadway Theatre',
+  'Circle in the Square Theatre','Ethel Barrymore Theatre','Eugene O\'Neill Theatre',
+  'Gerald Schoenfeld Theatre','Gershwin Theatre','Hayes Theater','Hudson Theatre',
+  'Imperial Theatre','James Earl Jones Theatre','John Golden Theatre','Lena Horne Theatre',
+  'Longacre Theatre','Lunt-Fontanne Theatre','Lyceum Theatre','Lyric Theatre',
+  'Majestic Theatre','Marquis Theatre','Minskoff Theatre','Music Box Theatre',
+  'Nederlander Theatre','Neil Simon Theatre','New Amsterdam Theatre','Palace Theatre',
+  'Richard Rodgers Theatre','Samuel J. Friedman Theatre','Shubert Theatre',
+  'Stephen Sondheim Theatre','St. James Theatre','Studio 54','Todd Haimes Theatre',
+  'Vivian Beaumont Theater','Walter Kerr Theatre','Winter Garden Theatre',
+];
+
+const WEST_END_THEATRES = [
+  'Adelphi Theatre','Aldwych Theatre','Ambassadors Theatre','Apollo Theatre',
+  'Apollo Victoria Theatre','Arts Theatre','Cambridge Theatre','Criterion Theatre',
+  'Dominion Theatre','Duchess Theatre','Duke of York\'s Theatre','Fortune Theatre',
+  'Garrick Theatre','Gielgud Theatre','Gillian Lynne Theatre','Harold Pinter Theatre',
+  'His Majesty\'s Theatre','London Coliseum','London Palladium','Lyceum Theatre','Lyric Theatre',
+  'Noël Coward Theatre','Novello Theatre','Palace Theatre','Phoenix Theatre',
+  'Piccadilly Theatre','Playhouse Theatre','Prince Edward Theatre','Prince of Wales Theatre',
+  'Savoy Theatre','Shaftesbury Theatre','Soho Place','Sondheim Theatre',
+  'St Martin\'s Theatre','Theatre Royal Drury Lane','Theatre Royal Haymarket',
+  'Trafalgar Theatre','Vaudeville Theatre','Victoria Palace Theatre','Wyndham\'s Theatre',
+];
+
+function normalizeVenueName(s) {
+  return s.toLowerCase().replace(/\btheater\b/g, 'theatre').replace(/['']/g, "'").trim();
+}
+
+const VENUE_ALIASES = {
+  'lyric theatre': ['hilton theatre'],
+};
+
+function venueNamesForList(listName) {
+  const n = normalizeVenueName(listName);
+  return [n, ...(VENUE_ALIASES[n] || [])];
+}
+
+const SC_SHOW_DATA = {};
+
+function buildScorecards() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const past   = seenEntries();
+  const future = ENTRIES.filter(e => e.date && e.date > now);
+  const nycPast    = past.filter(e   => (e.theaterCity||'').toLowerCase().includes('new york'));
+  const lonPast    = past.filter(e   => (e.theaterCity||'').toLowerCase().includes('london'));
+  const nycFuture  = future.filter(e => (e.theaterCity||'').toLowerCase().includes('new york'));
+  const lonFuture  = future.filter(e => (e.theaterCity||'').toLowerCase().includes('london'));
+  const nycPastSet = new Set(nycPast.map(e => normalizeVenueName(e.venue||'')));
+  const lonPastSet = new Set(lonPast.map(e => normalizeVenueName(e.venue||'')));
+  const nycFutSet  = new Set(nycFuture.map(e => normalizeVenueName(e.venue||'')));
+  const lonFutSet  = new Set(lonFuture.map(e => normalizeVenueName(e.venue||'')));
+
+  function isVisited(normSet, listName) {
+    const names = venueNamesForList(listName);
+    for (const v of normSet) {
+      for (const l of names) {
+        if (v === l || v.includes(l) || l.includes(v)) return true;
+      }
+    }
+    return false;
+  }
+
+  function matchingEntries(allEntries, listName) {
+    const names = venueNamesForList(listName);
+    return allEntries.filter(e => {
+      const v = normalizeVenueName(e.venue||'');
+      return names.some(l => v === l || v.includes(l) || l.includes(v));
+    }).sort((a, b) => (a.date||0) - (b.date||0));
+  }
+
+  function buildCard(id, title, list, pastSet, futureSet, pastEntries, futEntries) {
+    const visited = list.filter(n => isVisited(pastSet, n));
+    const pct = Math.round(visited.length / list.length * 100);
+    const chips = list.map((n, i) => {
+      const v = isVisited(pastSet, n);
+      const u = !v && isVisited(futureSet, n);
+      const key = `${id}-${i}`;
+      if (v || u) {
+        SC_SHOW_DATA[key] = [
+          ...matchingEntries(pastEntries, n).map(e => ({ title: e.title||'', date: fmtDateApprox(e.date), upcoming: false })),
+          ...matchingEntries(futEntries,  n).map(e => ({ title: e.title||'', date: fmtDateApprox(e.date), upcoming: true  })),
+        ];
+      }
+      return `<span class="sc-chip${v ? ' visited' : u ? ' upcoming' : ''}"${(v||u) ? ` data-sc-key="${key}"` : ''}>${esc(n)}</span>`;
+    }).join('');
+    return `
+      <div class="scorecard" id="${id}">
+        <div class="scorecard-hd">
+          <h3>${esc(title)}</h3>
+          <span class="scorecard-fraction"><strong>${pct}%</strong> · ${visited.length} / ${list.length}</span>
+        </div>
+        <div class="scorecard-bar"><div class="scorecard-bar-fill" style="width:${pct}%"></div></div>
+        <div class="scorecard-grid">${chips}</div>
+        <div class="scorecard-toggle-row">
+          <button class="scorecard-toggle-btn" onclick="toggleScorecard('${id}')" aria-label="Expand"><span class="sc-chevron"></span></button>
+        </div>
+      </div>`;
+  }
+
+  return `<div class="scorecard-pair">
+    ${buildCard('sc-broadway', 'Broadway', BROADWAY_THEATRES, nycPastSet, nycFutSet, nycPast, nycFuture)}
+    ${buildCard('sc-west-end', 'West End', WEST_END_THEATRES, lonPastSet, lonFutSet, lonPast, lonFuture)}
+  </div>`;
+}
+
 function renderMap() {
   return `
     <div class="sec-hd"><h2>Where I&#8217;ve been</h2><div class="rule"></div></div>
@@ -2213,7 +2391,8 @@ function renderMap() {
     </div>
     <section class="map-wrap">
       <div id="venue-map"></div>
-    </section>`;
+    </section>
+    ${buildScorecards()}`;
 }
 
 // Hardcoded coordinates for all known venues — eliminates Nominatim geocoding delay on first load.
