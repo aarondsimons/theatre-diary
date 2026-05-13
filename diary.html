@@ -279,6 +279,8 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .rep-row:last-child { border-bottom: none; }
   .rep-row:hover { background: var(--panel-2); }
   .rep-row:hover .rep-title { color: var(--accent); }
+  .rep-row.upcoming { background: #f8fbff; border-bottom: 1px dashed #c7dff7; }
+  .rep-row.upcoming:hover { background: #f0f7ff; }
   .rep-thumb {
     width: 52px;
     background: var(--panel-2);
@@ -388,6 +390,8 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .rep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
   .rep-grid-card { background: var(--panel); border: 1px solid var(--rule); border-radius: 0 0 8px 8px; overflow: hidden; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
   .rep-grid-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .rep-grid-card.upcoming { background: #f8fbff; border: 1px dashed #c7dff7; }
+  .rep-grid-card.upcoming:hover { background: #f0f7ff; }
   .rep-grid-cover { background: var(--panel-2); overflow: hidden; position: relative; }
   .rep-grid-cover img { width: 100%; height: auto; display: block; }
   .rep-grid-cover.empty { aspect-ratio: 0.72; display: grid; place-items: center; color: var(--ink-4); font-size: 28px; }
@@ -1370,11 +1374,13 @@ function renderRepRows() {
   if (!rep) return;
   document.querySelector(".show-more")?.remove();
   if (!filtered.length) { rep.innerHTML = `<div class="rep-empty">No entries match that search.</div>`; return; }
+  const nowTs = Date.now();
   if (VIEW.mode === 'grid') {
     rep.className = 'rep-grid';
     rep.innerHTML = filtered.map(e => {
       const grade = e.grade;
-      return `<div class="rep-grid-card${e.isHebrew?' hebrew':''}" data-idx="${ENTRIES.indexOf(e)}">
+      const isFuture = e.date && e.date.getTime() > nowTs;
+      return `<div class="rep-grid-card${e.isHebrew?' hebrew':''}${isFuture?' upcoming':''}" data-idx="${ENTRIES.indexOf(e)}">
         <div class="rep-grid-cover${e.coverSrc?'':' empty'}">
           ${e.coverSrc ? `<img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('empty');this.remove();">` : '♪'}
         </div>
@@ -1408,8 +1414,9 @@ function renderRepRows() {
   rep.className = 'rep';
   rep.innerHTML = shown.map(e => {
     const grade = e.grade;
+    const isFuture = e.date && e.date.getTime() > nowTs;
     return `
-    <div class="rep-row${e.isHebrew ? ' hebrew' : ''}" data-idx="${ENTRIES.indexOf(e)}">
+    <div class="rep-row${e.isHebrew ? ' hebrew' : ''}${isFuture ? ' upcoming' : ''}" data-idx="${ENTRIES.indexOf(e)}">
       <div class="rep-thumb${e.coverSrc ? '' : ' empty'}">${e.coverSrc ? `<img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('empty');this.remove();">` : ""}</div>
       <div class="rep-date"><span class="date-full">${e.date ? fmtDateApprox(e.date) : "—"}</span><span class="date-mini">${e.date ? fmtDateMiniApprox(e.date) : "—"}</span></div>
       <div class="rep-title">
