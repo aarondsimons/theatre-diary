@@ -1646,9 +1646,9 @@ function renderBoards() {
 
   // ── Row 1: Venues / Shows / Rating distribution ──
   const venueCounts = {}; seen.forEach(e => { if (e.venue) venueCounts[e.venue]=(venueCounts[e.venue]||0)+1; });
-  const venues = Object.entries(venueCounts).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  const venues = Object.entries(venueCounts).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,7);
   const showCounts = {}; seen.forEach(e => { const t=(e.title||"").trim().toLowerCase(); if(t) showCounts[t]=(showCounts[t]||[]).concat(e); });
-  const shows = Object.entries(showCounts).filter(([,es])=>es.length>1).sort((a,b)=>b[1].length-a[1].length).slice(0,7).map(([,es])=>[es[0].title,es.length]);
+  const shows = Object.entries(showCounts).filter(([,es])=>es.length>1).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0])).slice(0,7).map(([,es])=>[es[0].title,es.length]);
   const buckets=[0,0,0,0,0,0,0,0,0];
   seen.forEach(e=>{ if(e.rating==null) return; const i=Math.min(8,Math.max(0,Math.round(e.rating*2)-2)); buckets[i]++; });
   const maxB=Math.max(1,...buckets);
