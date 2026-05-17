@@ -2614,8 +2614,8 @@ async function initMap() {
       opacity: 1,
       fillOpacity: 0.85
     });
-    // Build popup — every performance, sorted newest first
-    const sorted = [...v.entries].sort((a, b) => (b.date || 0) - (a.date || 0));
+    // Build popup — every performance, sorted oldest first
+    const sorted = [...v.entries].sort((a, b) => (a.date || 0) - (b.date || 0));
     const items = sorted.map(e => {
       const dateStr = e.date ? fmtDateApprox(e.date) : '';
       const isHeb = /[֐-׿]/.test(e.title || '');
