@@ -395,6 +395,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .vt-btn:not(.active):hover { color: var(--ink); background: var(--panel-2); }
   .future-toggle { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-3); margin-left: auto; cursor: pointer; user-select: none; }
   .future-toggle input { accent-color: var(--accent); cursor: pointer; width: 15px; height: 15px; }
+  .sec-hd-toggle input { accent-color: var(--accent); }
 
   /* Grid view */
   .rep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
@@ -466,7 +467,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .funnel-row { display: flex; align-items: center; gap: 6px; }
   .funnel-lbl { font-size: 11px; font-weight: 600; color: var(--ink-2); width: 16px; text-align: right; flex-shrink: 0; }
   .funnel-track { flex: 1; display: flex; justify-content: flex-start; }
-  .funnel-bar { background: var(--accent); border-radius: 3px; height: 18px; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; gap: 4px; min-width: 24px; opacity: 0.85; }
+  .funnel-bar { background: #3690FF; border-radius: 3px; height: 18px; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; gap: 4px; min-width: 24px; }
   .funnel-bar-n { font-size: 10px; color: #fff; font-weight: 600; }
   .funnel-meta { width: 80px; display: flex; justify-content: flex-start; flex-shrink: 0; align-items: center; }
 
@@ -475,7 +476,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .sec-row { display: flex; flex-direction: column; gap: 3px; }
   .sec-row-hd { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--ink-2); }
   .sec-track { background: var(--panel-2); border-radius: 3px; height: 14px; width: 100%; overflow: hidden; }
-  .sec-fill { background: var(--accent); height: 100%; border-radius: 3px; opacity: 0.85; }
+  .sec-fill { background: #3690FF; height: 100%; border-radius: 3px; }
 
   /* Pie chart */
   .pie-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
@@ -490,14 +491,14 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .vbar-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .vbar-chip { display: flex; flex-direction: column; align-items: center; }
   .vbar-stack { width: 100%; display: flex; flex-direction: column; border-radius: 3px 3px 0 0; overflow: hidden; }
-  .vbar-seg-eve { background: var(--accent); opacity: 0.9; }
+  .vbar-seg-eve { background: #3690FF; }
   .vbar-seg-mat { background: #93c5fd; }
-  .vbar-seg-plain { background: var(--accent); opacity: 0.85; border-radius: 3px 3px 0 0; width: 100%; }
+  .vbar-seg-plain { background: #3690FF; border-radius: 3px 3px 0 0; width: 100%; }
   .vbar-empty { background: var(--panel-2); border-radius: 3px 3px 0 0; width: 100%; }
   .vbar-lbl { font-size: 11px; color: var(--ink-3); line-height: 1; }
   .yr-short { display: none; }
   .vbar-baseline { border-top: 1px solid var(--rule); margin-top: 2px; }
-  .vbar-legend { display: flex; gap: 10px; margin-top: 8px; font-size: 10px; color: var(--ink-3); justify-content: center; }
+  .vbar-legend { display: flex; gap: 10px; margin-top: 8px; font-size: 10px; color: var(--ink-2); justify-content: center; }
   .vbar-legend span { display: flex; align-items: center; gap: 3px; }
   .vbar-legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
   .board {
@@ -522,9 +523,8 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .hist { display: flex; align-items: flex-end; gap: 3px; flex: 1; min-height: 100px; margin: 4px 0 10px; }
   .hist-bar {
     flex: 1; min-height: 2px;
-    background: var(--accent);
+    background: #3690FF;
     border-radius: 3px 3px 0 0;
-    opacity: 0.85;
     position: relative;
     cursor: default;
   }
@@ -827,6 +827,87 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .map-popup-item-date { color: var(--ink-3); font-size: 11px; display: block; margin-top: 1px; }
   @media (max-width: 620px) {
     #venue-map { height: 340px; }
+  }
+
+  /* ── Dark mode ── */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:          #000000;
+      --panel:       #111111;
+      --panel-2:     #1c1c1c;
+      --ink:         #efefef;
+      --ink-2:       #a8a8a8;
+      --ink-3:       #666666;
+      --ink-4:       #3a3a3a;
+      --rule:        #2a2a2a;
+      --rule-2:      #222222;
+      --accent:      #4da6ff;
+      --accent-soft: #0a2540;
+      --shadow-sm:   0 1px 2px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.4);
+      --shadow-md:   0 4px 16px rgba(0,0,0,0.5), 0 12px 32px rgba(0,0,0,0.6);
+    }
+
+    /* Upcoming entries */
+    .rep-row.upcoming              { background: #0a1a2a; border-bottom-color: #1a3a5a; }
+    .rep-row.upcoming:hover        { background: #0d1f33; }
+    .rep-grid-card.upcoming        { background: #0a1a2a; border-color: #1a3a5a; }
+    .rep-grid-card.upcoming:hover  { background: #0d1f33; }
+
+    /* Category chips */
+    .chip[data-cat="location"] { color: #c084fc; background: #1e1029; border-color: #3d1a6e; }
+    .chip[data-cat="genre"]    { color: #60a5fa; background: #0a1e36; border-color: #1a3a5a; }
+    .chip[data-cat="access"]   { color: #7db8e8; background: #0c1e30; border-color: #1a3050; }
+    .chip[data-cat="date"]     { color: #a5b4fc; background: #141429; border-color: #2a2a5a; }
+    .chip[data-cat="time"]     { color: #e879f9; background: #28082a; border-color: #5a185a; }
+    .chip-seat                 { color: #d8b4fe; background: #1e0f29; border-color: #4a1a5a; }
+
+    /* Filter button active states */
+    .tf-btn[data-cat="location"].active { background: #3d1a6e; border-color: #3d1a6e; }
+    .tf-btn[data-cat="genre"].active    { background: #1a3a5a; border-color: #1a3a5a; }
+    .tf-btn[data-cat="access"].active   { background: #1a3050; border-color: #1a3050; }
+    .tf-btn[data-cat="date"].active     { background: #2a2a5a; border-color: #2a2a5a; }
+    .tf-btn[data-cat="time"].active     { background: #5a185a; border-color: #5a185a; }
+
+    /* Scorecard chips */
+    .sc-chip.visited  { background: #0a2540; border-color: #3b82f6; color: #93c5fd; }
+    .sc-chip.upcoming { background: #0a1a2a; border-color: #3b82f6; color: #60a5fa; }
+    .sc-tt-row.upcoming, .sc-tt-row.upcoming .sc-tt-date { color: #60a5fa; }
+
+    /* Toggle active text */
+    .sort button.active, .vt-btn.active { color: #000; }
+
+    /* Chart tooltip */
+    #hist-tt { background: var(--panel); color: var(--ink); border: 1px solid var(--rule); }
+
+    /* Chart titles */
+    .board h3 { color: #888; }
+
+    /* List/grid date text */
+    .rep-date, .rep-grid-sub { color: #888; }
+
+    /* Chart & board labels */
+    .vbar-lbl { color: #888; }
+    .vbar-legend { color: var(--ink); }
+    .board-rank { color: #666; }
+    .funnel-lbl { color: #aaa; }
+
+    /* Stacked bar matinee segment */
+    .vbar-seg-mat { background: #2563eb; }
+
+    /* Scrim */
+    .scrim { background: rgba(0,0,0,0.85); }
+
+    /* Error code */
+    .errstate code { color: #f87171; }
+
+    /* Seatmap empty seats + dot borders + row labels */
+    .sm-seat-empty { fill: #2a2a2a; }
+    .sm-dot { stroke: #111; }
+    .sm-row-label { fill: #555; }
+
+    /* Map tiles — invert to dark */
+    .leaflet-tile { filter: invert(1) hue-rotate(180deg) brightness(0.9); }
+    .leaflet-container { background: #111; }
   }
 
   /* Narrow mobile: minimal rep-row (≤620px) */
@@ -1643,6 +1724,8 @@ function attachListeners() {
 
 function renderBoards() {
   const seen = seenEntries();
+  const darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const AC = '#3690FF';
 
   // ── Row 1: Venues / Shows / Rating distribution ──
   const venueCounts = {}; seen.forEach(e => { if (e.venue) venueCounts[e.venue]=(venueCounts[e.venue]||0)+1; });
@@ -1690,7 +1773,7 @@ function renderBoards() {
     levels[e.seatLocation].count++;
     if(e.rating!=null) levels[e.seatLocation].ratings.push(e.rating);
   });
-  const PIE_COLORS = {'Orchestra':'var(--accent)','Mezzanine':'#93c5fd'};
+  const PIE_COLORS = {'Orchestra':AC,'Mezzanine':darkMode?'#2563eb':'#93c5fd'};
   const svgPie = (segs, sz=110) => {
     const total=segs.reduce((s,d)=>s+d.v,0); if(!total) return '';
     if(segs.length===1) return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}"><circle cx="${sz/2}" cy="${sz/2}" r="${sz/2-3}" fill="${segs[0].color}"${segs[0].tip?` data-tip="${segs[0].tip}" style="cursor:default"`:''}/></svg>`;
@@ -1722,8 +1805,8 @@ function renderBoards() {
   const matTotal=dayData.reduce((s,d)=>s+d.mat,0);
   const eveTotal=dayData.reduce((s,d)=>s+d.eve,0);
   const timeSegs=[
-    {l:'Evening',v:eveTotal,color:'var(--accent)',ratings:eveRatings},
-    {l:'Matinee',v:matTotal,color:'#93c5fd',ratings:matRatings},
+    {l:'Evening',v:eveTotal,color:AC,ratings:eveRatings},
+    {l:'Matinee',v:matTotal,color:darkMode?'#2563eb':'#93c5fd',ratings:matRatings},
   ];
   const timeTotal=matTotal+eveTotal||1;
   timeSegs[0].tip = `Evening • ${eveTotal} show${eveTotal===1?'':'s'} • ${Math.round((eveTotal/timeTotal)*100)}%`;
@@ -1757,8 +1840,8 @@ function renderBoards() {
     else                  { musD.count++; if(e.rating!=null) musD.ratings.push(e.rating); }
   });
   const typeSegs = [];
-  if (musD.count)  typeSegs.push({l:'Musical', v:musD.count,  color:'var(--accent)', ratings:musD.ratings});
-  if (playD.count) typeSegs.push({l:'Play',    v:playD.count, color:'#93c5fd',       ratings:playD.ratings});
+  if (musD.count)  typeSegs.push({l:'Musical', v:musD.count,  color:AC,                           ratings:musD.ratings});
+  if (playD.count) typeSegs.push({l:'Play',    v:playD.count, color:darkMode?'#2563eb':'#93c5fd', ratings:playD.ratings});
   const typeTotal = typeSegs.reduce((s,d)=>s+d.v,0)||1;
   typeSegs.forEach(d => { d.tip = `${d.l} • ${d.v} show${d.v===1?'':'s'} • ${Math.round((d.v/typeTotal)*100)}%`; });
 
@@ -1777,7 +1860,9 @@ function renderBoards() {
     if (match) { match.count++; if(e.rating!=null) match.ratings.push(e.rating); }
     else       { otherVenueD.count++; if(e.rating!=null) otherVenueD.ratings.push(e.rating); }
   });
-  const LOCALE_BLUES = ['#007FFF','#3395ff','#60a5fa','#7eb8fd','#93c5fd','#bfdbfe'];
+  const LOCALE_BLUES = darkMode
+    ? ['#3690FF','#2563eb','#1d4ed8','#1e40af','#1e3a8a','#172554']
+    : ['#007FFF','#3395ff','#60a5fa','#7eb8fd','#93c5fd','#bfdbfe'];
   const venueSegs = [...venueTypeData, otherVenueD].filter(d => d.count > 0).map(d => ({...d, v:d.count})).sort((a,b) => b.v - a.v);
   venueSegs.forEach((d, i) => { d.color = LOCALE_BLUES[i] || '#dbeafe'; });
   const venuePieTotal = venueSegs.reduce((s,d)=>s+d.v,0)||1;
@@ -1791,9 +1876,9 @@ function renderBoards() {
     else                                                       { regularD.count++;  if(e.rating!=null) regularD.ratings.push(e.rating); }
   });
   const statusSegs = [];
-  if (regularD.count) statusSegs.push({l:'Regular', v:regularD.count, color:'#007FFF', ratings:regularD.ratings});
-  if (previewD.count) statusSegs.push({l:'Preview', v:previewD.count, color:'#60a5fa', ratings:previewD.ratings});
-  if (closingD.count) statusSegs.push({l:'Closing', v:closingD.count, color:'#bfdbfe', ratings:closingD.ratings});
+  if (regularD.count) statusSegs.push({l:'Regular', v:regularD.count, color:AC, ratings:regularD.ratings});
+  if (previewD.count) statusSegs.push({l:'Preview', v:previewD.count, color:darkMode?'#2563eb':'#60a5fa', ratings:previewD.ratings});
+  if (closingD.count) statusSegs.push({l:'Closing', v:closingD.count, color:darkMode?'#1e3a8a':'#bfdbfe', ratings:closingD.ratings});
   const statusTotal = statusSegs.reduce((s,d)=>s+d.v,0)||1;
   statusSegs.forEach(d => { d.tip = `${d.l} • ${d.v} show${d.v===1?'':'s'} • ${Math.round((d.v/statusTotal)*100)}%`; });
 
@@ -1920,10 +2005,10 @@ function renderBoards() {
             const fillH = (VH * pct + 4).toFixed(1);
             const tipStr = `${s.label} • ${d.count} show${d.count===1?'':'s'} • ${Math.round(pct*100)}%`;
             const bg = s.shape==='rect'
-              ? `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" fill="#007FFF" opacity="0.15" data-tip="${tipStr}" style="cursor:default"/>`
-              : `<polygon points="${s.pts}" fill="#007FFF" opacity="0.15" data-tip="${tipStr}" style="cursor:default"/>`;
+              ? `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" fill="#3690FF" opacity="0.15" data-tip="${tipStr}" style="cursor:default"/>`
+              : `<polygon points="${s.pts}" fill="#3690FF" opacity="0.15" data-tip="${tipStr}" style="cursor:default"/>`;
             return `${bg}
-              <rect x="0" y="${fillY}" width="${VW}" height="${fillH}" fill="#007FFF" opacity="0.85" clip-path="url(#scp-${i})" data-tip="${tipStr}" style="cursor:default"/>`;
+              <rect x="0" y="${fillY}" width="${VW}" height="${fillH}" fill="#3690FF" clip-path="url(#scp-${i})" data-tip="${tipStr}" style="cursor:default"/>`;
           }).join('');
           const svg = `<svg viewBox="0 0 ${VW} ${VH}" width="100%" style="flex:1;display:block"><defs>${defs}</defs>${shapes}</svg>`;
           // HTML labels below SVG, proportionally aligned to sections
@@ -2248,8 +2333,8 @@ function redrawSeatMap(s) {
     <svg class="sm-svg" viewBox="${vbX} ${vbY} ${vbW} ${vbH}">
       <rect x="${SM.CX-90}" y="${vbY+6}" width="180" height="26" rx="4" fill="#3a3a3a"/>
       <text x="${SM.CX}" y="${vbY+23}" text-anchor="middle" fill="#fff" font-size="11" font-weight="600" letter-spacing="3" font-family="var(--ff-sans)">STAGE</text>
-      ${orch.map(s => `<circle cx="${s.x}" cy="${s.y}" r="${SM.R}" fill="#e8e3d5"/>`).join("")}
-      ${mezz.map(s => `<circle cx="${s.x}" cy="${s.y}" r="${SM.R}" fill="#e8e3d5"/>`).join("")}
+      ${orch.map(s => `<circle class="sm-seat-empty" cx="${s.x}" cy="${s.y}" r="${SM.R}" fill="#e8e3d5"/>`).join("")}
+      ${mezz.map(s => `<circle class="sm-seat-empty" cx="${s.x}" cy="${s.y}" r="${SM.R}" fill="#e8e3d5"/>`).join("")}
       ${rowLabels.map(l => `<text class="sm-row-label" x="${l.x}" y="${l.y - 1}" text-anchor="middle" dominant-baseline="central">${l.letter}</text>`).join("")}
       <text class="sm-sec-label" x="${SM.CX}" y="${orchMaxY+30}" text-anchor="middle">ORCHESTRA</text>
       <text class="sm-sec-label" x="${SM.CX}" y="${mezzMinY+22}" text-anchor="middle">MEZZANINE</text>
