@@ -291,6 +291,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .rep-row:hover .rep-title { color: var(--accent); }
   .rep-row.upcoming { background: #f8fbff; border-bottom: 1px dashed #c7dff7; }
   .rep-row.upcoming:hover { background: #f0f7ff; }
+  .rep-row:has(+ .rep-row.upcoming) { border-bottom: 1px dashed #c7dff7; }
   .rep-thumb {
     width: 52px;
     background: var(--panel-2);
@@ -581,13 +582,13 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     font-family: var(--ff-serif);
     font-size: 32px; font-weight: 700; line-height: 1.1;
     letter-spacing: -0.02em;
-    margin: 0 0 6px; text-align: center;
+    margin: 0 0 10px; text-align: center;
   }
   .pb-by { font-family: var(--ff-serif); font-style: italic; color: var(--accent); text-align: center; margin: 0 0 16px; font-size: 16px; }
-  .pb-seen { text-align: center; margin: 4px 0 14px; color: var(--ink-2); font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .pb-seen { text-align: center; margin: 0 0 6px; color: var(--ink-2); font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 6px; flex-wrap: wrap; }
   .pb-seen-venue { }
   .pb-seen-sep { color: var(--ink-3); }
-  .pb-rating { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 24px; color: var(--accent); letter-spacing: 0.08em; margin: 16px 0 12px; }
+  .pb-rating { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 24px; color: var(--accent); letter-spacing: 0.08em; margin: 0 0 10px; }
   .pb-rating .grade-pill { font-size: 14px; padding: 3px 10px; }
   .pb-rating .empty { color: var(--ink-4); }
   .pb-tags { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-bottom: 20px; }
@@ -855,6 +856,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     /* Upcoming entries */
     .rep-row.upcoming              { background: #0a1a2a; border-bottom-color: #1a3a5a; }
     .rep-row.upcoming:hover        { background: #0d1f33; }
+    .rep-row:has(+ .rep-row.upcoming) { border-bottom-color: #1a3a5a; }
     .rep-grid-card.upcoming        { background: #0a1a2a; border-color: #1a3a5a; }
     .rep-grid-card.upcoming:hover  { background: #0d1f33; }
 
@@ -1654,6 +1656,9 @@ function attachListeners() {
   }
   updateSearchPlaceholder();
   window.addEventListener("resize", updateSearchPlaceholder);
+  window.addEventListener("resize", () => {
+    document.querySelectorAll('.sort, .view-toggle').forEach(s => positionSlider(s, true));
+  });
   document.getElementById("show-ratings-cb")?.addEventListener("change", e => {
     document.getElementById("boards-wrap")?.classList.toggle("hide-ratings", !e.target.checked);
   });
