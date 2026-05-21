@@ -584,6 +584,9 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     margin: 0 0 6px; text-align: center;
   }
   .pb-by { font-family: var(--ff-serif); font-style: italic; color: var(--accent); text-align: center; margin: 0 0 16px; font-size: 16px; }
+  .pb-seen { text-align: center; margin: 4px 0 14px; color: var(--ink-2); font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .pb-seen-venue { }
+  .pb-seen-sep { color: var(--ink-3); }
   .pb-rating { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 24px; color: var(--accent); letter-spacing: 0.08em; margin: 16px 0 12px; }
   .pb-rating .grade-pill { font-size: 14px; padding: 3px 10px; }
   .pb-rating .empty { color: var(--ink-4); }
@@ -827,6 +830,8 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .map-popup-item-date { color: var(--ink-3); font-size: 11px; display: block; margin-top: 1px; }
   @media (max-width: 620px) {
     #venue-map { height: 340px; }
+    .pb-seen { flex-direction: column; gap: 2px; }
+    .pb-seen-sep { display: none; }
   }
 
   /* ── Dark mode ── */
@@ -2164,8 +2169,6 @@ function openDetail(idx) {
   }
 
   const meta = [
-    e.date && [lbl('Seen'), fmtDateDetail(e.date)],
-    e.venue && [lbl('Venue'), e.venue, locationVal],
     ...creditRows,
     ...filteredExtraMeta.map(([k,v])=>[k,v]),
     e.isHebrew && e.translator && [lbl('Translated by'), e.translator],
@@ -2180,6 +2183,7 @@ function openDetail(idx) {
     ${e.coverSrc ? `<div class="pb-cover"><img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.style.display='none'"></div>` : ""}
     ${e.milestone ? `<div class="pb-milestone-wrap"><span class="pb-milestone"${/[֐-׿]/.test(e.milestone)?` style="font-family:var(--ff-heb)"`:""}>${esc(e.milestone)}</span></div>` : ""}
     <h2 class="pb-title">${esc(e.title || "(untitled)")}</h2>
+    ${(e.date || e.venue) ? `<div class="pb-seen">${e.date ? `<span class="pb-seen-date">${fmtDateDetail(e.date)}</span>` : ''}${e.date && e.venue ? `<span class="pb-seen-sep">·</span>` : ''}${e.venue ? `<span class="pb-seen-venue"${/[֐-׿]/.test(e.venue)?` style="font-family:var(--ff-heb)"`:``}>${esc(e.venue)}</span>` : ''}</div>` : ''}
 
     <div class="pb-rating">${stars(e.rating)}${e.grade ? `<span class="grade-sep">•</span><span class="grade-pill" data-grade="${e.grade}">${e.grade}</span>` : ""}</div>
     ${(() => { const c = buildChips(e); const s = e.seat?`<span class="chip chip-seat"${/[֐-׿]/.test(e.seat)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(e.seat)}</span>`:""; return (c||s)?`<div class="pb-tags">${c}${s}</div>`:""; })()}
