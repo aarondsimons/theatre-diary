@@ -2282,7 +2282,7 @@ function initSeatMap() {
     const key = section && row && e.seatNum != null ? `${section}|${row}|${e.seatNum}` : null;
     const ghost = key ? lookup[key] : null;
     return { e, key, ghost };
-  }).filter(x => x.ghost && x.e.rating != null && (x.e.tags||[]).some(t => t.cat === 'location' && t.label === 'Broadway'));
+  }).filter(x => x.ghost && x.e.rating != null && (x.e.tags||[]).some(t => t.cat === 'location' && ['Broadway', 'Off-Broadway', 'National Tour'].includes(t.label)));
 
   const cellMap = {};
   matched.forEach(m => { (cellMap[m.key] = cellMap[m.key] || []).push(m.e); });
