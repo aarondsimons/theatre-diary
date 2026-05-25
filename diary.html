@@ -1418,9 +1418,9 @@ function filterAndSort() {
     (e.title||"").toLowerCase().includes(s) || (e.venue||"").toLowerCase().includes(s) ||
     (e.playwright||"").toLowerCase().includes(s) || (e.director||"").toLowerCase().includes(s) ||
     (e.composer||"").toLowerCase().includes(s) || (e.notes||"").toLowerCase().includes(s) ||
-    (e.cast||"").toLowerCase().includes(s) || (e.milestone||"").toLowerCase().includes(s) ||
-    (e.seat||"").toLowerCase().includes(s) || (e.tags||[]).some(t => t.label.toLowerCase().includes(s)) ||
-    Object.entries(e.extra||{}).some(([k,v]) => REVIEW_RE.test(k.trim()) && String(v).toLowerCase().includes(s))
+    (e.milestone||"").toLowerCase().includes(s) ||
+    (e.seat||"").toLowerCase().includes(s) ||
+    Object.values(e.extra||{}).some(v => String(v).toLowerCase().includes(s))
   );
   // Matinee = earlier in the day (0), Evening/unknown = later (1)
   const timeOrder = e => (e.tags||[]).some(t=>t.cat==='time'&&t.label==='Matinee') ? 0 : 1;
