@@ -1063,7 +1063,7 @@ function resolveCover(b64, url) {
   }
   if (url) {
     const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`;
+    if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w1000`;
     return url;
   }
   return "";
