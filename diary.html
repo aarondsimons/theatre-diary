@@ -1770,7 +1770,8 @@ function renderBoards() {
   const secs = {'House Left':{count:0,ratings:[]},'Center':{count:0,ratings:[]},'House Right':{count:0,ratings:[]}};
   seatedSection.forEach(e => {
     if (e.seatNum==null) return;
-    const sec = e.seatNum>=101?'Center':e.seatNum%2===1?'House Left':'House Right';
+    const sec = (e.seatNum>=101&&e.seatNum<=120)?'Center':(e.seatNum%2===1&&e.seatNum<=23)?'House Left':(e.seatNum%2===0&&e.seatNum<=24)?'House Right':null;
+    if (!sec) return;
     secs[sec].count++;
     if (e.rating!=null) secs[sec].ratings.push(e.rating);
   });
