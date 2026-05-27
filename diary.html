@@ -1168,7 +1168,7 @@ function buildEntries(rows) {
     if (/^matinee$/i.test(showtimeRaw) && !seen.has('Matinee')) { seen.add('Matinee'); e.tags.push({ label: 'Matinee', cat: 'time' }); }
     else if (/^evening$/i.test(showtimeRaw) && !seen.has('Evening')) { seen.add('Evening'); e.tags.push({ label: 'Evening', cat: 'time' }); }
     e.coverSrc = resolveCover(
-      cols.playbill64 >= 0 ? (row[cols.playbill64] || "").trim() : "",
+      "",
       cols.playbill >= 0 ? (row[cols.playbill] || "").trim() : ""
     );
     if (e.title || e.dateRaw) out.push(e);
