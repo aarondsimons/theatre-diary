@@ -294,6 +294,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .rep-row:has(+ .rep-row.upcoming) { border-bottom: 1px dashed #c7dff7; }
   .rep-thumb {
     width: 52px;
+    aspect-ratio: 649/1024;
     background: var(--panel-2);
     overflow: hidden;
     position: relative;
@@ -301,7 +302,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     flex-shrink: 0;
   }
   .rep-thumb img { width: 100%; height: auto; display: block; }
-  .rep-thumb.empty { height: 78px; }
+  .rep-thumb.empty { }
   .rep-thumb.empty::after {
     content: "♪"; position: absolute; inset: 0;
     display: grid; place-items: center;
@@ -404,9 +405,9 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .rep-grid-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
   .rep-grid-card.upcoming { background: #f8fbff; border: 1px dashed #c7dff7; }
   .rep-grid-card.upcoming:hover { background: #f0f7ff; }
-  .rep-grid-cover { background: var(--panel-2); overflow: hidden; position: relative; }
+  .rep-grid-cover { background: var(--panel-2); overflow: hidden; position: relative; aspect-ratio: 649/1024; }
   .rep-grid-cover img { width: 100%; height: auto; display: block; }
-  .rep-grid-cover.empty { aspect-ratio: 0.72; display: grid; place-items: center; color: var(--ink-4); font-size: 28px; }
+  .rep-grid-cover.empty { display: grid; place-items: center; color: var(--ink-4); font-size: 28px; }
   .rep-grid-cover .grid-milestone { display: none; }
   .rep-grid-milestone-strip {
     background: linear-gradient(135deg, #fde68a, #fbbf24);
