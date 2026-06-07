@@ -439,7 +439,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .show-more:hover { border-color: var(--accent); color: var(--accent); }
 
   /* Leaderboards */
-  .boards { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: var(--gap); margin-bottom: var(--gap); }
+  .boards { display: grid; grid-template-columns: 3fr 3fr 4fr; gap: var(--gap); margin-bottom: var(--gap); }
   .boards-3 { display: grid; grid-template-columns: 0.6fr 1.0fr 1.4fr; gap: var(--gap); margin-bottom: var(--gap); }
   .boards-genre { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--gap); margin-bottom: var(--gap); }
   /* Boards collapse */
@@ -513,7 +513,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   }
   .board-item {
     display: grid; grid-template-columns: 24px 1fr auto;
-    gap: 10px; align-items: baseline;
+    gap: 10px; align-items: start;
     padding: 7px 0;
     border-bottom: 1px solid var(--rule-2);
   }
@@ -697,7 +697,8 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     :root { --pad: 20px; }
     .stats { grid-template-columns: repeat(2, 1fr); }
     .boards, .boards-seats, .boards-3, .boards-genre { grid-template-columns: 1fr; }
-    .chart-month .vbar-chip, .chart-year .vbar-chip { display: none; }
+    .chart-month .vbar-chip { transform: scale(0.75); transform-origin: bottom center; }
+    .chart-year .vbar-chip { opacity: 0; }
     .yr-full { display: none; }
     .yr-short { display: inline; }
     header.hd { flex-direction: column; align-items: flex-start; }
@@ -1710,7 +1711,12 @@ function attachListeners() {
   document.querySelectorAll("[data-tip]").forEach(el => {
     if (isTouch) {
       el.addEventListener("touchend", () => {
-        histTt.textContent = el.dataset.tip;
+        if (el.dataset.tipAvg) {
+          const grade = el.dataset.tipGrade;
+          histTt.innerHTML = `${esc(el.dataset.tip)}<div style="display:flex;align-items:center;gap:4px;justify-content:center;margin-top:4px"><span style="font-size:11px">${el.dataset.tipAvg}★</span><span class="grade-pill" data-grade="${grade}" style="font-size:10px;padding:1px 6px">${grade}</span></div>`;
+        } else {
+          histTt.textContent = el.dataset.tip;
+        }
         showTipAbove(el);
       }, { passive: true });
     } else {
@@ -1739,10 +1745,10 @@ function renderBoards() {
   const AC = '#3690FF';
 
   // ── Row 1: Venues / Shows / Rating distribution ──
-  const venueCounts = {}; seen.forEach(e => { if (e.venue) venueCounts[e.venue]=(venueCounts[e.venue]||0)+1; });
-  const venues = Object.entries(venueCounts).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,7);
+  const venueCounts = {}; seen.forEach(e => { if (e.venue) { if (!venueCounts[e.venue]) venueCounts[e.venue]={count:0,ratings:[]}; venueCounts[e.venue].count++; if (e.rating!=null) venueCounts[e.venue].ratings.push(e.rating); } });
+  const venues = Object.entries(venueCounts).sort((a,b)=>b[1].count-a[1].count||a[0].localeCompare(b[0])).slice(0,7);
   const showCounts = {}; seen.forEach(e => { const t=(e.title||"").trim().toLowerCase(); if(t) showCounts[t]=(showCounts[t]||[]).concat(e); });
-  const shows = Object.entries(showCounts).filter(([,es])=>es.length>1).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0])).slice(0,7).map(([,es])=>[es[0].title,es.length]);
+  const shows = Object.entries(showCounts).filter(([,es])=>es.length>1).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0])).slice(0,7).map(([,es])=>{ const rats=es.filter(e=>e.rating!=null); const avg=rats.length?rats.reduce((s,e)=>s+e.rating,0)/rats.length:null; return [es[0].title,es.length,avg]; });
   const buckets=[0,0,0,0,0,0,0,0,0];
   seen.forEach(e=>{ if(e.rating==null) return; const i=Math.min(8,Math.max(0,Math.round(e.rating*2)-2)); buckets[i]++; });
   const maxB=Math.max(1,...buckets);
@@ -1917,13 +1923,14 @@ function renderBoards() {
   const gradeColor = g => GRADE_COLORS[g] || '#007FFF';
 
   // vertical bar column
-  const vCol = (barH, total, {mat=0, plain=false, empty=false, label='', avg=null, tip=''}) => {
+  const vCol = (barH, total, {mat=0, plain=false, empty=false, label='', avg=null, tip='', tipAvg=null, tipGrade=null}) => {
     const g = avg!=null ? `<div class="vbar-chip">${chip(avg)}</div>` : '';
+    const tipExtra = tipAvg != null ? ` data-tip-avg="${tipAvg}" data-tip-grade="${tipGrade}"` : '';
     const barContent = empty
       ? `<div class="vbar-empty" style="height:${barH}px"></div>`
       : plain
-        ? `<div class="vbar-seg-plain" style="height:${barH}px"${tip?` data-tip="${tip}"`:``}></div>`
-        : `<div class="vbar-stack" style="height:${barH}px"${tip?` data-tip="${tip}"`:``}>
+        ? `<div class="vbar-seg-plain" style="height:${barH}px"${tip?` data-tip="${tip}"`:``}${tipExtra}></div>`
+        : `<div class="vbar-stack" style="height:${barH}px"${tip?` data-tip="${tip}"`:``}${tipExtra}>
              ${mat>0?`<div class="vbar-seg-mat" style="flex:${mat}"></div>`:''}
              ${(total-mat)>0?`<div class="vbar-seg-eve" style="flex:${total-mat}"></div>`:''}
            </div>`;
@@ -1937,8 +1944,8 @@ function renderBoards() {
     <div class="sec-hd"><h2>Favorites &amp; figures</h2><div class="rule"></div><label class="sec-hd-toggle"><input type="checkbox" id="show-ratings-cb"> show ratings</label></div>
 
     <div class="boards">
-      <div class="board"><h3>Most-visited venues</h3>${venues.length?venues.map(([v,c],i)=>`<div class="board-item"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name"${/[֐-׿]/.test(v)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}</div><div class="board-count">${c}</div></div>`).join(""):`<div style="color:var(--ink-3)">—</div>`}</div>
-      <div class="board"><h3>Most-seen shows</h3>${shows.length?shows.map(([t,c],i)=>`<div class="board-item"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name"${/[֐-׿]/.test(t)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(t)}</div><div class="board-count">${c}</div></div>`).join(""):`<div style="color:var(--ink-3)">—</div>`}</div>
+      <div class="board"><h3>Most-visited venues</h3>${venues.length?venues.map(([v,d],i)=>{ const avg=d.ratings.length?d.ratings.reduce((s,r)=>s+r,0)/d.ratings.length:null; const grade=avg!=null?avgLetterGrade(avg):null; return `<div class="board-item" data-tip="${d.count} visit${d.count===1?'':'s'}" style="cursor:default"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name"${/[֐-׿]/.test(v)?` style="font-family:var(--ff-heb)"`:``}>${esc(v)}</div><div class="chart-rating" style="display:flex;align-items:center;gap:4px">${avg!=null?`<span class="vbar-chip" style="font-size:11px">${avg.toFixed(1)}★</span><span class="grade-pill" data-grade="${grade}" style="font-size:10px;padding:1px 6px">${grade}</span>`:''}</div></div>`; }).join(""):`<div style="color:var(--ink-3)">—</div>`}</div>
+      <div class="board"><h3>Most-seen shows</h3>${shows.length?shows.map(([t,c,avg],i)=>{ const grade=avg!=null?avgLetterGrade(avg):null; return `<div class="board-item" data-tip="${c} performance${c===1?'':'s'}" style="cursor:default"><div class="board-rank">${String(i+1).padStart(2,"0")}</div><div class="board-name"${/[֐-׿]/.test(t)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(t)}</div><div class="chart-rating" style="display:flex;align-items:center;gap:4px">${avg!=null?`<span class="vbar-chip" style="font-size:11px">${avg.toFixed(1)}★</span><span class="grade-pill" data-grade="${grade}" style="font-size:10px;padding:1px 6px">${grade}</span>`:''}</div></div>`; }).join(""):`<div style="color:var(--ink-3)">—</div>`}</div>
       <div class="board"><h3>Rating distribution</h3>
         <div class="hist">${buckets.map((b,i)=>`<div class="hist-bar"${b===0?' data-empty="true"':''} style="height:${(b/maxB)*100}%"${b>0?` data-tip="${b} show${b===1?'':'s'}"`:''} ></div>`).join("")}</div>
         <div class="hist-labels">${[['1★',['F']],['1½',['D']],['2★',['D+','C-']],['2½',['C']],['3★',['C+','B-']],['3½',['B']],['4★',['B+','A-']],['4½',['A']],['5★',['A+']]].map(([lbl,grades])=>`<span>${lbl}<div class="pills">${grades.map(g=>`<span class="grade-pill" data-grade="${g}">${g}</span>`).join('')}</div></span>`).join('')}</div>
@@ -2101,8 +2108,9 @@ function renderBoards() {
           ${yrData.map(d=>{
             const barH=Math.max(2, Math.round((d.count/maxYr)*YEAR_CHART_H));
             const avg=avgOf(d.ratings);
+            const grade=avg!=null?avgLetterGrade(avg):null;
             const tip=`${d.count} show${d.count===1?'':'s'}`;
-            return vCol(barH,d.count,{plain:true,label:`<span class="yr-full">${d.full}</span><span class="yr-short">’${d.lbl}</span>`,avg,tip});
+            return vCol(barH,d.count,{plain:true,label:`<span class="yr-full">${d.full}</span><span class="yr-short">'${d.lbl}</span>`,avg,tip,tipAvg:avg!=null?avg.toFixed(1):null,tipGrade:grade});
           }).join('')}
         </div>
       </div>
