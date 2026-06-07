@@ -535,7 +535,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     position: fixed; z-index: 50; pointer-events: none; display: none;
     background: var(--ink); color: #fff; font-size: 11px; font-weight: 500;
     padding: 5px 9px; border-radius: 4px; white-space: nowrap;
-    font-family: var(--ff-sans);
+    font-family: var(--ff-sans); text-align: center;
   }
   .hist-labels { display: flex; gap: 3px; font-size: 10px; color: var(--ink-3); }
   .hist-labels span { flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 3px; }
@@ -1702,8 +1702,13 @@ function attachListeners() {
     const rect = el.getBoundingClientRect();
     let left = rect.left + rect.width / 2 - ttW / 2;
     left = Math.max(8, Math.min(left, window.innerWidth - ttW - 8));
-    let top = rect.top - ttH - 8;
-    if (top < 8) top = rect.bottom + 8;
+    let top;
+    if (el.classList.contains("board-item") || el.classList.contains("funnel-bar")) {
+      top = rect.top + rect.height / 2 - ttH / 2;
+    } else {
+      top = rect.top - ttH - 8;
+      if (top < 8) top = rect.bottom + 8;
+    }
     histTt.style.left = left + 'px';
     histTt.style.top = top + 'px';
   }
@@ -1711,9 +1716,11 @@ function attachListeners() {
   document.querySelectorAll("[data-tip]").forEach(el => {
     if (isTouch) {
       el.addEventListener("touchend", () => {
-        if (el.dataset.tipAvg) {
-          const grade = el.dataset.tipGrade;
-          histTt.innerHTML = `${esc(el.dataset.tip)}<div style="display:flex;align-items:center;gap:4px;justify-content:center;margin-top:4px"><span style="font-size:11px">${el.dataset.tipAvg}★</span><span class="grade-pill" data-grade="${grade}" style="font-size:10px;padding:1px 6px">${grade}</span></div>`;
+        const showRatings = !document.getElementById("boards-wrap")?.classList.contains("hide-ratings");
+        const yearLine = el.dataset.tipYear ? `<div style="margin-bottom:2px">${esc(el.dataset.tipYear)}</div>` : '';
+        const ratingLine = (el.dataset.tipAvg && showRatings) ? `<div style="display:flex;align-items:center;gap:4px;justify-content:center;margin-top:4px"><span style="font-size:11px">${el.dataset.tipAvg}★</span><span class="grade-pill" data-grade="${el.dataset.tipGrade}" style="font-size:10px;padding:1px 6px">${el.dataset.tipGrade}</span></div>` : '';
+        if (yearLine || ratingLine) {
+          histTt.innerHTML = `${yearLine}${esc(el.dataset.tip)}${ratingLine}`;
         } else {
           histTt.textContent = el.dataset.tip;
         }
@@ -1923,9 +1930,10 @@ function renderBoards() {
   const gradeColor = g => GRADE_COLORS[g] || '#007FFF';
 
   // vertical bar column
-  const vCol = (barH, total, {mat=0, plain=false, empty=false, label='', avg=null, tip='', tipAvg=null, tipGrade=null}) => {
+  const vCol = (barH, total, {mat=0, plain=false, empty=false, label='', avg=null, tip='', tipAvg=null, tipGrade=null, tipYear=null}) => {
     const g = avg!=null ? `<div class="vbar-chip">${chip(avg)}</div>` : '';
-    const tipExtra = tipAvg != null ? ` data-tip-avg="${tipAvg}" data-tip-grade="${tipGrade}"` : '';
+    let tipExtra = tipAvg != null ? ` data-tip-avg="${tipAvg}" data-tip-grade="${tipGrade}"` : '';
+    if (tipYear != null) tipExtra += ` data-tip-year="${tipYear}"`;
     const barContent = empty
       ? `<div class="vbar-empty" style="height:${barH}px"></div>`
       : plain
@@ -2110,7 +2118,7 @@ function renderBoards() {
             const avg=avgOf(d.ratings);
             const grade=avg!=null?avgLetterGrade(avg):null;
             const tip=`${d.count} show${d.count===1?'':'s'}`;
-            return vCol(barH,d.count,{plain:true,label:`<span class="yr-full">${d.full}</span><span class="yr-short">'${d.lbl}</span>`,avg,tip,tipAvg:avg!=null?avg.toFixed(1):null,tipGrade:grade});
+            return vCol(barH,d.count,{plain:true,label:`<span class="yr-full">${d.full}</span><span class="yr-short">'${d.lbl}</span>`,avg,tip,tipAvg:avg!=null?avg.toFixed(1):null,tipGrade:grade,tipYear:d.full});
           }).join('')}
         </div>
       </div>
