@@ -2284,7 +2284,7 @@ function initSeatMap() {
     const key = section && row && e.seatNum != null ? `${section}|${row}|${e.seatNum}` : null;
     const ghost = key ? lookup[key] : null;
     return { e, key, ghost };
-  }).filter(x => x.ghost && x.e.rating != null && (x.e.tags||[]).some(t => t.cat === 'location' && ['Broadway', 'Off-Broadway', 'National Tour'].includes(t.label)));
+  }).filter(x => x.ghost && (x.e.tags||[]).some(t => t.cat === 'location' && ['Broadway', 'Off-Broadway', 'National Tour'].includes(t.label)));
 
   const cellMap = {};
   matched.forEach(m => { (cellMap[m.key] = cellMap[m.key] || []).push(m.e); });
@@ -2332,7 +2332,7 @@ function redrawSeatMap(s) {
     const p = seats.find(x => x.row === row && x.num === rep.seatNum);
     if (!p) return '';
     const color = freqColor(n);
-    return `<circle class="sm-dot" data-key="${esc(key)}" cx="${p.x}" cy="${p.y}" r="${SM.R+1}" fill="${color}" stroke="#fff" stroke-width="1"></circle>${n>1?`<circle cx="${p.x+SM.R+1}" cy="${p.y-SM.R-1}" r="4.5" fill="#1a1a1a"/><text x="${p.x+SM.R+1}" y="${p.y-SM.R-0.8}" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="6" font-weight="700" pointer-events="none" font-family="var(--ff-sans)">${n}</text>`:''}`;
+    return `<circle class="sm-dot" data-key="${esc(key)}" cx="${p.x}" cy="${p.y}" r="${SM.R+1}" fill="${color}" stroke="#fff" stroke-width="1"></circle>`;
   }).join('');
 
 
