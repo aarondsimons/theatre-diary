@@ -491,6 +491,10 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .vbar-wrap { flex: 1; display: flex; flex-direction: column; }
   .vbar-chart { display: flex; align-items: flex-end; gap: 3px; flex: 1; }
   .vbar-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .vbar-col-tap { align-self: stretch; justify-content: flex-end; }
+  /* Year chart: contiguous full-width tap zones (no dead gaps); spacing comes from a narrower bar */
+  .chart-year .vbar-chart { gap: 0; }
+  .chart-year .vbar-seg-plain { width: calc(100% - 3px); }
   .vbar-chip { display: flex; flex-direction: column; align-items: center; }
   .vbar-stack { width: 100%; display: flex; flex-direction: column; border-radius: 3px 3px 0 0; overflow: hidden; }
   .vbar-seg-eve { background: #3690FF; }
@@ -1930,19 +1934,22 @@ function renderBoards() {
   const gradeColor = g => GRADE_COLORS[g] || '#007FFF';
 
   // vertical bar column
-  const vCol = (barH, total, {mat=0, plain=false, empty=false, label='', avg=null, tip='', tipAvg=null, tipGrade=null, tipYear=null}) => {
+  const vCol = (barH, total, {mat=0, plain=false, empty=false, label='', avg=null, tip='', tipAvg=null, tipGrade=null, tipYear=null, colTip=false}) => {
     const g = avg!=null ? `<div class="vbar-chip">${chip(avg)}</div>` : '';
-    let tipExtra = tipAvg != null ? ` data-tip-avg="${tipAvg}" data-tip-grade="${tipGrade}"` : '';
-    if (tipYear != null) tipExtra += ` data-tip-year="${tipYear}"`;
+    let tipAttrs = tip ? ` data-tip="${tip}"` : '';
+    if (tipAvg != null) tipAttrs += ` data-tip-avg="${tipAvg}" data-tip-grade="${tipGrade}"`;
+    if (tipYear != null) tipAttrs += ` data-tip-year="${tipYear}"`;
+    const barAttrs = colTip ? '' : tipAttrs;
     const barContent = empty
       ? `<div class="vbar-empty" style="height:${barH}px"></div>`
       : plain
-        ? `<div class="vbar-seg-plain" style="height:${barH}px"${tip?` data-tip="${tip}"`:``}${tipExtra}></div>`
-        : `<div class="vbar-stack" style="height:${barH}px"${tip?` data-tip="${tip}"`:``}${tipExtra}>
+        ? `<div class="vbar-seg-plain" style="height:${barH}px"${barAttrs}></div>`
+        : `<div class="vbar-stack" style="height:${barH}px"${barAttrs}>
              ${mat>0?`<div class="vbar-seg-mat" style="flex:${mat}"></div>`:''}
              ${(total-mat)>0?`<div class="vbar-seg-eve" style="flex:${total-mat}"></div>`:''}
            </div>`;
-    return `<div class="vbar-col">${g}${barContent}<div class="vbar-lbl">${label}</div></div>`;
+    const colAttrs = colTip ? ` class="vbar-col vbar-col-tap"${tipAttrs}` : ` class="vbar-col"`;
+    return `<div${colAttrs}>${g}${barContent}<div class="vbar-lbl">${label}</div></div>`;
   };
 
   const CHART_H = 110;
@@ -2118,7 +2125,7 @@ function renderBoards() {
             const avg=avgOf(d.ratings);
             const grade=avg!=null?avgLetterGrade(avg):null;
             const tip=`${d.count} show${d.count===1?'':'s'}`;
-            return vCol(barH,d.count,{plain:true,label:`<span class="yr-full">${d.full}</span><span class="yr-short">'${d.lbl}</span>`,avg,tip,tipAvg:avg!=null?avg.toFixed(1):null,tipGrade:grade,tipYear:d.full});
+            return vCol(barH,d.count,{plain:true,label:`<span class="yr-full">${d.full}</span><span class="yr-short">'${d.lbl}</span>`,avg,tip,tipAvg:avg!=null?avg.toFixed(1):null,tipGrade:grade,tipYear:d.full,colTip:true});
           }).join('')}
         </div>
       </div>
