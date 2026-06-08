@@ -1710,8 +1710,11 @@ function attachListeners() {
     if (el.classList.contains("board-item") || el.classList.contains("funnel-bar")) {
       top = rect.top + rect.height / 2 - ttH / 2;
     } else {
-      top = rect.top - ttH - 8;
-      if (top < 8) top = rect.bottom + 8;
+      // For full-height column tap targets, anchor to the bar, not the tall column
+      const bar = el.classList.contains("vbar-col-tap") ? el.querySelector(".vbar-seg-plain, .vbar-stack") : null;
+      const barRect = bar ? bar.getBoundingClientRect() : rect;
+      top = barRect.top - ttH - 8;
+      if (top < 8) top = barRect.bottom + 8;
     }
     histTt.style.left = left + 'px';
     histTt.style.top = top + 'px';
