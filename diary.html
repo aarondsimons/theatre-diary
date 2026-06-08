@@ -40,6 +40,9 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     --rule-2: #efeadb;
     --accent: #007FFF;
     --accent-soft: #e0f0ff;
+    --chart-accent: #3690FF;
+    --curtain-fold: #005FCC;
+    --curtain-swag: #004A9E;
     --shadow-sm: 0 1px 2px rgba(60,40,20,0.04), 0 2px 8px rgba(60,40,20,0.04);
     --shadow-md: 0 4px 16px rgba(60,40,20,0.06), 0 12px 32px rgba(60,40,20,0.08);
     --ff-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -469,7 +472,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .funnel-row { display: flex; align-items: center; gap: 6px; }
   .funnel-lbl { font-size: 11px; font-weight: 600; color: var(--ink-2); width: 16px; text-align: right; flex-shrink: 0; }
   .funnel-track { flex: 1; display: flex; justify-content: flex-start; }
-  .funnel-bar { background: #3690FF; border-radius: 3px; height: 18px; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; gap: 4px; min-width: 24px; }
+  .funnel-bar { background: var(--chart-accent); border-radius: 3px; height: 18px; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; gap: 4px; min-width: 24px; }
   .funnel-bar-n { font-size: 10px; color: #fff; font-weight: 600; }
   .funnel-meta { width: 80px; display: flex; justify-content: flex-start; flex-shrink: 0; align-items: center; }
 
@@ -478,7 +481,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .sec-row { display: flex; flex-direction: column; gap: 3px; }
   .sec-row-hd { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--ink-2); }
   .sec-track { background: var(--panel-2); border-radius: 3px; height: 14px; width: 100%; overflow: hidden; }
-  .sec-fill { background: #3690FF; height: 100%; border-radius: 3px; }
+  .sec-fill { background: var(--chart-accent); height: 100%; border-radius: 3px; }
 
   /* Pie chart */
   .pie-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
@@ -497,9 +500,9 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .chart-year .vbar-seg-plain { width: calc(100% - 3px); }
   .vbar-chip { display: flex; flex-direction: column; align-items: center; }
   .vbar-stack { width: 100%; display: flex; flex-direction: column; border-radius: 3px 3px 0 0; overflow: hidden; }
-  .vbar-seg-eve { background: #3690FF; }
+  .vbar-seg-eve { background: var(--chart-accent); }
   .vbar-seg-mat { background: #93c5fd; }
-  .vbar-seg-plain { background: #3690FF; border-radius: 3px 3px 0 0; width: 100%; }
+  .vbar-seg-plain { background: var(--chart-accent); border-radius: 3px 3px 0 0; width: 100%; }
   .vbar-empty { background: var(--panel-2); border-radius: 3px 3px 0 0; width: 100%; }
   .vbar-lbl { font-size: 11px; color: var(--ink-3); line-height: 1; }
   .yr-short { display: none; }
@@ -529,7 +532,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .hist { display: flex; align-items: flex-end; gap: 3px; flex: 1; min-height: 100px; margin: 4px 0 10px; }
   .hist-bar {
     flex: 1; min-height: 2px;
-    background: #3690FF;
+    background: var(--chart-accent);
     border-radius: 3px 3px 0 0;
     position: relative;
     cursor: default;
@@ -625,6 +628,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     to   { transform: translateY(-100%); }
   }
   .curtain-drop {
+    fill: var(--accent);
     transform-box: fill-box;
     transform-origin: top center;
     animation: curtain-raise 1.8s ease-in-out forwards;
@@ -632,6 +636,8 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   @media (prefers-reduced-motion: reduce) {
     .curtain-drop { animation: none; }
   }
+  .curtain-fold { fill: var(--curtain-fold); }
+  .curtain-swag { fill: var(--curtain-swag); }
   .errstate {
     background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius);
     padding: 40px; margin-top: 24px;
@@ -853,8 +859,11 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
       --ink-4:       #3a3a3a;
       --rule:        #2a2a2a;
       --rule-2:      #222222;
-      --accent:      #4da6ff;
-      --accent-soft: #0a2540;
+      --accent:       #3690FF;
+      --accent-soft:  #0a2540;
+      --chart-accent: #2563eb;
+      --curtain-fold: #1d4ed8;
+      --curtain-swag: #1e40af;
       --shadow-sm:   0 1px 2px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.4);
       --shadow-md:   0 4px 16px rgba(0,0,0,0.5), 0 12px 32px rgba(0,0,0,0.6);
     }
@@ -905,7 +914,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     .funnel-lbl { color: #aaa; }
 
     /* Stacked bar matinee segment */
-    .vbar-seg-mat { background: #2563eb; }
+    .vbar-seg-mat { background: #5ba8ff; }
 
     /* Scrim */
     .scrim { background: rgba(0,0,0,0.85); }
@@ -972,22 +981,22 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
           </defs>
           <!-- Animated drop curtain (clipped to stage opening) -->
           <g clip-path="url(#drop-clip)">
-            <rect class="curtain-drop" x="191.9" y="258.3" width="770.1" height="498.5" fill="#007FFF"/>
+            <rect class="curtain-drop" x="191.9" y="258.3" width="770.1" height="498.5" fill="#3690FF"/>
           </g>
           <!-- Right tassel -->
-          <path fill="#005FCC" d="M962.1,756.9c.8,3.5-.8,6.9-3.5,8.3-1.9,1-4-1.1-5.8,0-1.5.9-1,2.7-2.1,4.9-1.7,3.5-6.3,6-10.1,5.8-4.4-.2-5.6-3.7-9.5-3.1-1.5.2-1.8.8-5.2,3.1-5.6,3.8-8.4,5.7-11,5.8-3.7.2-7-2-9.5-3.7-3.3-2.2-3.5-3.5-5.8-4-2.6-.6-4,.7-8.6,2.1-4.3,1.4-8.3,2.6-11.7,1.5-4.5-1.5-6.7-6.8-7.7-10.1l41.4-178.5,49.2-8.5v176.2Z"/>
+          <path class="curtain-fold" fill="#1d4ed8" d="M962.1,756.9c.8,3.5-.8,6.9-3.5,8.3-1.9,1-4-1.1-5.8,0-1.5.9-1,2.7-2.1,4.9-1.7,3.5-6.3,6-10.1,5.8-4.4-.2-5.6-3.7-9.5-3.1-1.5.2-1.8.8-5.2,3.1-5.6,3.8-8.4,5.7-11,5.8-3.7.2-7-2-9.5-3.7-3.3-2.2-3.5-3.5-5.8-4-2.6-.6-4,.7-8.6,2.1-4.3,1.4-8.3,2.6-11.7,1.5-4.5-1.5-6.7-6.8-7.7-10.1l41.4-178.5,49.2-8.5v176.2Z"/>
           <!-- Right panel -->
-          <path fill="#005FCC" d="M962.1,580.7c-10.4,6.6-36.3,20.8-70.5,18.3-47.4-3.6-75.7-36.9-83.1-45.6-9.9-11.6-17.8-25.1-27.9-53.2-10.6-29.5-23.3-74.5-27.4-133.3l-5.6-108.4h214.5v322.4Z"/>
+          <path class="curtain-fold" fill="#1d4ed8" d="M962.1,580.7c-10.4,6.6-36.3,20.8-70.5,18.3-47.4-3.6-75.7-36.9-83.1-45.6-9.9-11.6-17.8-25.1-27.9-53.2-10.6-29.5-23.3-74.5-27.4-133.3l-5.6-108.4h214.5v322.4Z"/>
           <!-- Left tassel -->
-          <path fill="#005FCC" d="M191.9,756.9c-.8,3.5.8,6.9,3.5,8.3,1.9,1,4-1.1,5.8,0,1.5.9,1,2.7,2.1,4.9,1.7,3.5,6.3,6,10.1,5.8,4.4-.2,5.6-3.7,9.5-3.1,1.5.2,1.8.8,5.2,3.1,5.6,3.8,8.4,5.7,11,5.8,3.7.2,7-2,9.5-3.7,3.3-2.2,3.5-3.5,5.8-4,2.6-.6,4,.7,8.6,2.1,4.3,1.4,8.3,2.6,11.7,1.5,4.5-1.5,6.7-6.8,7.7-10.1l-41.4-178.5-49.2-8.5v176.2Z"/>
+          <path class="curtain-fold" fill="#1d4ed8" d="M191.9,756.9c-.8,3.5.8,6.9,3.5,8.3,1.9,1,4-1.1,5.8,0,1.5.9,1,2.7,2.1,4.9,1.7,3.5,6.3,6,10.1,5.8,4.4-.2,5.6-3.7,9.5-3.1,1.5.2,1.8.8,5.2,3.1,5.6,3.8,8.4,5.7,11,5.8,3.7.2,7-2,9.5-3.7,3.3-2.2,3.5-3.5,5.8-4,2.6-.6,4,.7,8.6,2.1,4.3,1.4,8.3,2.6,11.7,1.5,4.5-1.5,6.7-6.8,7.7-10.1l-41.4-178.5-49.2-8.5v176.2Z"/>
           <!-- Left panel -->
-          <path fill="#005FCC" d="M191.9,580.7c10.4,6.6,36.3,20.8,70.5,18.3,47.4-3.6,75.7-36.9,83.1-45.6,9.9-11.6,17.8-25.1,27.9-53.2,10.6-29.5,23.3-74.5,27.4-133.3l5.6-108.4h-214.5v322.4Z"/>
+          <path class="curtain-fold" fill="#1d4ed8" d="M191.9,580.7c10.4,6.6,36.3,20.8,70.5,18.3,47.4-3.6,75.7-36.9,83.1-45.6,9.9-11.6,17.8-25.1,27.9-53.2,10.6-29.5,23.3-74.5,27.4-133.3l5.6-108.4h-214.5v322.4Z"/>
           <!-- Valance swags (in original order for correct overlap) -->
-          <path fill="#004A9E" d="M328.3,258.3h231.5s-48.8,86.2-109.2,86.3c-77.8,0-122.2-86.3-122.2-86.3Z"/>
-          <path fill="#004A9E" d="M595.6,258.3h231.5s-48.8,86.2-109.2,86.3c-77.8,0-122.2-86.3-122.2-86.3Z"/>
-          <path fill="#004A9E" d="M191.9,258.3h231.5s-48.8,86.2-109.2,86.3c-77.8,0-122.2-86.3-122.2-86.3Z"/>
-          <path fill="#004A9E" d="M690.7,258.3s-47.4,86.4-106.5,86.4c-78.1,0-126.4-86.4-126.4-86.4h233Z"/>
-          <path fill="#004A9E" d="M962.2,258.3s-45.4,85.4-104.5,85.4c-78.1,0-123.4-85.4-123.4-85.4h228Z"/>
+          <path class="curtain-swag" fill="#1e40af" d="M328.3,258.3h231.5s-48.8,86.2-109.2,86.3c-77.8,0-122.2-86.3-122.2-86.3Z"/>
+          <path class="curtain-swag" fill="#1e40af" d="M595.6,258.3h231.5s-48.8,86.2-109.2,86.3c-77.8,0-122.2-86.3-122.2-86.3Z"/>
+          <path class="curtain-swag" fill="#1e40af" d="M191.9,258.3h231.5s-48.8,86.2-109.2,86.3c-77.8,0-122.2-86.3-122.2-86.3Z"/>
+          <path class="curtain-swag" fill="#1e40af" d="M690.7,258.3s-47.4,86.4-106.5,86.4c-78.1,0-126.4-86.4-126.4-86.4h233Z"/>
+          <path class="curtain-swag" fill="#1e40af" d="M962.2,258.3s-45.4,85.4-104.5,85.4c-78.1,0-123.4-85.4-123.4-85.4h228Z"/>
         </svg>
         Loading…
       </div>
@@ -1035,6 +1044,9 @@ function findCol(headers, aliases) {
   return -1;
 }
 
+const AC = getComputedStyle(document.documentElement).getPropertyValue('--chart-accent').trim() || '#3690FF';
+const CHART_BLUES_LIGHT = ['#3690FF','#5ba8ff','#7eb8fd','#93c5fd','#bfdbfe','#dbeafe'];
+const CHART_BLUES_DARK  = ['#2563eb','#1d4ed8','#1e40af','#1e3a8a','#172554','#0f1730'];
 const MONTH_MAP = { january:0,jan:0,february:1,feb:1,march:2,mar:2,april:3,apr:3,may:4,june:5,jun:5,july:6,jul:6,august:7,aug:7,september:8,sep:8,sept:8,october:9,oct:9,november:10,nov:10,december:11,dec:11 };
 function parseDate(s) {
   if (!s) return null;
@@ -1756,8 +1768,6 @@ function attachListeners() {
 function renderBoards() {
   const seen = seenEntries();
   const darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const AC = '#3690FF';
-
   // ── Row 1: Venues / Shows / Rating distribution ──
   const venueCounts = {}; seen.forEach(e => { if (e.venue) { if (!venueCounts[e.venue]) venueCounts[e.venue]={count:0,ratings:[]}; venueCounts[e.venue].count++; if (e.rating!=null) venueCounts[e.venue].ratings.push(e.rating); } });
   const venues = Object.entries(venueCounts).sort((a,b)=>b[1].count-a[1].count||a[0].localeCompare(b[0])).slice(0,7);
@@ -1805,7 +1815,8 @@ function renderBoards() {
     levels[e.seatLocation].count++;
     if(e.rating!=null) levels[e.seatLocation].ratings.push(e.rating);
   });
-  const PIE_COLORS = {'Orchestra':AC,'Mezzanine':darkMode?'#2563eb':'#93c5fd'};
+  const CB = darkMode ? CHART_BLUES_DARK : CHART_BLUES_LIGHT;
+  const PIE_COLORS = {'Orchestra':AC,'Mezzanine':CB[2]};
   const svgPie = (segs, sz=110) => {
     const total=segs.reduce((s,d)=>s+d.v,0); if(!total) return '';
     if(segs.length===1) return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}"><circle cx="${sz/2}" cy="${sz/2}" r="${sz/2-3}" fill="${segs[0].color}"${segs[0].tip?` data-tip="${segs[0].tip}" style="cursor:default"`:''}/></svg>`;
@@ -1838,7 +1849,7 @@ function renderBoards() {
   const eveTotal=dayData.reduce((s,d)=>s+d.eve,0);
   const timeSegs=[
     {l:'Evening',v:eveTotal,color:AC,ratings:eveRatings},
-    {l:'Matinee',v:matTotal,color:darkMode?'#2563eb':'#93c5fd',ratings:matRatings},
+    {l:'Matinee',v:matTotal,color:CB[2],ratings:matRatings},
   ];
   const timeTotal=matTotal+eveTotal||1;
   timeSegs[0].tip = `Evening • ${eveTotal} show${eveTotal===1?'':'s'} • ${Math.round((eveTotal/timeTotal)*100)}%`;
@@ -1873,7 +1884,7 @@ function renderBoards() {
   });
   const typeSegs = [];
   if (musD.count)  typeSegs.push({l:'Musical', v:musD.count,  color:AC,                           ratings:musD.ratings});
-  if (playD.count) typeSegs.push({l:'Play',    v:playD.count, color:darkMode?'#2563eb':'#93c5fd', ratings:playD.ratings});
+  if (playD.count) typeSegs.push({l:'Play',    v:playD.count, color:CB[2], ratings:playD.ratings});
   const typeTotal = typeSegs.reduce((s,d)=>s+d.v,0)||1;
   typeSegs.forEach(d => { d.tip = `${d.l} • ${d.v} show${d.v===1?'':'s'} • ${Math.round((d.v/typeTotal)*100)}%`; });
 
@@ -1892,9 +1903,7 @@ function renderBoards() {
     if (match) { match.count++; if(e.rating!=null) match.ratings.push(e.rating); }
     else       { otherVenueD.count++; if(e.rating!=null) otherVenueD.ratings.push(e.rating); }
   });
-  const LOCALE_BLUES = darkMode
-    ? ['#3690FF','#2563eb','#1d4ed8','#1e40af','#1e3a8a','#172554']
-    : ['#007FFF','#3395ff','#60a5fa','#7eb8fd','#93c5fd','#bfdbfe'];
+  const LOCALE_BLUES = darkMode ? CHART_BLUES_DARK : CHART_BLUES_LIGHT;
   const venueSegs = [...venueTypeData, otherVenueD].filter(d => d.count > 0).map(d => ({...d, v:d.count})).sort((a,b) => b.v - a.v);
   venueSegs.forEach((d, i) => { d.color = LOCALE_BLUES[i] || '#dbeafe'; });
   const venuePieTotal = venueSegs.reduce((s,d)=>s+d.v,0)||1;
@@ -1909,8 +1918,8 @@ function renderBoards() {
   });
   const statusSegs = [];
   if (regularD.count) statusSegs.push({l:'Regular', v:regularD.count, color:AC, ratings:regularD.ratings});
-  if (previewD.count) statusSegs.push({l:'Preview', v:previewD.count, color:darkMode?'#2563eb':'#60a5fa', ratings:previewD.ratings});
-  if (closingD.count) statusSegs.push({l:'Closing', v:closingD.count, color:darkMode?'#1e3a8a':'#bfdbfe', ratings:closingD.ratings});
+  if (previewD.count) statusSegs.push({l:'Preview', v:previewD.count, color:CB[2], ratings:previewD.ratings});
+  if (closingD.count) statusSegs.push({l:'Closing', v:closingD.count, color:CB[4], ratings:closingD.ratings});
   const statusTotal = statusSegs.reduce((s,d)=>s+d.v,0)||1;
   statusSegs.forEach(d => { d.tip = `${d.l} • ${d.v} show${d.v===1?'':'s'} • ${Math.round((d.v/statusTotal)*100)}%`; });
 
@@ -1934,7 +1943,7 @@ function renderBoards() {
     </span>`;
   };
   const GRADE_COLORS = {'A+':'#1b5e20','A':'#2e7d32','A-':'#388e3c','B+':'#558b2f','B':'#689f38','B-':'#7cb342','C+':'#f9a825','C':'#f57f17','C-':'#ef6c00','D+':'#e64a19','D':'#d84315','D-':'#bf360c','F':'#b71c1c'};
-  const gradeColor = g => GRADE_COLORS[g] || '#007FFF';
+  const gradeColor = g => GRADE_COLORS[g] || AC;
 
   // vertical bar column
   const vCol = (barH, total, {mat=0, plain=false, empty=false, label='', avg=null, tip='', tipAvg=null, tipGrade=null, tipYear=null, colTip=false}) => {
@@ -2042,10 +2051,10 @@ function renderBoards() {
             const fillH = (VH * pct + 4).toFixed(1);
             const tipStr = `${s.label} • ${d.count} show${d.count===1?'':'s'} • ${Math.round(pct*100)}%`;
             const bg = s.shape==='rect'
-              ? `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" fill="#3690FF" opacity="0.15" data-tip="${tipStr}" style="cursor:default"/>`
-              : `<polygon points="${s.pts}" fill="#3690FF" opacity="0.15" data-tip="${tipStr}" style="cursor:default"/>`;
+              ? `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" fill="${AC}" opacity="0.15" data-tip="${tipStr}" style="cursor:default"/>`
+              : `<polygon points="${s.pts}" fill="${AC}" opacity="0.15" data-tip="${tipStr}" style="cursor:default"/>`;
             return `${bg}
-              <rect x="0" y="${fillY}" width="${VW}" height="${fillH}" fill="#3690FF" clip-path="url(#scp-${i})" data-tip="${tipStr}" style="cursor:default"/>`;
+              <rect x="0" y="${fillY}" width="${VW}" height="${fillH}" fill="${AC}" clip-path="url(#scp-${i})" data-tip="${tipStr}" style="cursor:default"/>`;
           }).join('');
           const svg = `<svg viewBox="0 0 ${VW} ${VH}" width="100%" style="flex:1;display:block"><defs>${defs}</defs>${shapes}</svg>`;
           // HTML labels below SVG, proportionally aligned to sections
@@ -2102,8 +2111,8 @@ function renderBoards() {
             }).join('')}
           </div>
           <div class="vbar-legend">
-            <span><div class="vbar-legend-dot" style="background:var(--accent)"></div>Evening</span>
-            <span><div class="vbar-legend-dot" style="background:#93c5fd"></div>Matinee</span>
+            <span><div class="vbar-legend-dot vbar-seg-eve"></div>Evening</span>
+            <span><div class="vbar-legend-dot vbar-seg-mat"></div>Matinee</span>
           </div>
         </div>
       </div>
@@ -2347,7 +2356,10 @@ function redrawSeatMap(s) {
   const { orch, mezz, mezzTop, cellMap, vbX, vbY, vbW, vbH, rowLabels, orchMaxY } = s;
   const mezzMinY = Math.min(...mezz.map(m => m.y));
 
-  const freqColor = n => n >= 4 ? '#002266' : n === 3 ? '#004499' : n === 2 ? '#0060cc' : '#5ba8ff';
+  const smBlues = window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? ['#2563eb','#5ba8ff','#93c5fd','#ffffff']
+    : ['#3690FF','#0060cc','#004499','#002266'];
+  const freqColor = n => n >= 4 ? smBlues[3] : n === 3 ? smBlues[2] : n === 2 ? smBlues[1] : smBlues[0];
 
   const dots = Object.entries(cellMap).map(([key, perfs]) => {
     const n = perfs.length;
@@ -2381,7 +2393,7 @@ function redrawSeatMap(s) {
 
   // Legend
   document.getElementById('sm-legend').innerHTML = [
-    ['#5ba8ff','1 visit'],['#0060cc','2 visits'],['#004499','3 visits'],['#002266','4+ visits']
+    [smBlues[0],'1 visit'],[smBlues[1],'2 visits'],[smBlues[2],'3 visits'],[smBlues[3],'4+ visits']
   ].map(([c,l])=>`<span><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
 
   // Tooltip
@@ -2790,7 +2802,7 @@ async function initMap() {
       maxZoom: 12,
       max: 2,
       minOpacity: 0.55,
-      gradient: { 0.2: '#bfdbfe', 0.45: '#60a5fa', 0.7: '#2563eb', 1.0: '#007FFF' }
+      gradient: { 0.2: '#bfdbfe', 0.45: '#60a5fa', 0.7: '#1d4ed8', 1.0: AC }
     });
   }
 
