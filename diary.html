@@ -501,7 +501,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .vbar-chip { display: flex; flex-direction: column; align-items: center; }
   .vbar-stack { width: 100%; display: flex; flex-direction: column; border-radius: 3px 3px 0 0; overflow: hidden; }
   .vbar-seg-eve { background: var(--chart-accent); }
-  .vbar-seg-mat { background: #93c5fd; }
+  .vbar-seg-mat { background: #7eb8fd; }
   .vbar-seg-plain { background: var(--chart-accent); border-radius: 3px 3px 0 0; width: 100%; }
   .vbar-empty { background: var(--panel-2); border-radius: 3px 3px 0 0; width: 100%; }
   .vbar-lbl { font-size: 11px; color: var(--ink-3); line-height: 1; }
@@ -914,7 +914,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     .funnel-lbl { color: #aaa; }
 
     /* Stacked bar matinee segment */
-    .vbar-seg-mat { background: #5ba8ff; }
+    .vbar-seg-mat { background: #1e40af; }
 
     /* Scrim */
     .scrim { background: rgba(0,0,0,0.85); }
@@ -1046,7 +1046,7 @@ function findCol(headers, aliases) {
 
 const AC = getComputedStyle(document.documentElement).getPropertyValue('--chart-accent').trim() || '#3690FF';
 const CHART_BLUES_LIGHT = ['#3690FF','#5ba8ff','#7eb8fd','#93c5fd','#bfdbfe','#dbeafe'];
-const CHART_BLUES_DARK  = ['#2563eb','#1d4ed8','#1e40af','#1e3a8a','#172554','#0f1730'];
+const CHART_BLUES_DARK  = ['#2563eb','#1d4ed8','#1a3eb1','#182f8a','#172554','#0f1730'];
 const MONTH_MAP = { january:0,jan:0,february:1,feb:1,march:2,mar:2,april:3,apr:3,may:4,june:5,jun:5,july:6,jul:6,august:7,aug:7,september:8,sep:8,sept:8,october:9,oct:9,november:10,nov:10,december:11,dec:11 };
 function parseDate(s) {
   if (!s) return null;
@@ -2357,9 +2357,9 @@ function redrawSeatMap(s) {
   const mezzMinY = Math.min(...mezz.map(m => m.y));
 
   const smBlues = window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? ['#2563eb','#5ba8ff','#93c5fd','#ffffff']
-    : ['#3690FF','#0060cc','#004499','#002266'];
-  const freqColor = n => n >= 4 ? smBlues[3] : n === 3 ? smBlues[2] : n === 2 ? smBlues[1] : smBlues[0];
+    ? ['#2563eb','#5ba8ff','#93c5fd']
+    : ['#3690FF','#0060cc','#004499'];
+  const freqColor = n => n >= 3 ? smBlues[2] : n === 2 ? smBlues[1] : smBlues[0];
 
   const dots = Object.entries(cellMap).map(([key, perfs]) => {
     const n = perfs.length;
@@ -2393,7 +2393,7 @@ function redrawSeatMap(s) {
 
   // Legend
   document.getElementById('sm-legend').innerHTML = [
-    [smBlues[0],'1 visit'],[smBlues[1],'2 visits'],[smBlues[2],'3 visits'],[smBlues[3],'4+ visits']
+    [smBlues[0],'1 visit'],[smBlues[1],'2 visits'],[smBlues[2],'3+ visits']
   ].map(([c,l])=>`<span><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
 
   // Tooltip
