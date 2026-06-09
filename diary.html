@@ -657,11 +657,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     border-radius: var(--radius);
     padding: 20px 20px 24px;
   }
-  .sm-hd {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px; margin-bottom: 14px; flex-wrap: wrap;
-  }
-  .sm-stats { font-size: 13px; color: var(--ink-3); }
+  .sm-stats { font-size: 13px; color: var(--ink-3); margin-left: auto; }
   .sm-stats strong { color: var(--ink); font-weight: 600; }
   .sm-filter { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--ink-3); }
   .sm-filter input[type=range] { width: 140px; accent-color: var(--accent); }
@@ -956,6 +952,19 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     .search { flex: none; width: 100%; }
     .sort { width: 100%; justify-content: stretch; }
     .sort button { flex: 1; }
+
+    /* Seatmap toolbar: toggle stretches full width, stats drop below */
+    .sm-toolbar { flex-wrap: wrap; }
+    .sm-toolbar .view-toggle { width: 100%; justify-content: stretch; }
+    .sm-toolbar .view-toggle .vt-btn { flex: 1; }
+    .sm-toolbar .sm-stats { margin-left: 0; width: 100%; text-align: center; }
+
+    /* Map toolbar: toggle stretches full width, ↺ stays beside it */
+    .map-toolbar:not(.sm-toolbar) .view-toggle { flex: 1; justify-content: stretch; }
+    .map-toolbar:not(.sm-toolbar) .view-toggle .vt-btn { flex: 1; }
+
+    /* Hide seatmap subtitle on mobile */
+    .sm-sec-hd .sub { display: none; }
   }
 </style>
 </head>
@@ -2242,6 +2251,55 @@ const ORCH_ROWS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const MEZZ_ROWS = "ABCDEFGH".split("");
 const ROW_ALIASES = { "EE":"E","AX":"A","AA":"A","BB":"B","FF":"F" };
 const SM = { CX: 600, FY: -500, BR: 560, ROW_SP: 19, SEAT_SP: 14.5, AISLE: 12, R: 5 };
+let smViewMode = 'dots';
+let smDrawState = null;
+
+// Build a true density heatmap as a data-URL image, colorized through the
+// dots' blue scale. Overlapping seats accumulate into hotter (deeper) zones.
+function buildHeatImage(placed, vbX, vbY, vbW, vbH, accentHex) {
+  const scale = 2;
+  const cw = Math.round(vbW * scale), ch = Math.round(vbH * scale);
+  const cv = document.createElement('canvas');
+  cv.width = cw; cv.height = ch;
+  const ctx = cv.getContext('2d');
+  const radius = SM.SEAT_SP * 2.7 * scale;
+  const maxN = Math.max(1, ...placed.map(p => p.n));
+
+  // 1. Accumulate a grayscale density field. Additive blending so overlapping
+  //    seats build up — dense clusters get markedly hotter than lone seats.
+  ctx.globalCompositeOperation = 'lighter';
+  placed.forEach(p => {
+    const x = (p.x - vbX) * scale, y = (p.y - vbY) * scale;
+    ctx.globalAlpha = Math.min(1, 0.45 + ((p.n - 1) / maxN) * 0.55);
+    const g = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    g.addColorStop(0, 'rgba(0,0,0,1)');
+    g.addColorStop(0.35, 'rgba(0,0,0,0.85)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+
+  // 2. Tint the whole field a single colour (--chart-accent); density -> opacity.
+  const hex = accentHex.replace('#', '');
+  const cr = parseInt(hex.substr(0, 2), 16);
+  const cg = parseInt(hex.substr(2, 2), 16);
+  const cb = parseInt(hex.substr(4, 2), 16);
+  const img = ctx.getImageData(0, 0, cw, ch);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] === 0) continue;
+    d[i]     = cr;
+    d[i + 1] = cg;
+    d[i + 2] = cb;
+    // alpha already encodes density -> transparent (sparse) to opaque (dense)
+  }
+  ctx.putImageData(img, 0, 0);
+  return cv.toDataURL();
+}
 
 function buildRowSeats(ri, riOffset = 0) {
   const side = Math.min(ri + riOffset + 5, 12);
@@ -2283,11 +2341,15 @@ let SEAT_STATE = { minR: 1, maxR: 5 };
 
 function renderSeatMap() {
   return `
-    <div class="sec-hd"><h2>Where I&#8217;ve sat</h2><div class="sub">Broadway-style orchestra + mezzanine</div><div class="rule"></div></div>
-    <section class="seatmap-wrap">
-      <div class="sm-hd">
-        <div class="sm-stats" id="sm-stats">—</div>
+    <div class="sec-hd sm-sec-hd"><h2>Where I&#8217;ve sat</h2><div class="sub">Broadway-style orchestra + mezzanine</div><div class="rule"></div></div>
+    <div class="map-toolbar sm-toolbar">
+      <div class="view-toggle" id="sm-viewtoggle">
+        <button class="vt-btn active" data-mode="dots">Dots</button>
+        <button class="vt-btn" data-mode="heat">Heatmap</button>
       </div>
+      <div class="sm-stats" id="sm-stats">—</div>
+    </div>
+    <section class="seatmap-wrap">
       <div class="sm-svg-wrap"><div id="sm-svg"></div></div>
       <div class="sm-legend" id="sm-legend"></div>
     </section>`;
@@ -2349,7 +2411,20 @@ function initSeatMap() {
   });
 
   const drawState = { orch, mezz, mezzTop, cellMap, vbX, vbY, vbW, vbH, rowLabels, orchMaxY: orchMax };
+  smDrawState = drawState;
   redrawSeatMap(drawState);
+
+  const toggle = document.getElementById('sm-viewtoggle');
+  if (toggle) {
+    toggle.addEventListener('click', ev => {
+      const btn = ev.target.closest('.vt-btn');
+      if (!btn || btn.dataset.mode === smViewMode) return;
+      smViewMode = btn.dataset.mode;
+      toggle.querySelectorAll('.vt-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.mode === smViewMode));
+      redrawSeatMap(smDrawState);
+    });
+  }
 }
 
 function redrawSeatMap(s) {
@@ -2361,17 +2436,30 @@ function redrawSeatMap(s) {
     : ['#3690FF','#0060cc','#004499'];
   const freqColor = n => n >= 3 ? smBlues[2] : n === 2 ? smBlues[1] : smBlues[0];
 
-  const dots = Object.entries(cellMap).map(([key, perfs]) => {
-    const n = perfs.length;
+  // Resolve a screen position for each visited cell.
+  const placed = Object.entries(cellMap).map(([key, perfs]) => {
     const rep = perfs[0];
     const row = ROW_ALIASES[rep.seatRow] || rep.seatRow;
     let section = rep.seatLocation === 'Balcony' ? 'Mezzanine' : (rep.seatLocation || 'Orchestra');
     const seats = section === 'Mezzanine' ? mezz : orch;
     const p = seats.find(x => x.row === row && x.num === rep.seatNum);
-    if (!p) return '';
-    const color = freqColor(n);
-    return `<circle class="sm-dot" data-key="${esc(key)}" cx="${p.x}" cy="${p.y}" r="${SM.R+1}" fill="${color}" stroke="#fff" stroke-width="1"></circle>`;
-  }).join('');
+    return p ? { key, n: perfs.length, x: p.x, y: p.y } : null;
+  }).filter(Boolean);
+
+  const maxN = Math.max(1, ...placed.map(p => p.n));
+
+  // Colored visualization layer + transparent hit-targets for tooltips.
+  let vizLayer = '', hits = '';
+  if (smViewMode === 'heat') {
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--chart-accent').trim() || '#3690FF';
+    const href = buildHeatImage(placed, vbX, vbY, vbW, vbH, accent);
+    vizLayer = `<image x="${vbX}" y="${vbY}" width="${vbW}" height="${vbH}" href="${href}" preserveAspectRatio="none" pointer-events="none"/>`;
+  } else {
+    vizLayer = placed.map(p =>
+      `<circle class="sm-dot" data-key="${esc(p.key)}" cx="${p.x}" cy="${p.y}" r="${SM.R+1}" fill="${freqColor(p.n)}" stroke="#fff" stroke-width="1"></circle>`
+    ).join('');
+  }
+  const dots = vizLayer + hits;
 
 
   const totalSeated = Object.values(cellMap).reduce((n,p) => n+p.length, 0);
@@ -2380,8 +2468,10 @@ function redrawSeatMap(s) {
 
   const svg = `
     <svg class="sm-svg" viewBox="${vbX} ${vbY} ${vbW} ${vbH}">
-      <rect x="${SM.CX-90}" y="${vbY+6}" width="180" height="26" rx="4" fill="#3a3a3a"/>
-      <text x="${SM.CX}" y="${vbY+23}" text-anchor="middle" fill="#fff" font-size="11" font-weight="600" letter-spacing="3" font-family="var(--ff-sans)">STAGE</text>
+      <g transform="translate(${SM.CX - 105}, ${vbY + 4}) scale(0.387)">
+        <path d="M533.19,0H9.52C4.26,0,0,4.26,0,9.52v42.51c0,4.61,3.3,8.54,7.84,9.37,80.5,14.74,170.76,22.6,263.52,22.6s183.02-7.85,263.52-22.6c4.53-.83,7.84-4.76,7.84-9.37V9.52c0-5.26-4.26-9.52-9.52-9.52Z" fill="#3a3a3a"/>
+      </g>
+      <text x="${SM.CX}" y="${vbY + 20}" dominant-baseline="central" text-anchor="middle" fill="#fff" font-size="10" font-weight="600" letter-spacing="3" font-family="var(--ff-sans)">STAGE</text>
       ${orch.map(s => `<circle class="sm-seat-empty" cx="${s.x}" cy="${s.y}" r="${SM.R}" fill="#e8e3d5"/>`).join("")}
       ${mezz.map(s => `<circle class="sm-seat-empty" cx="${s.x}" cy="${s.y}" r="${SM.R}" fill="#e8e3d5"/>`).join("")}
       ${rowLabels.map(l => `<text class="sm-row-label" x="${l.x}" y="${l.y - 1}" text-anchor="middle" dominant-baseline="central">${l.letter}</text>`).join("")}
@@ -2565,9 +2655,9 @@ function renderMap() {
   return `
     <div class="sec-hd"><h2>Where I&#8217;ve been</h2><div class="rule"></div></div>
     <div class="map-toolbar">
-      <div class="sort">
-        <button id="map-pins-btn" class="active">Pins</button>
-        <button id="map-heat-btn">Heatmap</button>
+      <div class="view-toggle">
+        <button id="map-pins-btn" class="vt-btn active">Pins</button>
+        <button id="map-heat-btn" class="vt-btn">Heatmap</button>
       </div>
       <span class="map-status" id="map-status">Locating venues…</span>
       <button class="map-reset-btn" id="map-reset-btn" title="Reset view">↺</button>
@@ -2833,7 +2923,7 @@ async function initMap() {
   });
 
   // Init slider for map toggle
-  const mapSortEl = pinsBtn?.closest('.sort');
+  const mapSortEl = pinsBtn?.closest('.view-toggle');
   if (mapSortEl) positionSlider(mapSortEl, true);
 }
 
