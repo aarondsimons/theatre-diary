@@ -576,6 +576,19 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .pb-close:hover { background: var(--panel-2); color: var(--ink); }
   .pb-cover { text-align: center; margin: -8px 0 20px; }
   .pb-cover img { max-width: 240px; height: auto; display: block; margin: 0 auto; box-shadow: var(--shadow-md); }
+  @keyframes century-flow {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: -200% 50%; }
+  }
+  .milestone-century {
+    background-image: linear-gradient(100deg, #f6c343 0%, #f6c343 10%, #fbd968 30%, #fff7d6 50%, #fbd968 70%, #f6c343 90%, #f6c343 100%) !important;
+    background-size: 200% 100% !important;
+    background-repeat: repeat !important;
+    animation: century-flow 3.6s linear infinite;
+    border-color: #f6c343 !important;
+    color: #5a3c00 !important;
+  }
+
   .pb-milestone-wrap { text-align: center; margin-bottom: 14px; }
   .pb-milestone {
     display: inline-block;
@@ -1330,7 +1343,8 @@ function renderOnThisDay() {
   const entries = matches.map(e => {
     const years = yyyy - e.date.getFullYear();
     const idx = ENTRIES.indexOf(e);
-    const milestoneHtml = e.milestone ? `<span class="otd-milestone">${esc(e.milestone)}</span>` : '';
+    const isCentury = e.milestone && /\b100th\b/i.test(e.milestone);
+    const milestoneHtml = e.milestone ? `<span class="otd-milestone${isCentury?' milestone-century':''}">${esc(e.milestone)}</span>` : '';
     const yearsHtml = `<span class="otd-years">${e.date.getFullYear()} <span class="otd-years-ago">(${years} year${years===1?'':'s'} ago)</span></span>`;
     const isHeb = /[֐-׿]/.test(e.title||'');
     const titleStyle = isHeb ? ` style="font-family:var(--ff-heb);direction:rtl;unicode-bidi:embed"` : '';
@@ -1513,7 +1527,7 @@ function renderRepRows() {
         <div class="rep-grid-cover${e.coverSrc?'':' empty'}">
           ${e.coverSrc ? `<img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('empty');this.remove();">` : '♪'}
         </div>
-        ${e.milestone ? `<div class="rep-grid-milestone-strip"${/[֐-׿]/.test(e.milestone)?` style="font-family:var(--ff-heb)"`:``}>${esc(e.milestone)}</div>` : ''}
+        ${e.milestone ? `<div class="rep-grid-milestone-strip${/\b100th\b/i.test(e.milestone)?' milestone-century':''}"${/[֐-׿]/.test(e.milestone)?` style="font-family:var(--ff-heb)"`:``}>${esc(e.milestone)}</div>` : ''}
         <div class="rep-grid-info">
           <div class="rep-grid-title">${esc(e.title||'(untitled)')}</div>
           <div class="rep-grid-sub">${e.date ? fmtDateApprox(e.date) : '—'}</div>
@@ -1549,7 +1563,7 @@ function renderRepRows() {
       <div class="rep-thumb${e.coverSrc ? '' : ' empty'}">${e.coverSrc ? `<img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('empty');this.remove();">` : ""}</div>
       <div class="rep-date"><span class="date-full">${e.date ? fmtDateApprox(e.date) : "—"}</span><span class="date-mini">${e.date ? fmtDateMiniApprox(e.date) : "—"}</span></div>
       <div class="rep-title">
-        ${e.milestone ? `<div class="rep-milestone">${esc(e.milestone)}</div>` : ""}
+        ${e.milestone ? `<div class="rep-milestone${/\b100th\b/i.test(e.milestone)?' milestone-century':''}">${esc(e.milestone)}</div>` : ""}
         <div class="rep-title-text">${esc(e.title || "(untitled)")}</div>
       </div>
       <div class="rep-venue">${esc(e.venue || "")}</div>
@@ -2232,7 +2246,7 @@ function openDetail(idx) {
   pb.classList.toggle("hebrew", !!e.isHebrew);
   document.getElementById("pb-body").innerHTML = `
     ${e.coverSrc ? `<div class="pb-cover"><img src="${esc(e.coverSrc)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.style.display='none'"></div>` : ""}
-    ${e.milestone ? `<div class="pb-milestone-wrap"><span class="pb-milestone"${/[֐-׿]/.test(e.milestone)?` style="font-family:var(--ff-heb)"`:""}>${esc(e.milestone)}</span></div>` : ""}
+    ${e.milestone ? `<div class="pb-milestone-wrap"><span class="pb-milestone${/\b100th\b/i.test(e.milestone)?' milestone-century':''}"${/[֐-׿]/.test(e.milestone)?` style="font-family:var(--ff-heb)"`:""}>${esc(e.milestone)}</span></div>` : ""}
     <h2 class="pb-title">${esc(e.title || "(untitled)")}</h2>
     ${(e.date || e.venue) ? `<div class="pb-seen">${e.date ? `<span class="pb-seen-date">${fmtDateDetail(e.date)}</span>` : ''}${e.date && e.venue ? `<span class="pb-seen-sep">·</span>` : ''}${e.venue ? `<span class="pb-seen-venue"${/[֐-׿]/.test(e.venue)?` style="font-family:var(--ff-heb)"`:``}>${esc(e.venue)}</span>` : ''}</div>` : ''}
 
