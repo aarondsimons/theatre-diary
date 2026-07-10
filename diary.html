@@ -238,6 +238,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .tf-btn[data-cat="date"].active     { background: #4c4cae; border-color: #4c4cae; }
   .tf-btn[data-cat="time"].active     { background: #a42299; border-color: #a42299; }
   .tf-btn[data-cat="custom"].active   { background: var(--ink-2); border-color: var(--ink-2); }
+  .tf-btn[data-label="French Woods"].active { background: #8a5a2b; border-color: #8a5a2b; }
   .tf-btn.tf-milestone.active { background: linear-gradient(135deg, #fde68a, #fbbf24); border-color: #f4c64b; color: #6b4a00; }
   .tf-divider { width: 1px; background: var(--rule); align-self: stretch; margin: 0 3px; }
 
@@ -377,6 +378,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .chip[data-cat="date"]     { color: #4c4cae; background: #eaeaf6; border-color: #d7d7ea; }
   .chip[data-cat="time"]     { color: #a42299; background: #f8e4f6; border-color: #edcbea; }
   .chip[data-cat="custom"]   { color: var(--ink-2); background: var(--panel-2); border-style: dashed; }
+  .chip[data-label="French Woods"] { color: #8a5a2b; background: #f4e9dc; border-color: #e2cba9; border-style: solid; }
   .chip-seat { color: #8e4ba3; background: #f5e9f8; border-color: #e7d3ee; }
 
   .rep-milestone {
@@ -902,6 +904,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     .chip[data-cat="access"]   { color: #7db8e8; background: #0c1e30; border-color: #1a3050; }
     .chip[data-cat="date"]     { color: #a5b4fc; background: #141429; border-color: #2a2a5a; }
     .chip[data-cat="time"]     { color: #e879f9; background: #28082a; border-color: #5a185a; }
+    .chip[data-label="French Woods"] { color: #d8a878; background: #2a1c0e; border-color: #5a3a1a; border-style: solid; }
     .chip-seat                 { color: #d8b4fe; background: #1e0f29; border-color: #4a1a5a; }
 
     /* Filter button active states */
@@ -910,6 +913,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     .tf-btn[data-cat="access"].active   { background: #1a3050; border-color: #1a3050; }
     .tf-btn[data-cat="date"].active     { background: #2a2a5a; border-color: #2a2a5a; }
     .tf-btn[data-cat="time"].active     { background: #5a185a; border-color: #5a185a; }
+    .tf-btn[data-label="French Woods"].active { background: #5a3a1a; border-color: #5a3a1a; }
 
     /* Scorecard chips */
     .sc-chip.visited  { background: #0a2540; border-color: #3b82f6; color: #93c5fd; }
@@ -1514,7 +1518,7 @@ function filterAndSort() {
         return timeOrder(a) - timeOrder(b);
       }); break;
     }
-    case "title-asc": { const sk = t => (t||"").replace(/^the\s+/i,""); list.sort((a,b) => sk(a.title).localeCompare(sk(b.title))); break; }
+    case "title-asc": { const sk = t => (t||"").replace(/^(the|an?)\s+/i,""); list.sort((a,b) => sk(a.title).localeCompare(sk(b.title))); break; }
   }
   return list;
 }
@@ -1536,7 +1540,7 @@ function buildChips(e, limit) {
     return (ai<0?99:ai)-(bi<0?99:bi);
   });
   return (limit ? all.slice(0, limit) : all)
-    .map(t=>`<span class="chip" data-cat="${t.cat}">${esc(t.label)}</span>`).join('');
+    .map(t=>`<span class="chip" data-cat="${t.cat}" data-label="${esc(t.label)}">${esc(t.label)}</span>`).join('');
 }
 
 function renderRepRows() {
