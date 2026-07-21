@@ -634,6 +634,16 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   .pb-venue-sub { display: block; font-size: 11px; color: var(--ink-3); font-weight: 400; margin-top: 2px; }
   .pb-notes { font-family: var(--ff-serif); font-size: 16px; line-height: 1.6; color: var(--ink); white-space: pre-wrap; }
   .pb-review { font-family: var(--ff-serif); font-size: 15px; font-style: italic; line-height: 1.5; color: var(--ink-2); white-space: pre-wrap; }
+  /* Never let an over-long word spill outside the text column. */
+  .pb-notes, .pb-review { overflow-wrap: break-word; }
+  /* Mobile only: break such words with a hyphen rather than mid-word. Normal prose
+     stays unhyphenated, and desktop never hyphenates. */
+  @media (max-width: 620px) {
+    .pb-notes, .pb-review {
+      hyphens: auto;
+      hyphenate-limit-chars: 18 6 4;
+    }
+  }
   .grade-sep { color: var(--ink-4); font-size: 12px; margin: 0 1px; }
   .playbill.hebrew .pb-title, .playbill.hebrew .pb-by { direction: rtl; unicode-bidi: embed; font-family: var(--ff-heb-serif); font-weight: 700; }
   .playbill.hebrew .pb-title { font-weight: 800; }
