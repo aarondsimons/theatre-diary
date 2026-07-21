@@ -310,7 +310,6 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
     flex-shrink: 0;
   }
   .rep-thumb img { width: 100%; height: auto; display: block; }
-  .rep-thumb.empty { }
   .rep-thumb.empty::after {
     content: "♪"; position: absolute; inset: 0;
     display: grid; place-items: center;
@@ -625,7 +624,6 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1
   }
   .pb-by { font-family: var(--ff-serif); font-style: italic; color: var(--accent); text-align: center; margin: 0 0 16px; font-size: 16px; }
   .pb-seen { text-align: center; margin: 0 0 6px; color: var(--ink-2); font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .pb-seen-venue { }
   .pb-seen-sep { color: var(--ink-3); }
   .pb-rating { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 24px; color: var(--accent); letter-spacing: 0.08em; margin: 0 0 10px; }
   .pb-rating .grade-pill { font-size: 14px; padding: 3px 10px; }
@@ -2386,9 +2384,6 @@ function computeRow(rows, yShift, riOffset = 0, riStart = 0) {
   });
   return seats;
 }
-
-const RATING_COLORS = { 5:"#16894a", 4.5:"#52b74d", 4:"#a6d96a", 3.5:"#d4c54a", 3:"#e5a828", 2.5:"#e67c35", 2:"#d95f3d", 1.5:"#bc3a34", 1:"#8e2626" };
-function ratingColor(r) { if (r == null) return "#cfcabc"; return RATING_COLORS[Math.round(r*2)/2] || "#cfcabc"; }
 
 let SEAT_STATE = { minR: 1, maxR: 5 };
 
