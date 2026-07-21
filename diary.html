@@ -4,6 +4,18 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Aaron's Theatre Diary</title>
+<script>
+// range=A:AA stops one column short of Playbill64 (column AB), which holds base64
+// image blobs the site never uses — ~98% of the sheet's download weight. The site
+// looks columns up by header name, so their order doesn't matter, but this range
+// boundary does: add new columns BEFORE "Playbill cover", never after Playbill64.
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1FXASLMEeovADIFo8akP8G1aNCOl_r12RfCgla-jIWBRWW2Ie7rYpTBr1a2bvEd0FlQXnBj/pub?output=csv&range=A:AA";
+// Kick the diary data off first thing, before the fonts and map library below can
+// hold up the parser. load() awaits this instead of starting its own fetch, so the
+// download is already in flight by the time the page is ready to use it.
+const CSV_REQUEST = fetch(SHEET_CSV_URL);
+CSV_REQUEST.catch(() => {}); // real error handling lives in load()
+</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-C9BV3WJ45J"></script>
 <script>
@@ -18,13 +30,6 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-<script>
-// range=A:AA stops one column short of Playbill64 (column AB), which holds base64
-// image blobs the site never uses — ~98% of the sheet's download weight. The site
-// looks columns up by header name, so their order doesn't matter, but this range
-// boundary does: add new columns BEFORE "Playbill cover", never after Playbill64.
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1FXASLMEeovADIFo8akP8G1aNCOl_r12RfCgla-jIWBRWW2Ie7rYpTBr1a2bvEd0FlQXnBj/pub?output=csv&range=A:AA";
-</script>
  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="shortcut icon" href="/favicon.ico" />
@@ -1245,8 +1250,8 @@ async function load() {
   document.body.style.cursor = 'progress';
   try {
     const [res] = await Promise.all([
-      fetch(SHEET_CSV_URL),
-      new Promise(r => setTimeout(r, 800))
+      CSV_REQUEST,
+      new Promise(r => setTimeout(r, 1000))
     ]);
     if (!res.ok) throw new Error("HTTP " + res.status);
     const text = await res.text();
