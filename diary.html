@@ -808,6 +808,13 @@ CSV_REQUEST.catch(() => {}); // real error handling lives in load()
     .scorecard-pair { grid-template-columns: 1fr; }
   }
 
+  /* CARTO Positron tiles ship a warm-white landmass (#fafaf8); nudge it to pure white.
+     Scoped to light mode so it can't collide with the dark-mode invert filter — `filter`
+     is a single property, so whichever rule wins replaces the other outright. */
+  @media (prefers-color-scheme: light) {
+    .leaflet-tile { filter: brightness(1.03); }
+  }
+
   /* Zoom controls */
   .leaflet-control-zoom {
     border: 1px solid var(--rule) !important;
