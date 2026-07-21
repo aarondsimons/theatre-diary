@@ -1126,12 +1126,7 @@ function parseRating(s) {
   return null;
 }
 
-function resolveCover(b64, url) {
-  if (b64) {
-    const s = b64.trim();
-    if (s.startsWith("data:")) return s;
-    if (/^[A-Za-z0-9+/=\s]+$/.test(s) && s.length > 200) return "data:image/jpeg;base64," + s.replace(/\s+/g, "");
-  }
+function resolveCover(url) {
   if (url) {
     const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
     if (m) return `https://lh3.googleusercontent.com/d/${m[1]}=s0`;
@@ -1170,7 +1165,6 @@ function buildEntries(rows) {
     cast: findCol(headers,["cast","starring","performers"]),
     company: findCol(headers,["company","troupe","producer"]),
     playbill: findCol(headers,["playbill cover","playbill","cover","poster","image"]),
-    playbill64: findCol(headers,["playbill64","playbill base64","cover64"]),
     seat: findCol(headers,["seat"]),
     seatRow: findCol(headers,["seat row"]),
     seatNum: findCol(headers,["seat number","seat num"]),
@@ -1190,7 +1184,7 @@ function buildEntries(rows) {
     "theater+city","theatre+city","numerical grade","numeric grade","grade","letter grade",
     "seat row","seat number","seat number for grid","seat location","seat name",
     "row as number","helper column","helper",
-    "playbill cover","playbill64","tags","custom tags",
+    "playbill cover","tags","custom tags",
     ...TAG_DEFS.map(t => t[0])
   ].map(s => s.toLowerCase()));
 
@@ -1238,10 +1232,7 @@ function buildEntries(rows) {
     const showtimeRaw = ((Object.entries(e.extra).find(([k]) => /^showtime$/i.test(k.trim())) || [])[1] || '').trim();
     if (/^matinee$/i.test(showtimeRaw) && !seen.has('Matinee')) { seen.add('Matinee'); e.tags.push({ label: 'Matinee', cat: 'time' }); }
     else if (/^evening$/i.test(showtimeRaw) && !seen.has('Evening')) { seen.add('Evening'); e.tags.push({ label: 'Evening', cat: 'time' }); }
-    e.coverSrc = resolveCover(
-      "",
-      cols.playbill >= 0 ? (row[cols.playbill] || "").trim() : ""
-    );
+    e.coverSrc = resolveCover(cols.playbill >= 0 ? (row[cols.playbill] || "").trim() : "");
     if (e.title || e.dateRaw) out.push(e);
   }
   return out;
