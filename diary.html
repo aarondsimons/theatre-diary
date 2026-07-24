@@ -647,8 +647,16 @@ CSV_REQUEST.catch(() => {}); // real error handling lives in load()
      stays unhyphenated, and desktop never hyphenates. */
   @media (max-width: 620px) {
     .pb-notes, .pb-review {
+      -webkit-hyphens: auto;
       hyphens: auto;
+      /* Chromium honors this (min word length 18, 6 before / 4 after). */
       hyphenate-limit-chars: 18 6 4;
+      /* Safari ignores the above and needs these instead. It has no min-word-length
+         property, but a word is only hyphenated if a break leaves >=before and >=after
+         chars — so before+after=18 mirrors Chromium's 18-char floor, keeping normal
+         words (even "accomplishments", 15) whole. */
+      -webkit-hyphenate-limit-before: 6;
+      -webkit-hyphenate-limit-after: 12;
     }
   }
   .grade-sep { color: var(--ink-4); font-size: 12px; margin: 0 1px; }
