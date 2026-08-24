@@ -2261,9 +2261,13 @@ function openDetail(idx) {
   const e = ENTRIES[idx]; if (!e) return;
   const REVIEW_KEYS = /^(review|notes?|thoughts?|comments?|diary|description)$/i;
   const SKIP_KEYS   = /^(location|showtime|grade|seat)$/i;
+  // "Book by" becomes "Written by" when there's no songwriting credit (Music by and Lyrics by both empty)
+  const musicVal   = e.composer || '';
+  const lyricsVal  = (Object.entries(e.extra).find(([k]) => /^lyrics by$/i.test(k.trim())) || [])[1] || '';
+  const isWrittenBy = !musicVal && !lyricsVal;
   const extraReviews = Object.entries(e.extra).filter(([k]) => REVIEW_KEYS.test(k.trim()));
   const extraMeta    = Object.entries(e.extra).filter(([k]) => !REVIEW_KEYS.test(k.trim()) && !SKIP_KEYS.test(k.trim()))
-    .map(([k, v]) => [/^book by$/i.test(k.trim()) && e.isPlay ? 'Written by' : k, v]);
+    .map(([k, v]) => [/^book by$/i.test(k.trim()) && isWrittenBy ? 'Written by' : k, v]);
   const locationVal  = (Object.entries(e.extra).find(([k]) => /^location$/i.test(k.trim())) || [])[1] || '';
   const showtimeVal  = (Object.entries(e.extra).find(([k]) => /^showtime$/i.test(k.trim())) || [])[1] || '';
 
@@ -2284,9 +2288,7 @@ function openDetail(idx) {
   const lbl = s => e.isHebrew && HE_LABELS[s] ? HE_LABELS[s] : s;
 
   // Smart creator credit combining
-  const bookKey    = e.isPlay ? 'Written by' : 'Book by';
-  const musicVal   = e.composer || '';
-  const lyricsVal  = (extraMeta.find(([k]) => /^lyrics by$/i.test(k)) || [])[1] || '';
+  const bookKey    = isWrittenBy ? 'Written by' : 'Book by';
   const bookVal    = (extraMeta.find(([k]) => /^(book|written) by$/i.test(k)) || [])[1] || '';
   const CREATOR_KEYS = /^(lyrics by|book by|written by)$/i;
   const filteredExtraMeta = extraMeta.filter(([k]) => !CREATOR_KEYS.test(k));
@@ -2313,7 +2315,6 @@ function openDetail(idx) {
     e.company && ["Company", e.company],
     e.type && ["Category", e.type],
   ].filter(Boolean);
-  const bylineLabel = e.isPlay ? 'Written by' : 'Book by';
   const pb = document.getElementById("playbill");
   pb.classList.toggle("hebrew", !!e.isHebrew);
   document.getElementById("pb-body").innerHTML = `
