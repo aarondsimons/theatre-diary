@@ -1184,26 +1184,30 @@ function buildEntries(rows) {
   if (rows.length < 2) return [];
   const headers = rows[0];
   const cols = {
-    date: findCol(headers,["date","seen","performance date","when"]),
-    title: findCol(headers,["title","show","production","play","name"]),
-    venue: findCol(headers,["venue","theatre","theater","house","location"]),
-    rating: findCol(headers,["rating","stars","score"]),
-    grade: findCol(headers,["grade","letter grade"]),
-    type: findCol(headers,["type","category","kind","genre"]),
-    playwright: findCol(headers,["playwright","writer","author","by","book"]),
-    director: findCol(headers,["director","directed by"]),
+    date: findCol(headers,["date"]),
+    title: findCol(headers,["show"]),
+    venue: findCol(headers,["theater"]),
+    city: findCol(headers,["location"]),   // spreadsheet header is "location"; "city" avoids clashing with the location tag category
+    rating: findCol(headers,["rating"]),
+    grade: findCol(headers,["grade"]),
+    type: findCol(headers,["type"]),           // no matching column in current sheet
+    playwright: findCol(headers,["book by"]),
+    lyricist: findCol(headers,["lyrics by"]),
+    director: findCol(headers,["directed by"]),
     translator: findCol(headers,["translated by"]),
-    composer: findCol(headers,["composer","music"]),
-    notes: findCol(headers,["notes","review","thoughts","comment","diary","description"]),
-    cast: findCol(headers,["cast","starring","performers"]),
-    company: findCol(headers,["company","troupe","producer"]),
-    playbill: findCol(headers,["playbill cover","playbill","cover","poster","image"]),
+    composer: findCol(headers,["music by"]),
+    review: findCol(headers,["review"]),
+    notes: findCol(headers,["notes"]),
+    cast: findCol(headers,["cast"]),           // no matching column in current sheet
+    company: findCol(headers,["company"]),     // no matching column in current sheet
+    playbill: findCol(headers,["playbill cover"]),
     seat: findCol(headers,["seat"]),
     seatRow: findCol(headers,["seat row"]),
-    seatNum: findCol(headers,["seat number","seat num"]),
-    seatLocation: findCol(headers,["seat location","section"]),
+    seatNum: findCol(headers,["seat number"]),
+    seatLocation: findCol(headers,["seat location"]),
     milestone: findCol(headers,["milestone"]),
-    theaterCity: findCol(headers,["theater+city","theatre+city","venue+city"]),
+    theaterCity: findCol(headers,["theater+city"]),
+    showtime: findCol(headers,["showtime"]),
   };
   const TAG_LOOKUP = {};
   for (const [k, l, c] of TAG_DEFS) { TAG_LOOKUP[k.toLowerCase()] = { label: l, cat: c }; TAG_LOOKUP[l.toLowerCase()] = { label: l, cat: c }; }
@@ -1213,13 +1217,6 @@ function buildEntries(rows) {
   }).filter(Boolean);
   const tagsCol = headers.findIndex(h => (h||"").toLowerCase().trim() === "tags");
   const customTagsCol = headers.findIndex(h => (h||"").toLowerCase().trim() === "custom tags");
-  const HIDDEN = new Set([
-    "theater+city","theatre+city","numerical grade","numeric grade","grade","letter grade",
-    "seat row","seat number","seat number for grid","seat location","seat name",
-    "row as number","helper column","helper",
-    "playbill cover","tags","custom tags",
-    ...TAG_DEFS.map(t => t[0])
-  ].map(s => s.toLowerCase()));
 
   const out = [];
   for (let r = 1; r < rows.length; r++) {
@@ -1227,17 +1224,18 @@ function buildEntries(rows) {
     const g = (k) => cols[k] >= 0 ? (row[cols[k]] || "").trim() : "";
     const e = {
       date: parseDate(g("date")), dateRaw: g("date"),
-      title: g("title"), venue: g("venue"),
+      title: g("title"), venue: g("venue"), city: g("city"),
       rating: parseRating(g("rating")), ratingRaw: g("rating"),
       grade: g("grade"),
-      type: g("type"), playwright: g("playwright"),
+      type: g("type"), playwright: g("playwright"), lyricist: g("lyricist"),
       director: g("director"), composer: g("composer"), translator: g("translator"),
-      notes: g("notes"), cast: g("cast"), company: g("company"),
+      review: g("review"), notes: g("notes"), cast: g("cast"), company: g("company"),
       seat: g("seat"), seatRow: g("seatRow"), seatLocation: g("seatLocation"),
       seatNum: (() => { const n = parseInt(g("seatNum"), 10); return isNaN(n) ? null : n; })(),
       milestone: g("milestone"),
       theaterCity: g("theaterCity"),
-      tags: [], extra: {}
+      showtime: g("showtime"),
+      tags: []
     };
     const seen = new Set();
     for (const tc of tagCols) {
@@ -1256,13 +1254,8 @@ function buildEntries(rows) {
     }
     e.isHebrew = /[\u0590-\u05FF]/.test(e.title || "");
     e.isPlay = e.tags.some(t => /^play$/i.test(t.label.trim())) || /^play$/i.test((e.type||'').trim());
-    headers.forEach((h, i) => {
-      const used = Object.values(cols).includes(i);
-      const hLow = (h || "").toLowerCase().trim();
-      if (!used && !HIDDEN.has(hLow) && row[i] && row[i].trim()) e.extra[h] = row[i].trim();
-    });
-    // Inject Matinee/Evening from showtime extra column into tags for filtering
-    const showtimeRaw = ((Object.entries(e.extra).find(([k]) => /^showtime$/i.test(k.trim())) || [])[1] || '').trim();
+    // Inject Matinee/Evening from the showtime column into tags for filtering
+    const showtimeRaw = (e.showtime || '').trim();
     if (/^matinee$/i.test(showtimeRaw) && !seen.has('Matinee')) { seen.add('Matinee'); e.tags.push({ label: 'Matinee', cat: 'time' }); }
     else if (/^evening$/i.test(showtimeRaw) && !seen.has('Evening')) { seen.add('Evening'); e.tags.push({ label: 'Evening', cat: 'time' }); }
     e.coverSrc = resolveCover(cols.playbill >= 0 ? (row[cols.playbill] || "").trim() : "");
@@ -1526,14 +1519,14 @@ function filterAndSort() {
       });
     });
   }
-  const REVIEW_RE = /^(review|notes?|thoughts?|comments?|diary|description)$/i;
   if (s) list = list.filter(e =>
     (e.title||"").toLowerCase().includes(s) || (e.venue||"").toLowerCase().includes(s) ||
+    (e.city||"").toLowerCase().includes(s) ||
     (e.playwright||"").toLowerCase().includes(s) || (e.director||"").toLowerCase().includes(s) ||
-    (e.composer||"").toLowerCase().includes(s) || (e.notes||"").toLowerCase().includes(s) ||
+    (e.composer||"").toLowerCase().includes(s) || (e.lyricist||"").toLowerCase().includes(s) ||
+    (e.review||"").toLowerCase().includes(s) || (e.notes||"").toLowerCase().includes(s) ||
     (e.milestone||"").toLowerCase().includes(s) ||
-    (e.seat||"").toLowerCase().includes(s) ||
-    Object.values(e.extra||{}).some(v => String(v).toLowerCase().includes(s))
+    (e.seat||"").toLowerCase().includes(s) || (e.showtime||"").toLowerCase().includes(s)
   );
   // Matinee = earlier in the day (0), Evening/unknown = later (1)
   const timeOrder = e => (e.tags||[]).some(t=>t.cat==='time'&&t.label==='Matinee') ? 0 : 1;
@@ -1567,9 +1560,7 @@ const TAG_CAT_ORDER = ['location','genre','access','date','time','custom'];
 function buildChips(e, limit) {
   const isMusical = !(e.tags||[]).some(t => t.cat==='genre' && (t.label==='Play'||t.label==='Concert'));
   const timeTags = (e.tags||[]).filter(t => t.cat==='time');
-  const showtimeExtra = !timeTags.length
-    ? ((Object.entries(e.extra||{}).find(([k])=>/^showtime$/i.test(k.trim()))||[])[1]||'')
-    : '';
+  const showtimeExtra = !timeTags.length ? (e.showtime||'') : '';
   const all = [
     ...(isMusical ? [{label:'Musical',cat:'genre'}] : []),
     ...(e.tags||[]),
@@ -2259,17 +2250,11 @@ function toggleScorecard(id) {
 
 function openDetail(idx) {
   const e = ENTRIES[idx]; if (!e) return;
-  const REVIEW_KEYS = /^(review|notes?|thoughts?|comments?|diary|description)$/i;
-  const SKIP_KEYS   = /^(location|showtime|grade|seat)$/i;
   // "Book by" becomes "Written by" when there's no songwriting credit (Music by and Lyrics by both empty)
   const musicVal   = e.composer || '';
-  const lyricsVal  = (Object.entries(e.extra).find(([k]) => /^lyrics by$/i.test(k.trim())) || [])[1] || '';
+  const lyricsVal  = e.lyricist || '';
+  const bookVal    = e.playwright || '';
   const isWrittenBy = !musicVal && !lyricsVal;
-  const extraReviews = Object.entries(e.extra).filter(([k]) => REVIEW_KEYS.test(k.trim()));
-  const extraMeta    = Object.entries(e.extra).filter(([k]) => !REVIEW_KEYS.test(k.trim()) && !SKIP_KEYS.test(k.trim()))
-    .map(([k, v]) => [/^book by$/i.test(k.trim()) && isWrittenBy ? 'Written by' : k, v]);
-  const locationVal  = (Object.entries(e.extra).find(([k]) => /^location$/i.test(k.trim())) || [])[1] || '';
-  const showtimeVal  = (Object.entries(e.extra).find(([k]) => /^showtime$/i.test(k.trim())) || [])[1] || '';
 
   // Hebrew label translations
   const HE_LABELS = {
@@ -2289,9 +2274,6 @@ function openDetail(idx) {
 
   // Smart creator credit combining
   const bookKey    = isWrittenBy ? 'Written by' : 'Book by';
-  const bookVal    = (extraMeta.find(([k]) => /^(book|written) by$/i.test(k)) || [])[1] || '';
-  const CREATOR_KEYS = /^(lyrics by|book by|written by)$/i;
-  const filteredExtraMeta = extraMeta.filter(([k]) => !CREATOR_KEYS.test(k));
   const creditRows = [];
   if (musicVal && lyricsVal && bookVal && musicVal === lyricsVal && lyricsVal === bookVal) {
     creditRows.push([lbl('Book, Music, and Lyrics by'), musicVal]);
@@ -2309,7 +2291,6 @@ function openDetail(idx) {
 
   const meta = [
     ...creditRows,
-    ...filteredExtraMeta.map(([k,v])=>[k,v]),
     e.isHebrew && e.translator && [lbl('Translated by'), e.translator],
     e.director && [lbl('Director'), e.director],
     e.company && ["Company", e.company],
@@ -2327,7 +2308,7 @@ function openDetail(idx) {
     ${(() => { const c = buildChips(e); const s = e.seat?`<span class="chip chip-seat"${/[֐-׿]/.test(e.seat)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(e.seat)}</span>`:""; return (c||s)?`<div class="pb-tags">${c}${s}</div>`:""; })()}
     <div class="pb-rule"></div>
     ${meta.length ? `<dl class="pb-meta"${e.isHebrew?` style="direction:rtl"`:``}>${meta.map(([k,v,sub])=>`<div><dt${/[֐-׿]/.test(String(k))?` style="font-family:var(--ff-heb);text-align:right"`:``}>${esc(k)}</dt><dd${/[֐-׿]/.test(String(v))?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}${sub?`<span class="pb-venue-sub">${esc(sub)}</span>`:""}</dd></div>`).join("")}</dl>` : ""}
-    ${e.notes || e.cast || extraReviews.length ? `<div class="pb-rule"></div>${e.cast ? `<div class="pb-notes" style="font-size:14px;color:var(--ink-2);">${esc(e.cast)}</div>` : ""}${extraReviews.map(([,v])=>`<div class="pb-review"${/[֐-׿]/.test(String(v))?` style="font-family:var(--ff-heb-serif);direction:rtl;font-style:normal"`:``}>${esc(v)}</div>`).join("")}${extraReviews.length && e.notes ? `<div class="pb-rule"></div>` : ""}${e.notes ? `<div class="pb-notes"${/[֐-׿]/.test(String(e.notes))?` style="font-family:var(--ff-heb-serif);direction:rtl"`:``}>${esc(e.notes)}</div>` : ""}` : ""}`;
+    ${e.notes || e.cast || e.review ? `<div class="pb-rule"></div>${e.cast ? `<div class="pb-notes" style="font-size:14px;color:var(--ink-2);">${esc(e.cast)}</div>` : ""}${e.review ? `<div class="pb-review"${/[֐-׿]/.test(String(e.review))?` style="font-family:var(--ff-heb-serif);direction:rtl;font-style:normal"`:``}>${esc(e.review)}</div>` : ""}${e.review && e.notes ? `<div class="pb-rule"></div>` : ""}${e.notes ? `<div class="pb-notes"${/[֐-׿]/.test(String(e.notes))?` style="font-family:var(--ff-heb-serif);direction:rtl"`:``}>${esc(e.notes)}</div>` : ""}` : ""}`;
   document.getElementById("scrim").classList.add("open");
 }
 function closeDetail() { document.getElementById("scrim").classList.remove("open"); }
@@ -2942,9 +2923,9 @@ async function initMap() {
         </div>
       </div>`;
     }).join('');
-    // Use the most recent entry's venue name as display name (newest = canonical)
+    // Use the most recent entry's venue name and city as canonical (newest wins)
     const venueName = (sorted[sorted.length - 1].venue || v.key.split(',')[0]).trim();
-    const venueCity = v.key.includes(',') ? v.key.slice(v.key.indexOf(',') + 1).trim() : '';
+    const venueCity = (sorted[sorted.length - 1].city || '').trim();
     const venueIsHeb = /[֐-׿]/.test(venueName);
     const venueNameStyle = venueIsHeb
       ? ` style="font-family:var(--ff-heb-serif);direction:rtl;unicode-bidi:embed;text-align:right"`
