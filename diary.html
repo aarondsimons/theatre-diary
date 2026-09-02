@@ -2877,11 +2877,11 @@ async function initMap() {
   // Init Leaflet map
   const map = L.map('venue-map', { scrollWheelZoom: true, zoomControl: false });
   L.control.zoom({ position: 'bottomright' }).addTo(map);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png?key=cb1_2tbd_1_5866f529a8cb547b80dbc7ce', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd', maxZoom: 19
   }).addTo(map);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png?key=cb1_2tbd_1_5866f529a8cb547b80dbc7ce', {
     subdomains: 'abcd', maxZoom: 19, minZoom: 5, pane: 'shadowPane'
   }).addTo(map);
 
