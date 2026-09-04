@@ -2641,6 +2641,7 @@ function normalizeVenueName(s) {
 
 const VENUE_ALIASES = {
   'lyric theatre': ['hilton theatre'],
+  'lena horne theatre': ['brooks atkinson theatre'],
 };
 
 function venueNamesForList(listName) {
@@ -2750,7 +2751,7 @@ const VENUE_OVERRIDES = {
   'Eugene O\'Neill Theatre, New York City':        { lat: 40.7611047, lng: -73.9857404 },
   'Gerald Schoenfeld Theatre, New York City':      { lat: 40.7584859, lng: -73.9874377 },
   'Gershwin Theatre, New York City':               { lat: 40.7623619, lng: -73.9852044 },
-  'Hayes Theatre, New York City':                  { lat: 40.7578513, lng: -73.9878417 },
+  'Hayes Theater, New York City':                  { lat: 40.7578513, lng: -73.9878417 },
   'Hudson Theatre, New York City':                 { lat: 40.7571077, lng: -73.9844244 },
   'Imperial Theatre, New York City':               { lat: 40.7591227, lng: -73.9871216 },
   'James Earl Jones Theatre, New York City':       { lat: 40.7591035, lng: -73.9830898 },
@@ -2765,15 +2766,17 @@ const VENUE_OVERRIDES = {
   'Minskoff Theatre, New York City':               { lat: 40.7580630, lng: -73.9862053 },
   'Music Box Theatre, New York City':              { lat: 40.7588721, lng: -73.9871508 },
   'Nederlander Theatre, New York City':            { lat: 40.7554837, lng: -73.9883023 },
+  'Neil Simon Theatre, New York City':             { lat: 40.7630257, lng: -73.9845198 },
   'New Amsterdam Theatre, New York City':          { lat: 40.7560000, lng: -73.9880631 },
   'Palace Theatre, New York City':                 { lat: 40.7588322, lng: -73.9840334 },
   'Richard Rodgers Theatre, New York City':        { lat: 40.7590309, lng: -73.9867479 },
+  'Sam S. Shubert Theatre, New York City':         { lat: 40.7581448, lng: -73.9872564 },
   'Samuel J. Friedman Theatre, New York City':     { lat: 40.7603807, lng: -73.9867276 },
   'St. James Theatre, New York City':              { lat: 40.7579845, lng: -73.9881584 },
-  'Stage 42, New York City':                       { lat: 40.7586197, lng: -73.9938834 },
   'Stephen Sondheim Theatre, New York City':       { lat: 40.7558962, lng: -73.9849328 },
   'Studio 54, New York City':                      { lat: 40.7643461, lng: -73.9837786 },
   'Todd Haimes Theatre, New York City':            { lat: 40.7568301, lng: -73.9882002 },
+  'Vivian Beaumont Theater, New York City':        { lat: 40.7736770, lng: -73.9848015 },
   'Walter Kerr Theatre, New York City':            { lat: 40.7606810, lng: -73.9855847 },
   'Winter Garden Theatre, New York City':          { lat: 40.7616856, lng: -73.9835045 },
   // ── New York City: Off-Broadway / Other ────────────────────────────
@@ -2787,11 +2790,10 @@ const VENUE_OVERRIDES = {
   'New York City Center, New York City':            { lat: 40.7638339, lng: -73.9794433 },
   'Orpheum Theatre, New York City':                { lat: 40.7282653, lng: -73.9877177 },
   'Richard Rodgers Amphitheater, New York City':   { lat: 40.8048862, lng: -73.9446160 },
-  'Sam S. Shubert Theatre, New York City':         { lat: 40.7581448, lng: -73.9872564 },
+  'Stage 42, New York City':                       { lat: 40.7586197, lng: -73.9938834 },
   'The Shed - Kenneth C. Griffin Theater, New York City': { lat: 40.7532813, lng: -74.0026711 },
   'The Theater Center - Jerry Orbach Theater, New York City': { lat: 40.7614441, lng: -73.9845102 },
   'Theater 555, New York City':                    { lat: 40.7607396, lng: -73.9975088 },
-  'Vivian Beaumont Theater, New York City':        { lat: 40.7736770, lng: -73.9848015 },
   'Westside Theatre - Upstairs, New York City':    { lat: 40.7594480, lng: -73.9926202 },
   // ── Other US ────────────────────────────────────────────────────────
   'Adrienne Arsht Center, Miami, FL':              { lat: 25.7876609, lng: -80.1900087 },
