@@ -456,8 +456,14 @@ CSV_REQUEST.catch(() => {}); // real error handling lives in load()
   .rep-row.hebrew .rep-venue { direction: rtl; unicode-bidi: embed; font-family: var(--ff-heb); }
 
   .rep-empty { padding: 60px 20px; text-align: center; color: var(--ink-3); }
+  .show-more-wrap {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
   .show-more {
-    margin: 20px auto 0;
     display: block;
     background: var(--panel); border: 1px solid var(--rule);
     color: var(--ink-2); font: inherit; font-size: 13px; font-weight: 500;
@@ -465,6 +471,7 @@ CSV_REQUEST.catch(() => {}); // real error handling lives in load()
     cursor: pointer;
   }
   .show-more:hover { border-color: var(--accent); color: var(--accent); }
+  .show-more-count { font-size: 11px; color: var(--ink-3); }
 
   /* Leaderboards */
   .boards { display: grid; grid-template-columns: 3fr 3fr 4fr; gap: var(--gap); margin-bottom: var(--gap); }
@@ -1578,7 +1585,7 @@ function renderRepRows() {
   const shown = filtered.slice(0, VIEW.limit);
   const rep = document.getElementById("rep");
   if (!rep) return;
-  document.querySelector(".show-more")?.remove();
+  document.querySelector(".show-more-wrap")?.remove();
   if (!filtered.length) { rep.innerHTML = `<div class="rep-empty">No entries match that search.</div>`; return; }
   const nowTs = Date.now();
   if (VIEW.mode === 'grid') {
@@ -1605,12 +1612,14 @@ function renderRepRows() {
       const cols = cards.filter(c => c.offsetTop === firstTop).length || 1;
       let visible = Math.min(cols * 2, cards.length);
       const updateGrid = () => {
-        document.querySelector('.show-more')?.remove();
+        document.querySelector('.show-more-wrap')?.remove();
         cards.forEach((c, i) => { c.style.display = i < visible ? '' : 'none'; });
         if (visible < cards.length) {
           const next = Math.min(cols, cards.length - visible);
-          rep.insertAdjacentHTML('afterend', `<button class="show-more">Show ${next} more — of ${filtered.length}</button>`);
+          rep.insertAdjacentHTML('afterend', `<div class="show-more-wrap"><button class="show-more">Show ${next} more</button><div class="show-more-count">${visible} of ${filtered.length}</div></div>`);
           document.querySelector('.show-more').addEventListener('click', () => { visible += cols; updateGrid(); });
+        } else {
+          rep.insertAdjacentHTML('afterend', `<div class="show-more-wrap"><div class="show-more-count">${filtered.length} total</div></div>`);
         }
       };
       updateGrid();
@@ -1636,8 +1645,10 @@ function renderRepRows() {
     </div>`;
   }).join("");
   if (filtered.length > VIEW.limit) {
-    rep.insertAdjacentHTML("afterend", `<button class="show-more">Show ${Math.min(10, filtered.length - VIEW.limit)} more — of ${filtered.length}</button>`);
+    rep.insertAdjacentHTML("afterend", `<div class="show-more-wrap"><button class="show-more">Show ${Math.min(10, filtered.length - VIEW.limit)} more</button><div class="show-more-count">${Math.min(VIEW.limit, filtered.length)} of ${filtered.length}</div></div>`);
     document.querySelector(".show-more").addEventListener("click", () => { VIEW.limit += 10; renderRepRows(); });
+  } else {
+    rep.insertAdjacentHTML("afterend", `<div class="show-more-wrap"><div class="show-more-count">${filtered.length} total</div></div>`);
   }
 }
 
