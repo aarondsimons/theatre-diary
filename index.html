@@ -777,6 +777,7 @@ CSV_REQUEST.catch(() => {}); // real error handling lives in load()
   @media (max-width: 900px) {
     :root { --pad: 20px; }
     .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat-year { display: none; }
     .boards, .boards-seats, .boards-3, .boards-genre { grid-template-columns: 1fr; }
     .chart-month .vbar-chip { transform: scale(0.75); transform-origin: bottom center; }
     .chart-year .vbar-chip { opacity: 0; }
@@ -1446,7 +1447,7 @@ function renderStats() {
     <section class="stats">
       <div class="stat"><div class="stat-label">Total</div><div class="stat-v">${total}</div><div class="stat-sub">performances</div></div>
       <div class="stat"><div class="stat-label">Average rating</div><div class="stat-v">${avg != null ? avg.toFixed(2) : "—"}<span class="u">/5</span></div><div class="stat-sub">${avg != null ? `<span class="grade-pill" data-grade="${avgLetterGrade(avg)}" style="font-size:14px;padding:2px 8px">${avgLetterGrade(avg)}</span>` : ""}</div></div>
-      <div class="stat"><div class="stat-label">This year (${thisYear})</div><div class="stat-v">${tyCount}</div><div class="stat-sub">so far</div></div>
+      <div class="stat stat-year"><div class="stat-label">This year (${thisYear})</div><div class="stat-v">${tyCount}</div><div class="stat-sub">so far</div></div>
       <div class="stat"><div class="stat-label">Theaters visited</div><div class="stat-v">${venueCount}</div><div class="stat-sub">venues</div></div>
       <div class="stat"><div class="stat-label">Unique shows seen</div><div class="stat-v">${uniqueShows}</div><div class="stat-sub">distinct titles</div></div>
     </section>`;
