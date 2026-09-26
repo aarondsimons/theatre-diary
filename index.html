@@ -264,7 +264,29 @@ CSV_REQUEST.catch(() => {}); // real error handling lives in load()
   .tf-btn[data-cat="custom"].active   { background: var(--ink-2); border-color: var(--ink-2); }
   .tf-btn[data-label="French Woods"].active { background: #8a5a2b; border-color: #8a5a2b; }
   .tf-btn.tf-milestone.active { background: linear-gradient(135deg, #fde68a, #fbbf24); border-color: #f4c64b; color: #6b4a00; }
+  .tf-btn.tf-person-btn.active { background: #b83280; border-color: #b83280; }
   .tf-divider { width: 1px; background: var(--rule); align-self: stretch; margin: 0 3px; }
+
+  /* Person multi-select dropdown */
+  .tf-person { position: relative; align-self: center; }
+  .tf-person-panel {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
+    min-width: 150px; max-height: 240px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 6px; background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 7px; box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  }
+  .tf-person-panel[hidden] { display: none; }
+  .tf-person-opt {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12px; color: var(--ink-2);
+    padding: 4px 8px; border-radius: 5px; cursor: pointer; white-space: nowrap;
+  }
+  .tf-person-opt:hover { background: var(--panel-2); color: var(--ink); }
+  .tf-person-opt input { accent-color: #b83280; cursor: pointer; margin: 0; }
+  .tf-person-btn { display: inline-flex; align-items: center; gap: 4px; }
+  .tf-chevron { transition: transform 0.18s ease; }
+  .tf-person-btn.open .tf-chevron { transform: rotate(180deg); }
 
   /* Toolbar */
   .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
@@ -1176,6 +1198,26 @@ function resolveCover(url) {
   return "";
 }
 
+// People Aaron tracks who-he-saw-a-show-with for. Chip order follows this list.
+const PEOPLE = ["Mom", "Dad", "Meira", "Martina", "Syd", "Maddie"];
+const PEOPLE_RE = PEOPLE.map(n => ({ name: n, re: new RegExp('\\b' + n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i') }));
+
+// Extract who Aaron saw a show with: on any notes line that STARTS with the word
+// "with" (e.g. "With Mom and Dad", "with Meira!", "with Mom (and Maddie)"), match
+// any name from PEOPLE anywhere in that line — parentheses and asides included,
+// since only listed names count. Lines like "Meira went too!" or "Birthday gift
+// from Dad!" don't start with "with", so they're ignored.
+function parsePeople(notes) {
+  if (!notes) return [];
+  const names = new Set();
+  notes.split(/\r?\n/).forEach(line => {
+    line = line.trim();
+    if (!/^with\b/i.test(line)) return;
+    PEOPLE_RE.forEach(p => { if (p.re.test(line)) names.add(p.name); });
+  });
+  return [...names];
+}
+
 const TAG_DEFS = [
   ["broadway","Broadway","location"],["offbway","Off-Broadway","location"],["off-broadway","Off-Broadway","location"],["off-bway","Off-Broadway","location"],
   ["nationaltour","National Tour","location"],["national tour","National Tour","location"],
@@ -1243,6 +1285,7 @@ function buildEntries(rows) {
       milestone: g("milestone"),
       theaterCity: g("theaterCity"),
       showtime: g("showtime"),
+      people: parsePeople(g("notes")),
       tags: []
     };
     const seen = new Set();
@@ -1274,7 +1317,7 @@ function buildEntries(rows) {
 
 // ───────────── State + render ─────────────
 let ENTRIES = [];
-let VIEW = { sort: "date-desc", search: "", limit: 10, activeTagByGroup: {}, mode: window.innerWidth <= 620 ? "list" : "grid", hideFuture: true, milestoneOnly: false };
+let VIEW = { sort: "date-desc", search: "", limit: 10, activeTagByGroup: {}, mode: window.innerWidth <= 620 ? "list" : "grid", hideFuture: true, milestoneOnly: false, people: [], peopleOpen: false };
 const isTouch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
 async function load() {
@@ -1468,16 +1511,20 @@ function buildTagFilters() {
   bycat['genre']?.delete('Concert');
   const groups = catOrder.filter(c => bycat[c]);
   if (!groups.length) return '';
-  const hasActive = Object.values(VIEW.activeTagByGroup).some(Boolean) || VIEW.milestoneOnly;
+  const hasActive = Object.values(VIEW.activeTagByGroup).some(Boolean) || VIEW.milestoneOnly || VIEW.people.length > 0;
+  const seenPeople = new Set(ENTRIES.flatMap(e => e.people || []));
+  const allPeople = PEOPLE.filter(n => seenPeople.has(n));
   const btns = groups.map((cat, gi) => {
     let tags = [...bycat[cat].values()];
     if (cat === 'date') tags.sort((a, b) => { const ai = DATE_ORDER.indexOf(a.label); const bi = DATE_ORDER.indexOf(b.label); return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi); });
     const divider = gi > 0 ? '<div class="tf-divider"></div>' : '';
     return divider + tags.map(t => `<button class="tf-btn${VIEW.activeTagByGroup[cat]===t.label?' active':''}" data-cat="${t.cat}" data-label="${esc(t.label)}">${esc(t.label)}</button>`).join('');
   }).join('');
+  const chevron = `<svg class="tf-chevron" viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4.5 L6 8 L9.5 4.5"/></svg>`;
+  const personCtrl = allPeople.length ? `<div class="tf-divider"></div><div class="tf-person" id="tf-person"><button class="tf-btn tf-person-btn${VIEW.people.length?' active':''}${VIEW.peopleOpen?' open':''}" id="tf-person-btn">Person${VIEW.people.length?` (${VIEW.people.length})`:''}${chevron}</button><div class="tf-person-panel" id="tf-person-panel"${VIEW.peopleOpen?'':' hidden'}>${allPeople.map(n => `<label class="tf-person-opt"><input type="checkbox" value="${esc(n)}"${VIEW.people.includes(n)?' checked':''}>${esc(n)}</label>`).join('')}</div></div>` : '';
   const milestoneBtn = `<div class="tf-divider"></div><button class="tf-btn tf-milestone${VIEW.milestoneOnly?' active':''}">Milestone</button>`;
   const clearBtn = hasActive ? `<div class="tf-divider"></div><button class="tf-btn tf-clear">Clear</button>` : '';
-  return `<div class="tag-filter"><span class="tag-filter-label">Filter</span>${btns}${milestoneBtn}${clearBtn}</div>`;
+  return `<div class="tag-filter"><span class="tag-filter-label">Filter</span>${btns}${personCtrl}${milestoneBtn}${clearBtn}</div>`;
 }
 
 function renderRepertoire() {
@@ -1514,6 +1561,7 @@ function filterAndSort() {
     list = list.filter(e => !e.date || e.date <= now);
   }
   if (VIEW.milestoneOnly) list = list.filter(e => e.milestone);
+  if (VIEW.people.length) list = list.filter(e => VIEW.people.every(n => (e.people||[]).includes(n)));
   if (Object.keys(VIEW.activeTagByGroup).some(k => VIEW.activeTagByGroup[k])) {
     list = list.filter(e => {
       return Object.entries(VIEW.activeTagByGroup).every(([cat, label]) => {
@@ -1657,9 +1705,36 @@ function renderTagFilters() {
   const wrap = document.getElementById('tag-filter-wrap');
   if (wrap) wrap.innerHTML = buildTagFilters();
   document.querySelector('.tf-clear')?.addEventListener('click', () => {
-    VIEW.activeTagByGroup = {}; VIEW.milestoneOnly = false; VIEW.limit = 10;
+    VIEW.activeTagByGroup = {}; VIEW.milestoneOnly = false; VIEW.people = []; VIEW.peopleOpen = false; VIEW.limit = 10;
     renderTagFilters(); renderRepRows();
   });
+  const personBtn = document.getElementById('tf-person-btn');
+  const personPanel = document.getElementById('tf-person-panel');
+  if (personBtn && personPanel) {
+    personBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      VIEW.peopleOpen = !VIEW.peopleOpen;
+      personPanel.hidden = !VIEW.peopleOpen;
+      personBtn.classList.toggle('open', VIEW.peopleOpen);
+    });
+    personPanel.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (cb.checked) { if (!VIEW.people.includes(cb.value)) VIEW.people.push(cb.value); }
+        else { VIEW.people = VIEW.people.filter(n => n !== cb.value); }
+        VIEW.limit = 10;
+        renderTagFilters(); renderRepRows();
+      });
+    });
+  }
+  if (!window._personOutsideBound) {
+    window._personOutsideBound = true;
+    document.addEventListener('click', (e) => {
+      if (!VIEW.peopleOpen || e.target.closest('#tf-person')) return;
+      VIEW.peopleOpen = false;
+      document.getElementById('tf-person-panel')?.setAttribute('hidden', '');
+      document.getElementById('tf-person-btn')?.classList.remove('open');
+    });
+  }
   document.querySelector('.tf-milestone')?.addEventListener('click', () => {
     VIEW.milestoneOnly = !VIEW.milestoneOnly; VIEW.limit = 10;
     renderTagFilters(); renderRepRows();
