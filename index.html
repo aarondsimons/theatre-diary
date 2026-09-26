@@ -706,7 +706,6 @@ CSV_REQUEST.catch(() => {}); // real error handling lives in load()
   .grade-sep { color: var(--ink-4); font-size: 12px; margin: 0 1px; }
   .playbill.hebrew .pb-title, .playbill.hebrew .pb-by { direction: rtl; unicode-bidi: embed; font-family: var(--ff-heb-serif); font-weight: 700; }
   .playbill.hebrew .pb-title { font-weight: 800; }
-  .playbill.hebrew .pb-notes { direction: rtl; text-align: right; font-family: var(--ff-heb-serif); }
   .rep-grid-card.hebrew .rep-grid-info { direction: rtl; }
   .rep-grid-card.hebrew .rep-grid-title { font-family: var(--ff-heb); direction: rtl; unicode-bidi: embed; }
 
@@ -2395,7 +2394,7 @@ function openDetail(idx) {
     ${(() => { const c = buildChips(e); const s = e.seat?`<span class="chip chip-seat"${/[֐-׿]/.test(e.seat)?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(e.seat)}</span>`:""; return (c||s)?`<div class="pb-tags">${c}${s}</div>`:""; })()}
     <div class="pb-rule"></div>
     ${meta.length ? `<dl class="pb-meta"${e.isHebrew?` style="direction:rtl"`:``}>${meta.map(([k,v,sub])=>`<div><dt${/[֐-׿]/.test(String(k))?` style="font-family:var(--ff-heb);text-align:right"`:``}>${esc(k)}</dt><dd${/[֐-׿]/.test(String(v))?` style="font-family:var(--ff-heb);direction:rtl"`:``}>${esc(v)}${sub?`<span class="pb-venue-sub">${esc(sub)}</span>`:""}</dd></div>`).join("")}</dl>` : ""}
-    ${e.notes || e.cast || e.review ? `<div class="pb-rule"></div>${e.cast ? `<div class="pb-notes" style="font-size:14px;color:var(--ink-2);">${esc(e.cast)}</div>` : ""}${e.review ? `<div class="pb-review"${/[֐-׿]/.test(String(e.review))?` style="font-family:var(--ff-heb-serif);direction:rtl;font-style:normal"`:``}>${esc(e.review)}</div>` : ""}${e.review && e.notes ? `<div class="pb-rule"></div>` : ""}${e.notes ? `<div class="pb-notes"${/[֐-׿]/.test(String(e.notes))?` style="font-family:var(--ff-heb-serif);direction:rtl"`:``}>${esc(e.notes)}</div>` : ""}` : ""}`;
+    ${e.notes || e.cast || e.review ? `<div class="pb-rule"></div>${e.cast ? `<div class="pb-notes" style="font-size:14px;color:var(--ink-2);">${esc(e.cast)}</div>` : ""}${e.review ? `<div class="pb-review"${/[֐-׿]/.test(String(e.review))?` style="font-family:var(--ff-heb-serif);direction:rtl;font-style:normal"`:``}>${esc(e.review)}</div>` : ""}${e.review && e.notes ? `<div class="pb-rule"></div>` : ""}${e.notes ? `<div class="pb-notes"${/[֐-׿]/.test(String(e.notes))?` style="font-family:var(--ff-heb-serif);direction:rtl;text-align:right"`:``}>${esc(e.notes)}</div>` : ""}` : ""}`;
   document.getElementById("scrim").classList.add("open");
 }
 function closeDetail() { document.getElementById("scrim").classList.remove("open"); }
