@@ -285,7 +285,7 @@ CSV_REQUEST.catch(() => {}); // real error handling lives in load()
   .tf-person-opt:hover { background: var(--panel-2); color: var(--ink); }
   .tf-person-opt input { accent-color: #b83280; cursor: pointer; margin: 0; }
   .tf-person-btn { display: inline-flex; align-items: center; gap: 4px; }
-  .tf-chevron { transition: transform 0.18s ease; }
+  .tf-chevron { transition: transform 0.18s ease; transform-box: fill-box; transform-origin: center; }
   .tf-person-btn.open .tf-chevron { transform: rotate(180deg); }
 
   /* Toolbar */
@@ -1520,9 +1520,9 @@ function buildTagFilters() {
     return divider + tags.map(t => `<button class="tf-btn${VIEW.activeTagByGroup[cat]===t.label?' active':''}" data-cat="${t.cat}" data-label="${esc(t.label)}">${esc(t.label)}</button>`).join('');
   }).join('');
   const chevron = `<svg class="tf-chevron" viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4.5 L6 8 L9.5 4.5"/></svg>`;
-  const personCtrl = allPeople.length ? `<div class="tf-divider"></div><div class="tf-person" id="tf-person"><button class="tf-btn tf-person-btn${VIEW.people.length?' active':''}${VIEW.peopleOpen?' open':''}" id="tf-person-btn">Person${VIEW.people.length?` (${VIEW.people.length})`:''}${chevron}</button><div class="tf-person-panel" id="tf-person-panel"${VIEW.peopleOpen?'':' hidden'}>${allPeople.map(n => `<label class="tf-person-opt"><input type="checkbox" value="${esc(n)}"${VIEW.people.includes(n)?' checked':''}>${esc(n)}</label>`).join('')}</div></div>` : '';
+  const personCtrl = allPeople.length ? `<div class="tf-divider"></div><div class="tf-person" id="tf-person"><button class="tf-btn tf-person-btn${VIEW.people.length?' active':''}${VIEW.peopleOpen?' open':''}" id="tf-person-btn"><span class="tf-person-label">Person${VIEW.people.length?` (${VIEW.people.length})`:''}</span>${chevron}</button><div class="tf-person-panel" id="tf-person-panel"${VIEW.peopleOpen?'':' hidden'}>${allPeople.map(n => `<label class="tf-person-opt"><input type="checkbox" value="${esc(n)}"${VIEW.people.includes(n)?' checked':''}>${esc(n)}</label>`).join('')}</div></div>` : '';
   const milestoneBtn = `<div class="tf-divider"></div><button class="tf-btn tf-milestone${VIEW.milestoneOnly?' active':''}">Milestone</button>`;
-  const clearBtn = hasActive ? `<div class="tf-divider"></div><button class="tf-btn tf-clear">Clear</button>` : '';
+  const clearBtn = hasActive ? `<div class="tf-divider tf-clear-divider"></div><button class="tf-btn tf-clear">Clear</button>` : '';
   return `<div class="tag-filter"><span class="tag-filter-label">Filter</span>${btns}${personCtrl}${milestoneBtn}${clearBtn}</div>`;
 }
 
@@ -1700,13 +1700,31 @@ function renderRepRows() {
   }
 }
 
+function clearAllFilters() {
+  VIEW.activeTagByGroup = {}; VIEW.milestoneOnly = false; VIEW.people = []; VIEW.peopleOpen = false; VIEW.limit = 10;
+  renderTagFilters(); renderRepRows();
+}
+
+// Add/remove the Clear button in place, so surgical updates (e.g. a person
+// checkbox) don't need to rebuild the whole filter bar.
+function syncClearBtn() {
+  const bar = document.querySelector('.tag-filter');
+  if (!bar) return;
+  const active = Object.values(VIEW.activeTagByGroup).some(Boolean) || VIEW.milestoneOnly || VIEW.people.length > 0;
+  const clear = bar.querySelector('.tf-clear');
+  if (active && !clear) {
+    bar.insertAdjacentHTML('beforeend', '<div class="tf-divider tf-clear-divider"></div><button class="tf-btn tf-clear">Clear</button>');
+    bar.querySelector('.tf-clear').addEventListener('click', clearAllFilters);
+  } else if (!active && clear) {
+    bar.querySelector('.tf-clear-divider')?.remove();
+    clear.remove();
+  }
+}
+
 function renderTagFilters() {
   const wrap = document.getElementById('tag-filter-wrap');
   if (wrap) wrap.innerHTML = buildTagFilters();
-  document.querySelector('.tf-clear')?.addEventListener('click', () => {
-    VIEW.activeTagByGroup = {}; VIEW.milestoneOnly = false; VIEW.people = []; VIEW.peopleOpen = false; VIEW.limit = 10;
-    renderTagFilters(); renderRepRows();
-  });
+  document.querySelector('.tf-clear')?.addEventListener('click', clearAllFilters);
   const personBtn = document.getElementById('tf-person-btn');
   const personPanel = document.getElementById('tf-person-panel');
   if (personBtn && personPanel) {
@@ -1721,7 +1739,11 @@ function renderTagFilters() {
         if (cb.checked) { if (!VIEW.people.includes(cb.value)) VIEW.people.push(cb.value); }
         else { VIEW.people = VIEW.people.filter(n => n !== cb.value); }
         VIEW.limit = 10;
-        renderTagFilters(); renderRepRows();
+        // Update in place — don't rebuild the bar, which would flicker and close the panel.
+        personBtn.classList.toggle('active', VIEW.people.length > 0);
+        personBtn.querySelector('.tf-person-label').textContent = 'Person' + (VIEW.people.length ? ` (${VIEW.people.length})` : '');
+        syncClearBtn();
+        renderRepRows();
       });
     });
   }
@@ -1738,7 +1760,7 @@ function renderTagFilters() {
     VIEW.milestoneOnly = !VIEW.milestoneOnly; VIEW.limit = 10;
     renderTagFilters(); renderRepRows();
   });
-  document.querySelectorAll('.tf-btn:not(.tf-clear):not(.tf-milestone)').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.tf-btn:not(.tf-clear):not(.tf-milestone):not(.tf-person-btn)').forEach(b => b.addEventListener('click', () => {
     const { label, cat } = b.dataset;
     VIEW.activeTagByGroup[cat] = VIEW.activeTagByGroup[cat] === label ? null : label;
     VIEW.limit = 10;
