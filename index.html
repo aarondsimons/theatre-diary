@@ -64,6 +64,18 @@ CSV_REQUEST.catch(() => {}); // real error handling lives in load()
     --accent: #007FFF;
     --accent-soft: #e0f0ff;
     --chart-accent: #3690FF;
+    /* Chart palette (pie slices, locale bars). Overridden in dark mode below so
+       the SVG charts recolor live with the theme — no redraw needed. */
+    --chart-blue-0: #3690FF;
+    --chart-blue-1: #5ba8ff;
+    --chart-blue-2: #7eb8fd;
+    --chart-blue-3: #93c5fd;
+    --chart-blue-4: #bfdbfe;
+    --chart-blue-5: #dbeafe;
+    /* Seat-map frequency scale (1 / 2 / 3+ visits) */
+    --sm-freq-1: #3690FF;
+    --sm-freq-2: #0060cc;
+    --sm-freq-3: #004499;
     --curtain-fold: #005FCC;
     --curtain-swag: #004A9E;
     --shadow-sm: 0 1px 2px rgba(30,35,50,0.04), 0 2px 8px rgba(30,35,50,0.04);
@@ -963,6 +975,15 @@ CSV_REQUEST.catch(() => {}); // real error handling lives in load()
       --accent:       #3690FF;
       --accent-soft:  #0a2540;
       --chart-accent: #2563eb;
+      --chart-blue-0: #2563eb;
+      --chart-blue-1: #1d4ed8;
+      --chart-blue-2: #1a3eb1;
+      --chart-blue-3: #182f8a;
+      --chart-blue-4: #172554;
+      --chart-blue-5: #0f1730;
+      --sm-freq-1: #2563eb;
+      --sm-freq-2: #5ba8ff;
+      --sm-freq-3: #93c5fd;
       --curtain-fold: #1d4ed8;
       --curtain-swag: #1e40af;
       --shadow-sm:   0 1px 2px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.4);
@@ -1160,8 +1181,9 @@ function findCol(headers, aliases) {
 }
 
 const AC = getComputedStyle(document.documentElement).getPropertyValue('--chart-accent').trim() || '#3690FF';
-const CHART_BLUES_LIGHT = ['#3690FF','#5ba8ff','#7eb8fd','#93c5fd','#bfdbfe','#dbeafe'];
-const CHART_BLUES_DARK  = ['#2563eb','#1d4ed8','#1a3eb1','#182f8a','#172554','#0f1730'];
+// One palette that resolves to the theme's colors via CSS variables (defined in
+// :root + the dark-mode block), so the SVG charts recolor live with the theme.
+const CHART_BLUES = ['var(--chart-blue-0)','var(--chart-blue-1)','var(--chart-blue-2)','var(--chart-blue-3)','var(--chart-blue-4)','var(--chart-blue-5)'];
 const MONTH_MAP = { january:0,jan:0,february:1,feb:1,march:2,mar:2,april:3,apr:3,may:4,june:5,jun:5,july:6,jul:6,august:7,aug:7,september:8,sep:8,sept:8,october:9,oct:9,november:10,nov:10,december:11,dec:11 };
 function parseDate(s) {
   if (!s) return null;
@@ -1961,7 +1983,10 @@ function attachListeners() {
 
 function renderBoards() {
   const seen = seenEntries();
-  const darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  // Use the CSS variable for the accent (not the resolved global hex) so these
+  // SVG charts recolor live with the theme. Shadows the module-level AC, which
+  // stays a real hex for the map's WebGL layers (they can't read CSS vars).
+  const AC = 'var(--chart-accent)';
   // ── Row 1: Venues / Shows / Rating distribution ──
   const venueCounts = {}; seen.forEach(e => { if (e.venue) { if (!venueCounts[e.venue]) venueCounts[e.venue]={count:0,ratings:[]}; venueCounts[e.venue].count++; if (e.rating!=null) venueCounts[e.venue].ratings.push(e.rating); } });
   const venues = Object.entries(venueCounts).sort((a,b)=>b[1].count-a[1].count||a[0].localeCompare(b[0])).slice(0,7);
@@ -2009,7 +2034,7 @@ function renderBoards() {
     levels[e.seatLocation].count++;
     if(e.rating!=null) levels[e.seatLocation].ratings.push(e.rating);
   });
-  const CB = darkMode ? CHART_BLUES_DARK : CHART_BLUES_LIGHT;
+  const CB = CHART_BLUES;
   const PIE_COLORS = {'Orchestra':AC,'Mezzanine':CB[2]};
   const svgPie = (segs, sz=110) => {
     const total=segs.reduce((s,d)=>s+d.v,0); if(!total) return '';
@@ -2097,7 +2122,7 @@ function renderBoards() {
     if (match) { match.count++; if(e.rating!=null) match.ratings.push(e.rating); }
     else       { otherVenueD.count++; if(e.rating!=null) otherVenueD.ratings.push(e.rating); }
   });
-  const LOCALE_BLUES = darkMode ? CHART_BLUES_DARK : CHART_BLUES_LIGHT;
+  const LOCALE_BLUES = CHART_BLUES;
   const venueSegs = [...venueTypeData, otherVenueD].filter(d => d.count > 0).map(d => ({...d, v:d.count})).sort((a,b) => b.v - a.v);
   venueSegs.forEach((d, i) => { d.color = LOCALE_BLUES[i] || '#dbeafe'; });
   const venuePieTotal = venueSegs.reduce((s,d)=>s+d.v,0)||1;
@@ -2604,9 +2629,8 @@ function redrawSeatMap(s) {
   const { orch, mezz, mezzTop, cellMap, vbX, vbY, vbW, vbH, rowLabels, orchMaxY } = s;
   const mezzMinY = Math.min(...mezz.map(m => m.y));
 
-  const smBlues = window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? ['#2563eb','#5ba8ff','#93c5fd']
-    : ['#3690FF','#0060cc','#004499'];
+  // CSS variables so the seat dots recolor live with the theme (see :root).
+  const smBlues = ['var(--sm-freq-1)','var(--sm-freq-2)','var(--sm-freq-3)'];
   const freqColor = n => n >= 3 ? smBlues[2] : n === 2 ? smBlues[1] : smBlues[0];
 
   // Resolve a screen position for each visited cell.
