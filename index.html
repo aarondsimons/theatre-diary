@@ -2991,9 +2991,23 @@ async function initMap() {
     maplibregl.setRTLTextPlugin('https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.js', null, true);
   }
 
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const darkMQ = window.matchMedia('(prefers-color-scheme: dark)');
   const STYLE_LIGHT = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
   const STYLE_DARK  = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+
+  // CARTO basemap API key (domain-locked to theatre.aarondsimons.com). Appending
+  // ?key= to the style.json doesn't propagate into the tile/sprite/glyph URLs it
+  // references, so the key is attached per-request via transformRequest instead.
+  // Only sent in production — the key can't authenticate from localhost, so the
+  // local preview keeps using the keyless public basemaps.
+  const CARTO_KEY = 'cb1_2tbd_1_5866f529a8cb547b80dbc7ce';
+  const useCartoKey = location.hostname === 'theatre.aarondsimons.com';
+  const cartoTransform = (url) => {
+    if (useCartoKey && url.includes('cartocdn.com') && !/[?&]key=/.test(url)) {
+      return { url: url + (url.includes('?') ? '&' : '?') + 'key=' + CARTO_KEY };
+    }
+    return { url };
+  };
 
   const maxCount = Math.max(...venues.map(v => v.entries.length));
 
@@ -3013,7 +3027,8 @@ async function initMap() {
 
   const map = new maplibregl.Map({
     container: 'venue-map',
-    style: prefersDark ? STYLE_DARK : STYLE_LIGHT,
+    style: darkMQ.matches ? STYLE_DARK : STYLE_LIGHT,
+    transformRequest: cartoTransform,
     bounds,
     fitBoundsOptions: FIT,
     attributionControl: false,
@@ -3051,9 +3066,12 @@ async function initMap() {
     return { html, rtl: isHeb };
   }
 
-  map.on('load', () => {
+  // (Re)apply our basemap recoloring + data layers. Runs on first load, and again
+  // after a live theme switch — setStyle() discards everything the style owns, so
+  // the recoloring, venues source, and heat/pins layers must be re-added each time.
+  function addDataLayers() {
     // Recolor the Positron basemap to match the diary: white land, soft blue water.
-    if (!prefersDark) {
+    if (!darkMQ.matches) {
       map.setPaintProperty('background', 'background-color', '#ffffff');
       map.setPaintProperty('water', 'fill-color', '#dfe6ec');
       // Recolor the reddish admin borders to neutral blue-grey
@@ -3061,6 +3079,9 @@ async function initMap() {
       map.setPaintProperty('boundary_state', 'line-color', '#e4e7ed');
       map.setPaintProperty('boundary_country_inner', 'line-color', '#dadee6');
       map.setPaintProperty('boundary_country_outline', 'line-color', '#f4f6f9');
+    } else {
+      // Dark: the country border lines read a touch bright in dark-matter — dim them.
+      if (map.getLayer('boundary_country_inner')) map.setPaintProperty('boundary_country_inner', 'line-opacity', 0.45);
     }
 
     // Hold text labels until more zoomed in — keeps the default (wide) view clean
@@ -3081,10 +3102,10 @@ async function initMap() {
       if (l) map.setLayerZoomRange(id, 3, l.maxzoom != null ? l.maxzoom : 24);
     });
 
-    map.addSource('venues', { type: 'geojson', data: geojson });
+    if (!map.getSource('venues')) map.addSource('venues', { type: 'geojson', data: geojson });
 
     // Heatmap layer (hidden until toggled on)
-    map.addLayer({
+    if (!map.getLayer('venue-heat')) map.addLayer({
       id: 'venue-heat', type: 'heatmap', source: 'venues',
       layout: { visibility: 'none' },
       paint: {
@@ -3098,7 +3119,7 @@ async function initMap() {
     });
 
     // Pins layer: radius grows with count, fill interpolates light→deep blue
-    map.addLayer({
+    if (!map.getLayer('venue-pins')) map.addLayer({
       id: 'venue-pins', type: 'circle', source: 'venues',
       paint: {
         'circle-radius': ['min', ['+', 5, ['*', ['get', 'count'], 1.5]], 18],
@@ -3108,6 +3129,15 @@ async function initMap() {
         'circle-opacity': 0.9
       }
     });
+
+    // Preserve the current pins/heat choice across a restyle
+    const pinsVisible = mode === 'pins';
+    map.setLayoutProperty('venue-pins', 'visibility', pinsVisible ? 'visible' : 'none');
+    map.setLayoutProperty('venue-heat', 'visibility', pinsVisible ? 'none' : 'visible');
+  }
+
+  map.on('load', () => {
+    addDataLayers();
 
     map.on('mouseenter', 'venue-pins', () => { map.getCanvas().style.cursor = 'pointer'; });
     map.on('mouseleave', 'venue-pins', () => { map.getCanvas().style.cursor = ''; });
@@ -3137,6 +3167,19 @@ async function initMap() {
         if (dx || dy) map.panBy([dx, dy], { duration: 200 });
       });
     });
+  });
+
+  // Live light/dark: when the OS theme flips, swap the basemap and re-apply our
+  // layers. setStyle() discards the recoloring, source, and pins/heat layers, and
+  // keeps the current camera. We re-add on the map's 'idle' event — it fires once
+  // the new basemap has fully loaded and rendered, so the layers we add then won't
+  // be wiped by a still-finishing restyle. (Earlier attempts used 'style.load',
+  // which this MapLibre build never emits, and a 'styledata' recheck that could
+  // deadlock if the style finished loading without another styledata — both left
+  // the pins and styling stripped.) Idle until the theme actually changes.
+  darkMQ.addEventListener('change', (e) => {
+    map.setStyle(e.matches ? STYLE_DARK : STYLE_LIGHT);
+    map.once('idle', addDataLayers);
   });
 
   // Pins / Heatmap toggle
