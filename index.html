@@ -1275,7 +1275,7 @@ function buildEntries(rows) {
     seat: findCol(headers,["seat"]),
     seatRow: findCol(headers,["seat row"]),
     seatNum: findCol(headers,["seat number"]),
-    seatLocation: findCol(headers,["seat location"]),
+    seatLevel: findCol(headers,["seat level"]),
     milestone: findCol(headers,["milestone"]),
     theaterCity: findCol(headers,["theater+city"]),
     showtime: findCol(headers,["showtime"]),
@@ -1301,7 +1301,7 @@ function buildEntries(rows) {
       type: g("type"), playwright: g("playwright"), lyricist: g("lyricist"),
       director: g("director"), composer: g("composer"), translator: g("translator"),
       review: g("review"), notes: g("notes"), cast: g("cast"), company: g("company"),
-      seat: g("seat"), seatRow: g("seatRow"), seatLocation: g("seatLocation"),
+      seat: g("seat"), seatRow: g("seatRow"), seatLevel: g("seatLevel"),
       seatNum: (() => { const n = parseInt(g("seatNum"), 10); return isNaN(n) ? null : n; })(),
       milestone: g("milestone"),
       theaterCity: g("theaterCity"),
@@ -2029,10 +2029,10 @@ function renderBoards() {
 
   // Level: all shows
   const levels = {};
-  seen.filter(e=>e.seatLocation).forEach(e=>{
-    if(!levels[e.seatLocation]) levels[e.seatLocation]={count:0,ratings:[]};
-    levels[e.seatLocation].count++;
-    if(e.rating!=null) levels[e.seatLocation].ratings.push(e.rating);
+  seen.filter(e=>e.seatLevel).forEach(e=>{
+    if(!levels[e.seatLevel]) levels[e.seatLevel]={count:0,ratings:[]};
+    levels[e.seatLevel].count++;
+    if(e.rating!=null) levels[e.seatLevel].ratings.push(e.rating);
   });
   const CB = CHART_BLUES;
   const PIE_COLORS = {'Orchestra':AC,'Mezzanine':CB[2]};
@@ -2570,7 +2570,7 @@ function initSeatMap() {
   // Build cell map — key by normalized section/row/num
   const matched = seenEntries().map(e => {
     const row = ROW_ALIASES[e.seatRow] || e.seatRow;
-    let section = e.seatLocation;
+    let section = e.seatLevel;
     if (section === "Balcony") section = "Mezzanine";
     if (!section) {
       // Try to infer section from broadway defaults if we have a row & num but no section
@@ -2637,7 +2637,7 @@ function redrawSeatMap(s) {
   const placed = Object.entries(cellMap).map(([key, perfs]) => {
     const rep = perfs[0];
     const row = ROW_ALIASES[rep.seatRow] || rep.seatRow;
-    let section = rep.seatLocation === 'Balcony' ? 'Mezzanine' : (rep.seatLocation || 'Orchestra');
+    let section = rep.seatLevel === 'Balcony' ? 'Mezzanine' : (rep.seatLevel || 'Orchestra');
     const seats = section === 'Mezzanine' ? mezz : orch;
     const p = seats.find(x => x.row === row && x.num === rep.seatNum);
     return p ? { key, n: perfs.length, x: p.x, y: p.y } : null;
