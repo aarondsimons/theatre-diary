@@ -5,11 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Aaron's Theatre Diary</title>
 <script>
-// range=A:AA stops one column short of Playbill64 (column AB), which holds base64
-// image blobs the site never uses — ~98% of the sheet's download weight. The site
-// looks columns up by header name, so their order doesn't matter, but this range
-// boundary does: add new columns BEFORE "Playbill cover", never after Playbill64.
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1FXASLMEeovADIFo8akP8G1aNCOl_r12RfCgla-jIWBRWW2Ie7rYpTBr1a2bvEd0FlQXnBj/pub?output=csv&range=A:AA";
+// Pulls the whole published sheet. Columns are looked up by header name, so their order doesn't matter.
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_6YYrB1FXASLMEeovADIFo8akP8G1aNCOl_r12RfCgla-jIWBRWW2Ie7rYpTBr1a2bvEd0FlQXnBj/pub?output=csv";
 // Kick the diary data off first thing, before the fonts and map library below can
 // hold up the parser. load() awaits this instead of starting its own fetch, so the
 // download is already in flight by the time the page is ready to use it.
