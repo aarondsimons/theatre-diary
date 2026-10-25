@@ -3220,12 +3220,9 @@ async function initMap() {
   pinsBtn?.addEventListener('click', () => setMode('pins'));
   heatBtn?.addEventListener('click', () => setMode('heat'));
 
-  // Reset view. A smooth zoom-out over a huge distance reads as an abrupt cut,
-  // so above a threshold we jump instantly; within a few levels we animate.
-  const RESET_JUMP_ZOOM = 9;
+  // Reset view — always animate the zoom-out, regardless of starting zoom.
   document.getElementById('map-reset-btn')?.addEventListener('click', () => {
-    if (map.getZoom() > RESET_JUMP_ZOOM) map.fitBounds(bounds, { ...FIT, animate: false });
-    else map.fitBounds(bounds, { ...FIT, duration: 1100 });
+    map.fitBounds(bounds, { ...FIT, duration: 1100 });
   });
 
   // Init slider for map toggle
